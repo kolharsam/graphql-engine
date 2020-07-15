@@ -44,7 +44,7 @@ import styles from '../../../Common/Common.scss';
 const SchemaPermissionsButton = ({ schema }) => (
   <Link to={getSchemaPermissionsRoute(schema)} style={{ marginLeft: '20px' }}>
     <Button color="white" size="xs" className={styles.add_mar_left_mid}>
-      Show Permissions Summary
+      Take me to Permissions Page
     </Button>
   </Link>
 );
