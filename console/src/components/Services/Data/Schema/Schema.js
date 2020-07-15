@@ -255,12 +255,12 @@ class Schema extends Component {
         createBtn = (
           <Button
             data-test="data-create-table"
-            color="yellow"
+            color="red"
             size="sm"
             className={styles.add_mar_left}
             onClick={handleClick}
           >
-            Create Table
+            Create Table for {currentSchema}
           </Button>
         );
       }
