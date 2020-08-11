@@ -350,6 +350,27 @@ func (h *HasuraDB) getVersions() (err error) {
 	return nil
 }
 
+// TruncateMigrationsTable will be used to clear the contents of the schema_migrations table
+func (h *HasuraDB) TruncateMigrationTable() error {
+	query := HasuraQuery{
+		Type: "run_sql",
+		Args: HasuraArgs{
+			SQL: `TRUNCATE hdb_catalog.schema_migrations;`,
+		},
+	}
+
+	resp, body, err := h.sendv1Query(query)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return NewHasuraError(body, h.config.isCMD)
+	}
+
+	return nil
+}
+
 func (h *HasuraDB) Version() (version int64, dirty bool, err error) {
 	tmpVersion, ok := h.migrations.Last()
 	if !ok {
