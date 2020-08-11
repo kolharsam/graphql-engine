@@ -37,6 +37,7 @@ func NewMigrateCmd(ec *cli.ExecutionContext) *cobra.Command {
 		newMigrateStatusCmd(ec),
 		newMigrateCreateCmd(ec),
 		newMigrateSquashCmd(ec),
+		newMigrateResetCommand(ec),
 	)
 
 	f := migrateCmd.PersistentFlags()
