@@ -320,6 +320,10 @@ func (m *Migrate) GetUnappliedMigrations(version uint64) []uint64 {
 	return m.sourceDrv.GetUnappliedMigrations(version)
 }
 
+func (m *Migrate) TruncateDBMigrationsTable() error {
+	return m.databaseDrv.TruncateMigrationTable()
+}
+
 func (m *Migrate) GetIntroSpectionSchema() (interface{}, error) {
 	return m.databaseDrv.GetIntroSpectionSchema()
 }
@@ -1850,7 +1854,7 @@ func (m *Migrate) ExportDataDump(tableNames []string) ([]byte, error) {
 	// to support tables starting with capital letters
 	modifiedTableNames := make([]string, len(tableNames))
 	for idx, val := range tableNames {
-		modifiedTableNames[idx] = fmt.Sprintf(`"%s"`, val) 
+		modifiedTableNames[idx] = fmt.Sprintf(`"%s"`, val)
 	}
 	return m.databaseDrv.ExportDataDump(modifiedTableNames)
 }

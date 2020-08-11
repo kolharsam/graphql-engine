@@ -96,6 +96,10 @@ func (m *mockDriver) Squash(list *CustomList, ret chan<- interface{}) {
 	return
 }
 
+func (m *mockDriver) TruncateMigrationTable() error {
+	return nil
+}
+
 func (m *mockDriver) SetMetadataPlugins(plugins types.MetadataPlugins) {
 	return
 }

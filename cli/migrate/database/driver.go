@@ -106,6 +106,8 @@ type Driver interface {
 
 	Squash(list *CustomList, ret chan<- interface{})
 
+	TruncateMigrationTable() error
+
 	SettingsDriver
 
 	MetadataDriver
