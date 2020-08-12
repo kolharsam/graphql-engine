@@ -27,6 +27,7 @@ If you do have such headers configured, then you must update the header configur
 - cli: improve error messages thrown when metadata apply fails (#5513)
 - cli: fix issue with creating seed migrations while using tables with capital letters (closes #5532) (#5549)
 - cli: add `migrate reset` command (closes #5373) (TODO: add PR number here)
+- docs: add `hasura migrate reset` command to docs 
 - build: introduce additional log kinds for cli-migrations image (#5529)
 
 ## `v1.3.0`
