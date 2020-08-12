@@ -16,12 +16,8 @@ func newMigrateResetCommand(ec *cli.ExecutionContext) *cobra.Command {
 		EC: ec,
 	}
 	migrateResetCmd := &cobra.Command{
-		Use:   "reset",
-		Short: "Clear migration history",
-		Example: `
-			# to clear all migrations until the current state
-			hasura migrate reset
-		`,
+		Use:          "reset",
+		Short:        "Clear migration history (locally and on your hasura database)",
 		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return ec.Prepare()
