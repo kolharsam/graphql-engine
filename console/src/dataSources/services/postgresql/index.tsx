@@ -125,10 +125,6 @@ export const getFunctionSchema = (pgFunction: PGFunction) => {
   return pgFunction.function_schema;
 };
 
-export const getFunctionName = (pgFunction: PGFunction) => {
-  return pgFunction.function_name;
-};
-
 export const getFunctionDefinition = (pgFunction: PGFunction) => {
   return pgFunction.function_definition;
 };
@@ -147,7 +143,7 @@ export const findFunction = (
 ) => {
   return allFunctions.find(
     f =>
-      getFunctionName(f) === functionName &&
+      f.function_name === functionName &&
       getFunctionSchema(f) === functionSchema
   );
 };
@@ -208,7 +204,7 @@ const initQueries = {
         name: 'hdb_function',
         schema: 'hdb_catalog',
       },
-      columns: ['function_name', 'function_schema', 'is_system_defined'],
+      columns: ['*'],
       order_by: [{ column: 'function_name', type: 'asc', nulls: 'last' }],
       where: {
         function_schema: '', // needs to be set later
@@ -500,7 +496,6 @@ export const postgres: DataSourcesAPI = {
   isTable,
   displayTableName,
   getFunctionSchema,
-  getFunctionName,
   getFunctionDefinition,
   getSchemaFunctions,
   findFunction,
