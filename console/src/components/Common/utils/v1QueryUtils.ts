@@ -181,33 +181,6 @@ export const generateDropActionQuery = (name: string) => {
   };
 };
 
-export const getFetchActionsQuery = () => {
-  return {
-    type: 'select',
-    args: {
-      table: {
-        name: 'hdb_action',
-        schema: 'hdb_catalog',
-      },
-      columns: ['*.*'],
-      order_by: [{ column: 'action_name', type: 'asc' }],
-    },
-  };
-};
-
-export const getFetchCustomTypesQuery = () => {
-  return {
-    type: 'select',
-    args: {
-      table: {
-        name: 'hdb_custom_types',
-        schema: 'hdb_catalog',
-      },
-      columns: ['*.*'],
-    },
-  };
-};
-
 type CustomRootFields = {
   select: string;
   select_by_pk: string;

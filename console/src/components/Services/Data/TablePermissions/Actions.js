@@ -260,7 +260,6 @@ const permRemoveRole = (tableSchema, roleName) => {
     const currRolePermissions = tableSchema.permissions.find(
       p => p.role_name === role
     );
-
     const permissionsUpQueries = [];
     const permissionsDownQueries = [];
 

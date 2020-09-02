@@ -1,3 +1,6 @@
+import { push } from 'react-router-redux';
+import globals from '../../../Globals';
+
 /*** DATA ROUTES ***/
 
 export const getSchemaBaseRoute = schemaName => {
@@ -155,4 +158,12 @@ export const getAdhocProcessedEventsRoute = type => {
 };
 export const getAdhocEventsInfoRoute = type => {
   return getAdhocEventsRoute(type, 'info');
+};
+
+export const redirectToMetadataStatus = () => {
+  return dispatch => {
+    return dispatch(
+      push(globals.urlPrefix + '/settings/metadata-status?is_redirected=true')
+    );
+  };
 };
