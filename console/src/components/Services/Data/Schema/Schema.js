@@ -24,8 +24,10 @@ import { getRelDef } from '../TableRelationships/utils';
 import {
   getSchemaAddTableRoute,
   getSchemaPermissionsRoute,
+  manageDatabasesRoute,
 } from '../../../Common/utils/routesUtils';
-import { createNewSchema, deleteCurrentSchema } from './Actions';
+// import { createNewSchema, deleteCurrentSchema } from './Actions';
+import { createNewSchema } from './Actions';
 import CollapsibleToggle from '../../../Common/CollapsibleToggle/CollapsibleToggle';
 import GqlCompatibilityWarning from '../../../Common/GqlCompatibilityWarning/GqlCompatibilityWarning';
 import {
@@ -39,106 +41,115 @@ import ToolTip from '../../../Common/Tooltip/Tooltip';
 import KnowMoreLink from '../../../Common/KnowMoreLink/KnowMoreLink';
 import RawSqlButton from '../Common/Components/RawSqlButton';
 import styles from '../../../Common/Common.scss';
+import { getConsistentFunctions } from '../Function/selector';
 
 const SchemaPermissionsButton = ({ schema }) => (
-  <Link to={getSchemaPermissionsRoute(schema)} style={{ marginLeft: '20px' }}>
-    <Button color="white" size="xs" className={styles.add_mar_left_mid}>
+  <Link to={getSchemaPermissionsRoute(schema)}>
+    <Button color="white" size="xs">
       Show Permissions Summary
     </Button>
   </Link>
 );
 
-const OpenCreateSection = React.forwardRef(
-  ({ ref, value, handleInputChange, handleCreate, handleCancelCreate }) => (
-    <div className={styles.display_inline + ' ' + styles.add_mar_left}>
-      <div className={styles.display_inline}>
-        <input
-          type="text"
-          value={value}
-          onChange={handleInputChange}
-          placeholder="schema_name"
-          className={`form-control input-sm ${styles.display_inline}`}
-          ref={ref}
-        />
-      </div>
-      <Button
-        color="white"
-        size="xs"
-        onClick={handleCreate}
-        className={styles.add_mar_left_mid}
-      >
-        Create
-      </Button>
-      <Button
-        color="white"
-        size="xs"
-        onClick={handleCancelCreate}
-        className={styles.add_mar_left_mid}
-      >
-        Cancel
-      </Button>
-    </div>
-  )
+const ManageDatabasesButton = () => (
+  <Link to={manageDatabasesRoute} className={styles.add_mar_40}>
+    <Button color="white" size="sm">
+      Manage Databases
+    </Button>
+  </Link>
 );
 
-const ClosedCreateSection = ({ onClick }) => (
-  <Button color="white" size="xs" onClick={onClick} title="Create new schema">
-    Create
-  </Button>
-);
+// const OpenCreateSection = React.forwardRef(
+//   ({ ref, value, handleInputChange, handleCreate, handleCancelCreate }) => (
+//     <div className={styles.display_inline + ' ' + styles.add_mar_left}>
+//       <div className={styles.display_inline}>
+//         <input
+//           type="text"
+//           value={value}
+//           onChange={handleInputChange}
+//           placeholder="schema_name"
+//           className={`form-control input-sm ${styles.display_inline}`}
+//           ref={ref}
+//         />
+//       </div>
+//       <Button
+//         color="white"
+//         size="xs"
+//         onClick={handleCreate}
+//         className={styles.add_mar_left_mid}
+//       >
+//         Create
+//       </Button>
+//       <Button
+//         color="white"
+//         size="xs"
+//         onClick={handleCancelCreate}
+//         className={styles.add_mar_left_mid}
+//       >
+//         Cancel
+//       </Button>
+//     </div>
+//   )
+// );
 
-const CreateSchemaSection = React.forwardRef(
-  ({
-    ref,
-    schema,
-    migrationMode,
-    createSchemaOpen,
-    schemaNameEdit,
-    handleCancelCreateNewSchema,
-    handleCreateNewClick,
-    handleSchemaNameChange,
-    handleCreateClick,
-  }) =>
-    migrationMode && (
-      <div className={`${styles.display_flex}`}>
-        {createSchemaOpen ? (
-          <OpenCreateSection
-            ref={ref}
-            value={schemaNameEdit}
-            handleInputChange={handleSchemaNameChange}
-            handleCreate={handleCreateClick}
-            handleCancelCreate={handleCancelCreateNewSchema}
-          />
-        ) : (
-          <ClosedCreateSection onClick={handleCreateNewClick} />
-        )}
-        <SchemaPermissionsButton schema={schema} />
-      </div>
-    )
-);
+// const ClosedCreateSection = ({ onClick }) => (
+//   <Button color="white" size="xs" onClick={onClick} title="Create new schema">
+//     Create
+//   </Button>
+// );
 
-const DeleteSchemaButton = ({ dispatch, migrationMode }) => {
-  const successCb = () => {
-    dispatch(updateCurrentSchema('public'));
-  };
+// const CreateSchemaSection = React.forwardRef(
+//   (
+//     {
+//       migrationMode,
+//       createSchemaOpen,
+//       schemaNameEdit,
+//       handleCancelCreateNewSchema,
+//       handleCreateNewClick,
+//       handleSchemaNameChange,
+//       handleCreateClick,
+//     },
+//     ref
+//   ) =>
+//     migrationMode && (
+//       <div className={`${styles.display_flex}`}>
+//         {createSchemaOpen ? (
+//           <OpenCreateSection
+//             ref={ref}
+//             value={schemaNameEdit}
+//             handleInputChange={handleSchemaNameChange}
+//             handleCreate={handleCreateClick}
+//             handleCancelCreate={handleCancelCreateNewSchema}
+//           />
+//         ) : (
+//           <ClosedCreateSection onClick={handleCreateNewClick} />
+//         )}
+//       </div>
+//     )
+// );
 
-  const handleDelete = () => {
-    dispatch(deleteCurrentSchema(successCb));
-  };
+// const DeleteSchemaButton = ({ dispatch, migrationMode }) => {
+//   const successCb = () => {
+//     dispatch(updateCurrentSchema('public'));
+//   };
 
-  return (
-    migrationMode && (
-      <Button
-        color="white"
-        size="xs"
-        onClick={handleDelete}
-        title="Delete current schema"
-      >
-        Delete
-      </Button>
-    )
-  );
-};
+//   const handleDelete = () => {
+//     dispatch(deleteCurrentSchema(successCb));
+//   };
+
+//   return (
+//     migrationMode && (
+//       <Button
+//         color="white"
+//         size="xs"
+//         onClick={handleDelete}
+//         title="Delete current schema"
+//       >
+//         Delete
+//       </Button>
+//     )
+//   );
+// };
 
 class Schema extends Component {
   constructor(props) {
@@ -211,14 +222,12 @@ class Schema extends Component {
     };
 
     const _getTrackableFunctions = () => {
-      const trackedFuncNames = trackedFunctions.map(fn =>
-        dataSource.getFunctionName(fn)
-      );
+      const trackedFuncNames = trackedFunctions.map(fn => fn.name);
 
       // Assuming schema for both function and tables are same
       // return function which are tracked
       const filterCondition = func => {
-        return !trackedFuncNames.includes(dataSource.getFunctionName(func));
+        return !trackedFuncNames.includes(func.name);
       };
 
       return functionsList.filter(filterCondition);
@@ -278,7 +287,21 @@ class Schema extends Component {
 
       return (
         <div className={styles.add_mar_top}>
-          <div className={styles.display_inline}>Current Postgres schema</div>
+          <div className={styles.display_inline}>Database</div>
+          <div className={styles.display_inline}>
+            <select
+              onChange={handleSchemaChange}
+              className={`${styles.add_mar_left_mid} ${styles.width_auto} form-control`}
+              value={currentSchema}
+            >
+              <option>myDB (postgres)</option>
+              {/* {getSchemaOptions()} */}
+              {/* TODO: should be the available database options  */}
+            </select>
+          </div>
+          <div className={`${styles.display_inline} ${styles.add_mar_left}`}>
+            Database Schema
+          </div>
           <div className={styles.display_inline}>
             <select
               onChange={handleSchemaChange}
@@ -288,29 +311,7 @@ class Schema extends Component {
               {getSchemaOptions()}
             </select>
           </div>
-          <div className={`${styles.display_inline} ${styles.add_mar_left}`}>
-            <div className={styles.display_inline}>
-              <DeleteSchemaButton
-                dispatch={dispatch}
-                migrationMode={migrationMode}
-              />
-            </div>
-            <div
-              className={`${styles.display_inline} ${styles.add_mar_left_mid}`}
-            >
-              <CreateSchemaSection
-                ref={this.schemaNameInputRef}
-                schema={currentSchema}
-                migrationMode={migrationMode}
-                schemaNameEdit={this.state.schemaNameEdit}
-                createSchemaOpen={this.state.createSchemaOpen}
-                handleCancelCreateNewSchema={this.cancelCreateNewSchema}
-                handleCreateNewClick={this.onCreateNewClick}
-                handleSchemaNameChange={this.onChangeSchemaName}
-                handleCreateClick={this.handleCreateClick}
-              />
-            </div>
-          </div>
+          <ManageDatabasesButton />
         </div>
       );
     };
@@ -715,7 +716,10 @@ class Schema extends Component {
             </h2>
             {getCreateBtn()}
           </div>
+          <hr />
           {getCurrentSchemaSection()}
+          <hr />
+          <SchemaPermissionsButton schema={currentSchema} />
           {getUntrackedTablesSection()}
           {getUntrackedRelationsSection()}
           {getUntrackedFunctionsSection()}
@@ -742,12 +746,39 @@ const mapStateToProps = state => ({
   readOnlyMode: state.main.readOnlyMode,
   untrackedRelations: state.tables.untrackedRelations,
   currentSchema: state.tables.currentSchema,
-  functionsList: [...state.tables.postgresFunctions],
-  nonTrackableFunctions: [...state.tables.nonTrackablePostgresFunctions],
-  trackedFunctions: [...state.tables.trackedFunctions],
+  functionsList: state.tables.postgresFunctions,
+  nonTrackableFunctions: state.tables.nonTrackablePostgresFunctions,
+  trackedFunctions: getConsistentFunctions(state),
   serverVersion: state.main.serverVersion ? state.main.serverVersion : '',
 });
 
 const schemaConnector = connect => connect(mapStateToProps)(Schema);
 
 export default schemaConnector;
+
+/**
+ * 
+ * <div className={`${styles.display_inline} ${styles.add_mar_left}`}>
+            <div className={styles.display_inline}>
+              <DeleteSchemaButton
+                dispatch={dispatch}
+                migrationMode={migrationMode}
+              />
+            </div>
+            <div
+              className={`${styles.display_inline} ${styles.add_mar_left_mid}`}
+            >
+              <CreateSchemaSection
+                ref={this.schemaNameInputRef}
+                migrationMode={migrationMode}
+                schemaNameEdit={this.state.schemaNameEdit}
+                createSchemaOpen={this.state.createSchemaOpen}
+                handleCancelCreateNewSchema={this.cancelCreateNewSchema}
+                handleCreateNewClick={this.onCreateNewClick}
+                handleSchemaNameChange={this.onChangeSchemaName}
+                handleCreateClick={this.handleCreateClick}
+              />
+            </div>
+          </div>
+ * 
+ */
