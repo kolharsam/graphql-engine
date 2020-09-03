@@ -543,9 +543,9 @@ export const getRenameTableSql = (
 `;
 
 export const getDropTriggerSql = (
-  tableName: string,
   tableSchema: string,
-  triggerName: string
+  triggerName: string,
+  tableName?: string // This arg has to be passed strictly
 ) => `
   DROP TRIGGER "${triggerName}" ON "${tableSchema}"."${tableName}";
 `;
@@ -559,7 +559,7 @@ export const getCreateTriggerSql = (
     event_manipulation: string;
     action_orientation: string;
     action_statement: string;
-    comment: string;
+    comment?: string;
   }
 ) => {
   let sql = `CREATE TRIGGER "${triggerName}"

@@ -156,9 +156,9 @@ export interface DataSourcesAPI {
     newName: string
   ) => string;
   getDropTriggerSql: (
-    tableName: string,
     tableSchema: string,
-    triggerName: string
+    triggerName: string,
+    tableName?: string
   ) => string;
   getCreateTriggerSql: (
     tableName: string,
@@ -169,7 +169,7 @@ export interface DataSourcesAPI {
       event_manipulation: string;
       action_orientation: string;
       action_statement: string;
-      comment: string;
+      comment?: string;
     }
   ) => string;
   getDropSql: (
