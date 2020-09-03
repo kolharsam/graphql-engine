@@ -242,7 +242,7 @@ export interface DataSourcesAPI {
     schemaName: string,
     newName: string,
     oldName: string,
-    columnType?: string,
+    columnType?: string
   ) => string;
   fetchColumnCastsQuery: string;
   checkSchemaModification: (sql: string) => boolean;
@@ -261,7 +261,7 @@ export interface DataSourcesAPI {
     schemaName: string;
     tableName: string;
     selectedPkColumns: string[];
-    constraintName: string;
+    constraintName?: string;
   }) => string;
   getFunctionDefinitionSql: (
     schemaName: string,

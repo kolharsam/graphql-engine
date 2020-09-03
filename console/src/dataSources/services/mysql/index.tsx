@@ -1,7 +1,7 @@
 import React from 'react';
 import { DataSourcesAPI } from '../..';
 import { Table } from '../../types';
-import { AlterFKTableInfo, MySQLTrigger } from './types';
+import { AlterFKTableInfo, MySQLTrigger, CreatePKArgs } from './types';
 import { getMySQLNameString, escapeText } from './utils';
 import { isColTypeString } from '../postgresql';
 import { isSQLFunction } from '../postgresql/sqlUtils';
@@ -304,20 +304,53 @@ export const mysql: DataSourcesAPI = {
       tableName
     )} modify column \`${columnName}\` ${columnType};  
   `,
-  getDropColumnDefaultSql: (tableName: string, schemaName: string, columnName: string) => `
-    alter table ${getMySQLNameString(schemaName, tableName)} alter \`${columnName}\` drop default;
+  getDropColumnDefaultSql: (
+    tableName: string,
+    schemaName: string,
+    columnName: string
+  ) => `
+    alter table ${getMySQLNameString(
+      schemaName,
+      tableName
+    )} alter \`${columnName}\` drop default;
   `,
-  getRenameColumnQuery: (tableName: string, schemaName: string, newName: string, oldName: string, columnType?: string) => `
-    alter table ${getMySQLNameString(schemaName, tableName)} change \`${oldName}\` \`${newName}\` ${columnType};
+  getRenameColumnQuery: (
+    tableName: string,
+    schemaName: string,
+    newName: string,
+    oldName: string,
+    columnType?: string
+  ) => `
+    alter table ${getMySQLNameString(
+      schemaName,
+      tableName
+    )} change \`${oldName}\` \`${newName}\` ${columnType};
   `,
   fetchColumnCastsQuery: '',
-  checkSchemaModification: () => {
-    throw new Error('not implemented');
+  checkSchemaModification: (sql: string) => {
+    const sqlStatements = sql
+      .toLowerCase()
+      .split(';')
+      .map(sqlStr => sqlStr.trim());
+
+    return sqlStatements.some(
+      statement =>
+        statement.startsWith('create ') ||
+        statement.startsWith('alter ') ||
+        statement.startsWith('drop ')
+    );
   },
   getCreateCheckConstraintSql: () => {
     throw new Error('not implemented');
   },
-  getCreatePkSql: () => {
-    throw new Error('not implemented');
-  },
+  getCreatePkSql: ({
+    schemaName,
+    tableName,
+    selectedPkColumns,
+  }: CreatePKArgs) => `
+    alter table ${getMySQLNameString(
+      schemaName,
+      tableName
+    )} add primary key (${selectedPkColumns.join(', ')});
+  `,
 };

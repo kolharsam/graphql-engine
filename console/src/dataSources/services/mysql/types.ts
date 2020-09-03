@@ -10,3 +10,9 @@ export type MySQLTrigger = {
   action_orientation: 'ROW' | string;
   action_statement: string;
 };
+
+export type CreatePKArgs = {
+  schemaName: string;
+  tableName: string;
+  selectedPkColumns: string[];
+};
