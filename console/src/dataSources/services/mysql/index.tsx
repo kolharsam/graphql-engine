@@ -340,9 +340,9 @@ export const mysql: DataSourcesAPI = {
         statement.startsWith('drop ')
     );
   },
-  getCreateCheckConstraintSql: () => {
-    throw new Error('not implemented');
-  },
+  getCreateCheckConstraintSql: (tableName: string, schemaName: string, constraintName: string, check: string) => `
+    alter table ${getMySQLNameString(schemaName, tableName)} add constraint \`${constraintName}\` check ${check};
+  `,
   getCreatePkSql: ({
     schemaName,
     tableName,
