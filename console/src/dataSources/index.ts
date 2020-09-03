@@ -223,7 +223,8 @@ export interface DataSourcesAPI {
     tableName: string,
     schemaName: string,
     columnName: string,
-    comment: string
+    comment: string,
+    columnType?: string
   ) => string;
   getAlterColumnTypeSql: (
     tableName: string,

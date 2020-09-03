@@ -2,7 +2,7 @@ import React from 'react';
 import { DataSourcesAPI } from '../..';
 import { Table } from '../../types';
 import { AlterFKTableInfo, MySQLTrigger } from './types';
-import { getMySQLNameString } from './utils';
+import { getMySQLNameString, escapeText } from './utils';
 import { isColTypeString } from '../postgresql';
 import { isSQLFunction } from '../postgresql/sqlUtils';
 
@@ -89,7 +89,7 @@ export const mysql: DataSourcesAPI = {
   getDropTableSql: () => {
     throw new Error('not implemented');
   },
-  createSQLRegex: /?/,
+  createSQLRegex: new RegExp(''), // TODO
   getStatementTimeoutSql: () => {
     throw new Error('not implemented');
   },
@@ -219,8 +219,16 @@ export const mysql: DataSourcesAPI = {
 
     return sql;
   },
-  getAddUniqueConstraintSql: (tableName: string, schemaName: string, constraintName: string, columns: string[]) => `
-    alter table ${getMySQLNameString(schemaName, tableName)} add constraint ${constraintName} unique (${columns.join(', ')});
+  getAddUniqueConstraintSql: (
+    tableName: string,
+    schemaName: string,
+    constraintName: string,
+    columns: string[]
+  ) => `
+    alter table ${getMySQLNameString(
+      schemaName,
+      tableName
+    )} add constraint ${constraintName} unique (${columns.join(', ')});
   `,
   getDropNotNullSql: (
     tableName: string,
@@ -233,16 +241,45 @@ export const mysql: DataSourcesAPI = {
       tableName
     )} modify \`${columnName}\` ${columnType};
   `,
-  getSetCommentSql: () => {
-    throw new Error('not implemented');
+  getSetCommentSql: (
+    on: 'column' | 'table' | string,
+    tableName: string,
+    schemaName: string,
+    columnName: string,
+    comment: string | null,
+    columnType?: string
+  ) => {
+    const commentStr = escapeText(comment);
+
+    if (on === 'column') {
+      return `alter table ${getMySQLNameString(
+        schemaName,
+        tableName
+      )} modify column \`${columnName}\` ${columnType} comment ${commentStr};`;
+    }
+
+    // FIXME: this is only meant to be for on = table
+    return `alter table ${getMySQLNameString(
+      schemaName,
+      tableName
+    )} comment = ${commentStr};`;
   },
-  getSetColumnDefaultSql: (tableName: string, schemaName: string, columnName: string, defaultValue: any, columnType: string) => {
+  getSetColumnDefaultSql: (
+    tableName: string,
+    schemaName: string,
+    columnName: string,
+    defaultValue: any,
+    columnType: string
+  ) => {
     let defVal = defaultValue;
     if (isColTypeString(columnType) && !isSQLFunction(defaultValue)) {
       defVal = `'${defaultValue}'`;
     }
     return `
-      alter table ${getMySQLNameString(schemaName, tableName)} alter \`${columnName}\` set default ${defVal};
+      alter table ${getMySQLNameString(
+        schemaName,
+        tableName
+      )} alter \`${columnName}\` set default ${defVal};
     `;
   },
   getSetNotNullSql: (
@@ -256,9 +293,17 @@ export const mysql: DataSourcesAPI = {
       tableName
     )} modify \`${columnName}\` ${columnType} not null;
   `,
-  getAlterColumnTypeSql: () => {
-    throw new Error('not implemented');
-  },
+  getAlterColumnTypeSql: (
+    tableName: string,
+    schemaName: string,
+    columnName: string,
+    columnType: string
+  ) => `
+    alter table ${getMySQLNameString(
+      schemaName,
+      tableName
+    )} modify column \`${columnName}\` ${columnType};  
+  `,
   getDropColumnDefaultSql: () => {
     throw new Error('not implemented');
   },
