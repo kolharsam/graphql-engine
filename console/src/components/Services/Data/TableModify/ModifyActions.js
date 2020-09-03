@@ -1618,7 +1618,8 @@ const saveColumnChangesSql = (colName, column, onSuccess) => {
             tableName,
             currentSchema,
             newName,
-            colName
+            colName,
+            colType
           )
         )
       );
@@ -1628,7 +1629,8 @@ const saveColumnChangesSql = (colName, column, onSuccess) => {
             tableName,
             currentSchema,
             colName,
-            newName
+            newName,
+            colType
           )
         ),
         ...schemaChangesDown,

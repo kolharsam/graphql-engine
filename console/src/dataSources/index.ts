@@ -241,7 +241,8 @@ export interface DataSourcesAPI {
     tableName: string,
     schemaName: string,
     newName: string,
-    oldName: string
+    oldName: string,
+    columnType?: string,
   ) => string;
   fetchColumnCastsQuery: string;
   checkSchemaModification: (sql: string) => boolean;

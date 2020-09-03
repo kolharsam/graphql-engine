@@ -304,12 +304,12 @@ export const mysql: DataSourcesAPI = {
       tableName
     )} modify column \`${columnName}\` ${columnType};  
   `,
-  getDropColumnDefaultSql: () => {
-    throw new Error('not implemented');
-  },
-  getRenameColumnQuery: () => {
-    throw new Error('not implemented');
-  },
+  getDropColumnDefaultSql: (tableName: string, schemaName: string, columnName: string) => `
+    alter table ${getMySQLNameString(schemaName, tableName)} alter \`${columnName}\` drop default;
+  `,
+  getRenameColumnQuery: (tableName: string, schemaName: string, newName: string, oldName: string, columnType?: string) => `
+    alter table ${getMySQLNameString(schemaName, tableName)} change \`${oldName}\` \`${newName}\` ${columnType};
+  `,
   fetchColumnCastsQuery: '',
   checkSchemaModification: () => {
     throw new Error('not implemented');
