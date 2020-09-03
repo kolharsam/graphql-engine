@@ -340,8 +340,16 @@ export const mysql: DataSourcesAPI = {
         statement.startsWith('drop ')
     );
   },
-  getCreateCheckConstraintSql: (tableName: string, schemaName: string, constraintName: string, check: string) => `
-    alter table ${getMySQLNameString(schemaName, tableName)} add constraint \`${constraintName}\` check ${check};
+  getCreateCheckConstraintSql: (
+    tableName: string,
+    schemaName: string,
+    constraintName: string,
+    check: string
+  ) => `
+    alter table ${getMySQLNameString(
+      schemaName,
+      tableName
+    )} add constraint \`${constraintName}\` check ${check};
   `,
   getCreatePkSql: ({
     schemaName,
