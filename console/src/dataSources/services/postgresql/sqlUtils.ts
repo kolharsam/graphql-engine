@@ -831,7 +831,7 @@ export const getCreatePkSql = ({
   schemaName: string;
   tableName: string;
   selectedPkColumns: string[];
-  constraintName: string;
+  constraintName?: string; // compulsory for PG
 }) => {
   return `alter table "${schemaName}"."${tableName}"
     add constraint "${constraintName}"
