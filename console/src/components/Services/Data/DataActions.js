@@ -28,26 +28,24 @@ import {
   fetchTrackedTableFkQuery,
   fetchTableListQuery,
   fetchTrackedTableListQuery,
-  fetchTrackedTableRemoteRelationshipQuery,
   mergeLoadSchemaData,
   cascadeUpQueries,
   getDependencyError,
 } from './utils';
 
 import _push from './push';
-import { getFetchAllRolesQuery } from '../../Common/utils/v1QueryUtils';
 
 import { convertArrayToJson } from './TableModify/utils';
 
 import { CLI_CONSOLE_MODE, SERVER_CONSOLE_MODE } from '../../../constants';
 import { isEmpty } from '../../Common/utils/jsUtils';
 import { dataSource } from '../../../dataSources';
-import { loadInconsistentObjects } from '../../../metadata/actions';
+import { exportMetadata } from '../../../metadata/actions';
+import { getTablesInfoSelector } from '../../../metadata/selector';
 
 const SET_TABLE = 'Data/SET_TABLE';
 const LOAD_FUNCTIONS = 'Data/LOAD_FUNCTIONS';
 const LOAD_NON_TRACKABLE_FUNCTIONS = 'Data/LOAD_NON_TRACKABLE_FUNCTIONS';
-const LOAD_TRACKED_FUNCTIONS = 'Data/LOAD_TRACKED_FUNCTIONS';
 const LOAD_SCHEMA = 'Data/LOAD_SCHEMA';
 const LOAD_UNTRACKED_RELATIONS = 'Data/LOAD_UNTRACKED_RELATIONS';
 const FETCH_SCHEMA_LIST = 'Data/FETCH_SCHEMA_LIST';
@@ -55,7 +53,6 @@ const UPDATE_CURRENT_SCHEMA = 'Data/UPDATE_CURRENT_SCHEMA';
 const ADMIN_SECRET_ERROR = 'Data/ADMIN_SECRET_ERROR';
 const UPDATE_REMOTE_SCHEMA_MANUAL_REL = 'Data/UPDATE_SCHEMA_MANUAL_REL';
 const SET_CONSISTENT_SCHEMA = 'Data/SET_CONSISTENT_SCHEMA';
-const SET_CONSISTENT_FUNCTIONS = 'Data/SET_CONSISTENT_FUNCTIONS';
 
 const UPDATE_DATA_HEADERS = 'Data/UPDATE_DATA_HEADERS';
 
@@ -68,12 +65,6 @@ const REQUEST_SUCCESS = 'ModifyTable/REQUEST_SUCCESS';
 const REQUEST_ERROR = 'ModifyTable/REQUEST_ERROR';
 
 const SET_ADDITIONAL_COLUMNS_INFO = 'Data/SET_ADDITIONAL_COLUMNS_INFO';
-
-export const SET_ALL_ROLES = 'Data/SET_ALL_ROLES';
-export const setAllRoles = roles => ({
-  type: SET_ALL_ROLES,
-  roles,
-});
 
 export const mergeRemoteRelationshipsWithSchema = (
   remoteRelationships,
@@ -99,44 +90,6 @@ export const mergeRemoteRelationshipsWithSchema = (
   };
 };
 
-const fetchTrackedFunctions = () => {
-  return (dispatch, getState) => {
-    const url = Endpoints.getSchema;
-
-    const currentSchema = getState().tables.currentSchema;
-
-    const body = dataSource.initQueries.loadTrackedFunctions;
-    body.args.where.function_schema = currentSchema;
-
-    const options = {
-      credentials: globalCookiePolicy,
-      method: 'POST',
-      headers: dataHeaders(getState),
-      body: JSON.stringify(body),
-    };
-
-    return dispatch(requestAction(url, options)).then(
-      data => {
-        let consistentFunctions = data;
-        const { inconsistentObjects } = getState().metadata;
-
-        if (inconsistentObjects.length > 0) {
-          consistentFunctions = filterInconsistentMetadataObjects(
-            data,
-            inconsistentObjects,
-            'functions'
-          );
-        }
-
-        dispatch({ type: LOAD_TRACKED_FUNCTIONS, data: consistentFunctions });
-      },
-      error => {
-        console.error('Failed to load schema ' + JSON.stringify(error));
-      }
-    );
-  };
-};
-
 const setUntrackedRelations = () => (dispatch, getState) => {
   const untrackedRelations = getAllUnTrackedRelations(
     getState().tables.allSchemas,
@@ -149,6 +102,7 @@ const setUntrackedRelations = () => (dispatch, getState) => {
   });
 };
 
+// todo: it's called 4 times on start
 const loadSchema = configOptions => {
   return (dispatch, getState) => {
     const url = Endpoints.getSchema;
@@ -194,7 +148,6 @@ const loadSchema = configOptions => {
         fetchTrackedTableListQuery(configOptions), // v1/query
         fetchTrackedTableFkQuery(configOptions),
         fetchTrackedTableReferencedFkQuery(configOptions),
-        fetchTrackedTableRemoteRelationshipQuery(configOptions),
       ],
     };
 
@@ -205,48 +158,48 @@ const loadSchema = configOptions => {
       body: JSON.stringify(body),
     };
 
-    return dispatch(requestAction(url, options)).then(
-      data => {
-        const tableList = JSON.parse(data[0].result[1]);
-        const fkList = JSON.parse(data[2].result[1]);
-        const refFkList = JSON.parse(data[3].result[1]);
-        const remoteRelationships = data[4];
+    return dispatch(exportMetadata()).then(state => {
+      const metadataTables = getTablesInfoSelector(state)(configOptions);
+      return dispatch(requestAction(url, options)).then(
+        data => {
+          const tableList = JSON.parse(data[0].result[1]);
+          const fkList = JSON.parse(data[2].result[1]);
+          const refFkList = JSON.parse(data[3].result[1]);
 
-        const mergedData = mergeLoadSchemaData(
-          tableList,
-          data[1],
-          fkList,
-          refFkList,
-          remoteRelationships
-        );
+          const mergedData = mergeLoadSchemaData(
+            tableList,
+            data[1],
+            fkList,
+            refFkList,
+            metadataTables
+          );
 
-        const { inconsistentObjects } = getState().metadata;
+          // todo
+          const { inconsistentObjects } = state.metadata;
+          const maybeInconsistentSchemas = allSchemas.concat(mergedData);
 
-        const maybeInconsistentSchemas = allSchemas.concat(mergedData);
+          let consistentSchemas;
+          if (inconsistentObjects.length > 0) {
+            consistentSchemas = filterInconsistentMetadataObjects(
+              maybeInconsistentSchemas,
+              inconsistentObjects,
+              'tables'
+            );
+          }
 
-        let consistentSchemas;
-        if (inconsistentObjects.length > 0) {
-          consistentSchemas = filterInconsistentMetadataObjects(
-            maybeInconsistentSchemas,
-            inconsistentObjects,
-            'tables'
+          dispatch({
+            type: LOAD_SCHEMA,
+            allSchemas: consistentSchemas || maybeInconsistentSchemas,
+          });
+        },
+        error => {
+          console.error('loadSchema error: ' + JSON.stringify(error));
+          dispatch(
+            showErrorNotification('DB schema loading failed', null, error)
           );
         }
-
-        dispatch({
-          type: LOAD_SCHEMA,
-          allSchemas: consistentSchemas || maybeInconsistentSchemas,
-        });
-
-        dispatch(loadInconsistentObjects({ shouldReloadMetadata: false }));
-      },
-      error => {
-        console.error('loadSchema error: ' + JSON.stringify(error));
-        dispatch(
-          showErrorNotification('DB schema loading failed', null, error)
-        );
-      }
-    );
+      );
+    });
   };
 };
 
@@ -295,11 +248,6 @@ const setConsistentSchema = data => ({
   data,
 });
 
-const setConsistentFunctions = data => ({
-  type: SET_CONSISTENT_FUNCTIONS,
-  data,
-});
-
 const fetchDataInit = () => (dispatch, getState) => {
   const url = Endpoints.getSchema;
 
@@ -328,20 +276,18 @@ const fetchDataInit = () => (dispatch, getState) => {
 
 const fetchFunctionInit = (schema = null) => (dispatch, getState) => {
   const url = Endpoints.getSchema;
+  const fnSchema = schema || getState().tables.currentSchema;
   const body = {
     type: 'bulk',
     args: [
-      dataSource.initQueries.loadTrackableFunctions,
-      dataSource.initQueries.loadNonTrackableFunctions,
-      dataSource.initQueries.loadTrackedFunctions,
+      getRunSqlQuery(
+        dataSource.getFunctionDefinitionSql(fnSchema, null, 'trackable')
+      ),
+      getRunSqlQuery(
+        dataSource.getFunctionDefinitionSql(fnSchema, null, 'non-trackable')
+      ),
     ],
   };
-
-  // set schema in queries
-  const fnSchema = schema || getState().tables.currentSchema;
-  body.args[0].args.where.function_schema = fnSchema;
-  body.args[1].args.where.function_schema = fnSchema;
-  body.args[2].args.where.function_schema = fnSchema;
 
   const options = {
     credentials: globalCookiePolicy,
@@ -352,19 +298,16 @@ const fetchFunctionInit = (schema = null) => (dispatch, getState) => {
 
   return dispatch(requestAction(url, options)).then(
     data => {
-      dispatch({ type: LOAD_FUNCTIONS, data: data[0] });
-      dispatch({ type: LOAD_NON_TRACKABLE_FUNCTIONS, data: data[1] });
-
-      let consistentFunctions = data[2];
-      const { inconsistentObjects } = getState().metadata;
-      if (inconsistentObjects.length > 0) {
-        consistentFunctions = filterInconsistentMetadataObjects(
-          consistentFunctions,
-          inconsistentObjects,
-          'functions'
-        );
+      let trackable = [];
+      let nonTrackable = [];
+      try {
+        trackable = JSON.parse(data[0].result[1]);
+        nonTrackable = JSON.parse(data[1].result[1]);
+      } catch (err) {
+        console.error('Failed to fetch schema ' + JSON.stringify(err));
       }
-      dispatch({ type: LOAD_TRACKED_FUNCTIONS, data: consistentFunctions });
+      dispatch({ type: LOAD_FUNCTIONS, data: trackable });
+      dispatch({ type: LOAD_NON_TRACKABLE_FUNCTIONS, data: nonTrackable });
     },
     error => {
       console.error('Failed to fetch schema ' + JSON.stringify(error));
@@ -620,38 +563,6 @@ const fetchColumnTypeInfo = () => {
   };
 };
 
-export const fetchRoleList = () => (dispatch, getState) => {
-  const query = getFetchAllRolesQuery();
-  const options = {
-    credentials: globalCookiePolicy,
-    method: 'POST',
-    headers: dataHeaders(getState),
-    body: JSON.stringify(query),
-  };
-
-  return dispatch(requestAction(Endpoints.query, options)).then(
-    data => {
-      const allRoles = [...new Set(data.map(r => r.role_name))];
-      const { inconsistentObjects } = getState().metadata;
-
-      let consistentRoles = [...allRoles];
-
-      if (inconsistentObjects.length > 0) {
-        consistentRoles = filterInconsistentMetadataObjects(
-          allRoles,
-          inconsistentObjects,
-          'roles'
-        );
-      }
-
-      dispatch(setAllRoles(consistentRoles));
-    },
-    error => {
-      console.error('Failed to load roles ' + JSON.stringify(error));
-    }
-  );
-};
-
 /* ******************************************************* */
 const dataReducer = (state = defaultState, action) => {
   // eslint-disable-line no-unused-vars
@@ -701,11 +612,6 @@ const dataReducer = (state = defaultState, action) => {
         ...state,
         nonTrackablePostgresFunctions: action.data,
       };
-    case LOAD_TRACKED_FUNCTIONS:
-      return {
-        ...state,
-        trackedFunctions: action.data,
-      };
     case LOAD_SCHEMA:
       // remove duplicates
       const result = action.allSchemas.reduce((unique, o) => {
@@ -735,11 +641,6 @@ const dataReducer = (state = defaultState, action) => {
       return { ...state, schemaList: action.schemaList };
     case SET_CONSISTENT_SCHEMA:
       return { ...state, allSchemas: action.data, listingSchemas: action.data };
-    case SET_CONSISTENT_FUNCTIONS:
-      return {
-        ...state,
-        trackedFunctions: action.data,
-      };
     case UPDATE_CURRENT_SCHEMA:
       return { ...state, currentSchema: action.currentSchema };
     case ADMIN_SECRET_ERROR:
@@ -782,11 +683,6 @@ const dataReducer = (state = defaultState, action) => {
         columnTypeCasts: { ...defaultState.columnTypeCasts },
         columnDataTypeInfoErr: defaultState.columnDataTypeInfoErr,
       };
-    case SET_ALL_ROLES:
-      return {
-        ...state,
-        allRoles: action.roles,
-      };
     case SET_ADDITIONAL_COLUMNS_INFO:
       if (isEmpty(action.data)) return state;
       return {
@@ -825,10 +721,8 @@ export {
   ADMIN_SECRET_ERROR,
   UPDATE_DATA_HEADERS,
   UPDATE_REMOTE_SCHEMA_MANUAL_REL,
-  fetchTrackedFunctions,
   LOAD_SCHEMA,
   setConsistentSchema,
-  setConsistentFunctions,
   fetchColumnTypeInfo,
   RESET_COLUMN_TYPE_INFO,
   setUntrackedRelations,

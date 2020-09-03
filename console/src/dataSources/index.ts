@@ -24,7 +24,6 @@ export interface DataSourcesAPI {
   displayTableName(table: Table): JSX.Element;
   // todo: replace with function type
   getFunctionSchema(func: PGFunction): string;
-  getFunctionName(func: PGFunction): string;
   getFunctionDefinition(func: PGFunction): string;
   getSchemaFunctions(func: PGFunction[], schemaName: string): PGFunction[];
   findFunction(
@@ -45,9 +44,6 @@ export interface DataSourcesAPI {
   arrayToPostgresArray(arr: any[]): string;
   initQueries: {
     schemaList: Record<string, any>;
-    loadTrackedFunctions: Record<string, any>;
-    loadTrackableFunctions: Record<string, any>;
-    loadNonTrackableFunctions: Record<string, any>;
   };
   additionalColumnsInfoQuery: (schemaName: string) => Record<string, any>;
   parseColumnsInfoResult: (data: any) => ColumnsInfoResult;
@@ -265,6 +261,11 @@ export interface DataSourcesAPI {
     selectedPkColumns: string[];
     constraintName: string;
   }) => string;
+  getFunctionDefinitionSql: (
+    schemaName: string,
+    functionName?: string | null | undefined,
+    type?: 'trackable' | 'non-trackable' | undefined
+  ) => string;
 }
 
 export let currentDriver: Driver = 'postgres';

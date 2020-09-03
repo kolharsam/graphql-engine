@@ -39,6 +39,7 @@ import {
   checkSchemaModification,
   getCreateCheckConstraintSql,
   getCreatePkSql,
+  getFunctionDefinitionSql,
 } from './sqlUtils';
 
 export const isTable = (table: Table) => {
@@ -125,10 +126,6 @@ export const getFunctionSchema = (pgFunction: PGFunction) => {
   return pgFunction.function_schema;
 };
 
-export const getFunctionName = (pgFunction: PGFunction) => {
-  return pgFunction.function_name;
-};
-
 export const getFunctionDefinition = (pgFunction: PGFunction) => {
   return pgFunction.function_definition;
 };
@@ -147,7 +144,7 @@ export const findFunction = (
 ) => {
   return allFunctions.find(
     f =>
-      getFunctionName(f) === functionName &&
+      f.function_name === functionName &&
       getFunctionSchema(f) === functionSchema
   );
 };
@@ -196,110 +193,6 @@ const initQueries = {
             'pg_catalog',
             'hdb_catalog',
             'hdb_views',
-          ],
-        },
-      },
-    },
-  },
-  loadTrackedFunctions: {
-    type: 'select',
-    args: {
-      table: {
-        name: 'hdb_function',
-        schema: 'hdb_catalog',
-      },
-      columns: ['function_name', 'function_schema', 'is_system_defined'],
-      order_by: [{ column: 'function_name', type: 'asc', nulls: 'last' }],
-      where: {
-        function_schema: '', // needs to be set later
-      },
-    },
-  },
-  loadTrackableFunctions: {
-    type: 'select',
-    args: {
-      table: {
-        name: 'hdb_function_agg',
-        schema: 'hdb_catalog',
-      },
-      columns: [
-        'function_name',
-        'function_schema',
-        'has_variadic',
-        'function_type',
-        'function_definition',
-        'return_type_schema',
-        'return_type_name',
-        'return_type_type',
-        'returns_set',
-        {
-          name: 'return_table_info',
-          columns: ['table_schema', 'table_name'],
-        },
-      ],
-      order_by: [{ column: 'function_name', type: 'asc', nulls: 'last' }],
-      where: {
-        function_schema: '', // needs to be set later
-        has_variadic: false,
-        returns_set: true,
-        return_type_type: 'c', // COMPOSITE type
-        return_table_info: {},
-        $or: [
-          {
-            function_type: {
-              $ilike: '%stable%',
-            },
-          },
-          {
-            function_type: {
-              $ilike: '%immutable%',
-            },
-          },
-        ],
-      },
-    },
-  },
-  loadNonTrackableFunctions: {
-    type: 'select',
-    args: {
-      table: {
-        name: 'hdb_function_agg',
-        schema: 'hdb_catalog',
-      },
-      columns: [
-        'function_name',
-        'function_schema',
-        'has_variadic',
-        'function_type',
-        'function_definition',
-        'return_type_schema',
-        'return_type_name',
-        'return_type_type',
-        'returns_set',
-        {
-          name: 'return_table_info',
-          columns: ['table_schema', 'table_name'],
-        },
-      ],
-      order_by: [{ column: 'function_name', type: 'asc', nulls: 'last' }],
-      where: {
-        function_schema: '', // needs to be set later
-        $not: {
-          has_variadic: false,
-          returns_set: true,
-          return_type_type: 'c', // COMPOSITE type
-          return_table_info: {},
-          $or: [
-            {
-              function_type: {
-                $ilike: '%stable%',
-              },
-            },
-            {
-              function_type: {
-                $ilike: '%immutable%',
-              },
-            },
           ],
         },
       },
@@ -500,7 +393,6 @@ export const postgres: DataSourcesAPI = {
   isTable,
   displayTableName,
   getFunctionSchema,
-  getFunctionName,
   getFunctionDefinition,
   getSchemaFunctions,
   findFunction,
@@ -553,4 +445,5 @@ export const postgres: DataSourcesAPI = {
   checkSchemaModification,
   getCreateCheckConstraintSql,
   getCreatePkSql,
+  getFunctionDefinitionSql,
 };

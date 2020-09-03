@@ -1,4 +1,4 @@
-import { Thunk } from '../types';
+import { Thunk, ReduxState } from '../types';
 import {
   exportMetadataQuery,
   generateReplaceMetadataQuery,
@@ -25,10 +25,8 @@ import {
 import {
   makeMigrationCall,
   setConsistentSchema,
-  setConsistentFunctions,
 } from '../components/Services/Data/DataActions';
 import { filterInconsistentMetadataObjects } from '../components/Services/Settings/utils';
-import { setConsistentRemoteSchemas } from '../components/Services/RemoteSchema/Actions';
 import { clearIntrospectionSchemaCache } from '../components/Services/RemoteSchema/graphqlUtils';
 
 export interface ExportMetadataSuccess {
@@ -108,7 +106,10 @@ export type MetadataActions =
 export const exportMetadata = (
   successCb?: (data: HasuraMetadataV2) => void,
   errorCb?: (err: string) => void
-): Thunk<Promise<void>, MetadataActions> => (dispatch, getState) => {
+): Thunk<Promise<ReduxState | void>, MetadataActions> => (
+  dispatch,
+  getState
+) => {
   const { dataHeaders } = getState().tables;
 
   const query = exportMetadataQuery;
@@ -128,6 +129,7 @@ export const exportMetadata = (
         data,
       });
       if (successCb) successCb(data);
+      return getState();
     })
     .catch(err => {
       if (errorCb) errorCb(err);
@@ -248,8 +250,6 @@ const handleInconsistentObjects = (
 ): Thunk<void, MetadataActions> => {
   return (dispatch, getState) => {
     const allSchemas = getState().tables.allSchemas;
-    const functions = getState().tables.trackedFunctions;
-    const remoteSchemas = getState().remoteSchemas.listData.remoteSchemas;
 
     dispatch({
       type: 'Metadata/DROP_INCONSISTENT_METADATA_SUCCESS',
@@ -262,11 +262,6 @@ const handleInconsistentObjects = (
         inconsistentObjects,
         'tables'
       );
-      const filteredFunctions = filterInconsistentMetadataObjects(
-        functions,
-        inconsistentObjects,
-        'functions'
-      );
 
       // const actions = actionsSelector(getState());
       // const filteredActions = filterInconsistentMetadataObjects(
@@ -277,8 +272,7 @@ const handleInconsistentObjects = (
 
       // todo
       dispatch(setConsistentSchema(filteredSchema) as any);
-      dispatch(setConsistentFunctions(filteredFunctions) as any);
-      dispatch(setConsistentRemoteSchemas(remoteSchemas) as any);
+      // dispatch(setConsistentRemoteSchemas(remoteSchemas) as any);
       // dispatch(setActions(filteredActions) as any);
     }
   };

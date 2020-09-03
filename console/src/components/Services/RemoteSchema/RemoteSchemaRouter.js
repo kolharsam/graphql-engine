@@ -2,7 +2,6 @@ import React from 'react';
 
 import { Route, IndexRedirect } from 'react-router';
 import { RightContainer } from '../../Common/Layout/RightContainer';
-import globals from '../../../Globals';
 import {
   remoteSchemaPageConnector,
   landingConnector,
@@ -10,7 +9,7 @@ import {
   editConnector,
   viewConnector,
 } from '.';
-import { fetchRemoteSchemas, FILTER_REMOTE_SCHEMAS } from './Actions';
+import { FILTER_REMOTE_SCHEMAS } from './Actions';
 
 // Objective is to render list of custom remoteSchemas on the
 // left nav bar.
@@ -18,6 +17,7 @@ import { fetchRemoteSchemas, FILTER_REMOTE_SCHEMAS } from './Actions';
 // Whenever any operation happens like add remoteSchema/delete remoteSchema, this state should update automatically.
 
 import { appPrefix } from './constants';
+import { getRemoteSchemasSelector } from '../../../metadata/selector';
 
 const filterItem = dispatch => {
   return (dataList, searchVal) => {
@@ -42,7 +42,7 @@ const filterItem = dispatch => {
 const leftNavMapStateToProps = state => {
   return {
     ...state,
-    dataList: [...state.remoteSchemas.listData.remoteSchemas],
+    dataList: getRemoteSchemasSelector(state),
     isError: state.remoteSchemas.listData.isError,
     isRequesting: state.remoteSchemas.listData.isRequesting,
     filtered: [...state.remoteSchemas.listData.filtered],
@@ -58,31 +58,7 @@ const leftNavMapDispatchToProps = dispatch => {
   };
 };
 
-const fetchInitialData = ({ dispatch }) => {
-  return (nextState, replaceState, cb) => {
-    /*
-    const currState = getState();
-    const dataList = currState.remoteSchemas.listData.remoteSchemas;
-    if (dataList.length) {
-      cb();
-      return;
-    }
-    */
-
-    Promise.all([dispatch(fetchRemoteSchemas())]).then(
-      () => {
-        cb();
-      },
-      () => {
-        // alert('Could not load schema.');
-        replaceState(globals.urlPrefix);
-        cb();
-      }
-    );
-  };
-};
-
-const getRemoteSchemaRouter = (connect, store, composeOnEnterHooks) => {
+const getRemoteSchemaRouter = connect => {
   return (
     <Route
       path="remote-schemas"
@@ -91,8 +67,6 @@ const getRemoteSchemaRouter = (connect, store, composeOnEnterHooks) => {
         leftNavMapStateToProps,
         leftNavMapDispatchToProps
       )}
-      onEnter={composeOnEnterHooks([fetchInitialData(store)])}
-      onChange={fetchInitialData(store)}
     >
       <IndexRedirect to="manage" />
       <Route path="manage" component={RightContainer}>
