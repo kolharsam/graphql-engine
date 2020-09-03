@@ -675,7 +675,7 @@ export const getAddColumnSql = (
   return sql;
 };
 
-export const getDropNullSql = (
+export const getDropNotNullSql = (
   tableName: string,
   schemaName: string,
   columnName: string
@@ -683,7 +683,7 @@ export const getDropNullSql = (
   alter table "${schemaName}"."${tableName}" alter column "${columnName}" drop not null
 `;
 
-export const getSetNullSql = (
+export const getSetNotNullSql = (
   tableName: string,
   schemaName: string,
   columnName: string

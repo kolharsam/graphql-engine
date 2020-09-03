@@ -21,7 +21,7 @@ export const mysql: DataSourcesAPI = {
   getFunctionSchema: () => {
     throw new Error('not implemented');
   },
-  getFunctionName: () => {
+  getFunctionDefinitionSql: () => {
     throw new Error('not implemented');
   },
   getFunctionDefinition: () => {
@@ -222,18 +222,34 @@ export const mysql: DataSourcesAPI = {
   getAddUniqueConstraintSql: () => {
     throw new Error('not implemented');
   },
-  getDropNullSql: () => {
-    throw new Error('not implemented');
-  },
+  getDropNotNullSql: (
+    tableName: string,
+    schemaName: string,
+    columnName: string,
+    columnType?: string
+  ) => `
+    alter table ${getMySQLNameString(
+      schemaName,
+      tableName
+    )} modify \`${columnName}\` ${columnType};
+  `,
   getSetCommentSql: () => {
     throw new Error('not implemented');
   },
   getSetColumnDefaultSql: () => {
     throw new Error('not implemented');
   },
-  getSetNullSql: () => {
-    throw new Error('not implemented');
-  },
+  getSetNotNullSql: (
+    tableName: string,
+    schemaName: string,
+    columnName: string,
+    columnType?: string
+  ) => `
+    alter table ${getMySQLNameString(
+      schemaName,
+      tableName
+    )} modify \`${columnName}\` ${columnType} not null;
+  `,
   getAlterColumnTypeSql: () => {
     throw new Error('not implemented');
   },

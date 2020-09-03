@@ -195,12 +195,12 @@ export interface DataSourcesAPI {
       sqlGenerator?: FrequentlyUsedColumn['dependentSQLGenerator'];
     }
   ) => string | string[];
-  getDropNullSql: (
+  getDropNotNullSql: (
     tableName: string,
     schemaName: string,
     columnName: string
   ) => string;
-  getSetNullSql: (
+  getSetNotNullSql: (
     tableName: string,
     schemaName: string,
     columnName: string
