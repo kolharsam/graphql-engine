@@ -219,9 +219,9 @@ export const mysql: DataSourcesAPI = {
 
     return sql;
   },
-  getAddUniqueConstraintSql: () => {
-    throw new Error('not implemented');
-  },
+  getAddUniqueConstraintSql: (tableName: string, schemaName: string, constraintName: string, columns: string[]) => `
+    alter table ${getMySQLNameString(schemaName, tableName)} add constraint ${constraintName} unique (${columns.join(', ')});
+  `,
   getDropNotNullSql: (
     tableName: string,
     schemaName: string,
