@@ -191,7 +191,7 @@ export interface DataSourcesAPI {
     options?: {
       nullable: boolean;
       unique: boolean;
-      default: string;
+      default: any;
       sqlGenerator?: FrequentlyUsedColumn['dependentSQLGenerator'];
     }
   ) => string | string[];

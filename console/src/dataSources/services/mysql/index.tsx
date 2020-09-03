@@ -190,7 +190,7 @@ export const mysql: DataSourcesAPI = {
     schemaName: string,
     columnName: string,
     columnType: string,
-    options?: { nullable: boolean; unique: boolean; default: string }
+    options?: { nullable: boolean; unique: boolean; default: any }
   ) => {
     let sql = `alter table ${getMySQLNameString(
       schemaName,
@@ -236,8 +236,14 @@ export const mysql: DataSourcesAPI = {
   getSetCommentSql: () => {
     throw new Error('not implemented');
   },
-  getSetColumnDefaultSql: () => {
-    throw new Error('not implemented');
+  getSetColumnDefaultSql: (tableName: string, schemaName: string, columnName: string, defaultValue: any, columnType: string) => {
+    let defVal = defaultValue;
+    if (isColTypeString(columnType) && !isSQLFunction(defaultValue)) {
+      defVal = `'${defaultValue}'`;
+    }
+    return `
+      alter table ${getMySQLNameString(schemaName, tableName)} alter \`${columnName}\` set default ${defVal};
+    `;
   },
   getSetNotNullSql: (
     tableName: string,

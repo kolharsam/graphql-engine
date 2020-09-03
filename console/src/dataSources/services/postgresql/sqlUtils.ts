@@ -629,7 +629,7 @@ export const getAddColumnSql = (
   options?: {
     nullable: boolean;
     unique: boolean;
-    default: string;
+    default: any;
     // todo
     sqlGenerator?: FrequentlyUsedColumn['dependentSQLGenerator'];
   }
