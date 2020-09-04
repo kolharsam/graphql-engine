@@ -165,12 +165,21 @@ export const getDropNotNullSql = (
   schemaName: string,
   columnName: string,
   columnType?: string
-) => `
+) => {
+  let colType = columnType;
+  let sql = `
   alter table ${getMySQLNameString(
     schemaName,
     tableName
-  )} modify \`${columnName}\` ${columnType};
-`;
+  )} modify \`${columnName}\` `;
+
+  if (columnType?.toLowerCase().includes('not null')) {
+    const typeSplit = columnType.split('not null');
+    colType = typeSplit.map(type => type.trim()).join(' ');
+  }
+  sql += colType;
+  return sql;
+};
 
 export const getSetCommentSql = (
   on: 'column' | 'table' | string,
@@ -299,3 +308,37 @@ export const getCreatePkSql = ({
     tableName
   )} add primary key (${selectedPkColumns.join(', ')});
 `;
+
+// export const getCreateTableQueries = (
+//   currentSchema: string,
+//   tableName: string,
+//   columns: Col[],
+//   primaryKeys: (number | string)[],
+//   foreignKeys: any[],
+//   uniqueKeys: any[],
+//   checkConstraints: any[],
+//   tableComment?: string
+// ) => {};
+
+export const getDropSchemaSql = (schemaName: string) => `
+  drop schema \`${schemaName}\` cascade;
+`;
+
+export const getCreateSchemaSql = (schemaName: string) => `
+  create schema if not exists \`${schemaName}\`;
+`;
+
+export const getDropTableSql = (schemaName: string, tableName: string) => `
+  drop table ${getMySQLNameString(schemaName, tableName)};
+`;
+
+export const cascadeSqlQuery = (sql: string) => {
+  if (sql[sql.length - 1] === ';') {
+    return `${sql.substr(0, sql.length - 1)} CASCADE;`;
+  }
+  // SQL might have  a " at the end
+  else if (sql[sql.length - 2] === ';') {
+    return `${sql.substr(0, sql.length - 2)} CASCADE;`;
+  }
+  return `${sql} CASCADE;`;
+};
