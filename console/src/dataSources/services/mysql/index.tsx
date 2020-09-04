@@ -148,4 +148,7 @@ export const mysql: DataSourcesAPI = {
   checkSchemaModification,
   getCreateCheckConstraintSql,
   getCreatePkSql,
+  primaryKeysInfoSql: '',
+  uniqueKeysSql: '',
+  checkConstraintsSql: '',
 };
