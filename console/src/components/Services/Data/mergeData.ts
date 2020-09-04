@@ -31,7 +31,10 @@ export const mergeLoadSchemaData = (
   infoSchemaTableData: PostgresTable[], // todo
   fkData: any,
   refFkData: any,
-  metadataTables: TableEntry[]
+  metadataTables: TableEntry[],
+  primaryKeys: Table['primary_key'][],
+  uniqueKeys: any, // todo
+  checkConstraints: Table['check_constraints']
 ): Table[] => {
   const _mergedTableData: Table[] = [];
 
@@ -47,6 +50,23 @@ export const mergeLoadSchemaData = (
     const tableType = infoSchemaTableInfo.table_type;
     const triggers = infoSchemaTableInfo.triggers; // TODO: get from v1/query
     const viewInfo = infoSchemaTableInfo.view_info; // TODO: get from v1/query
+
+    const keys =
+      primaryKeys.find(
+        key => key?.table_name === tableName && key.table_schema === tableSchema
+      ) || null;
+
+    const unique =
+      uniqueKeys.find(
+        (key: any) =>
+          key?.table_name === tableName && key.table_schema === tableSchema
+      ) || [];
+
+    const check =
+      checkConstraints.filter(
+        (key: any) =>
+          key?.table_name === tableName && key.table_schema === tableSchema
+      ) || [];
 
     const permissions: Table['permissions'] = [];
     let fkConstraints = [];
@@ -145,11 +165,11 @@ export const mergeLoadSchemaData = (
       columns,
       comment,
       triggers,
-      primary_key: null,
+      primary_key: keys,
       relationships,
       permissions,
-      unique_constraints: [],
-      check_constraints: [],
+      unique_constraints: unique,
+      check_constraints: check,
       foreign_key_constraints: fkConstraints,
       opp_foreign_key_constraints: refFkConstraints,
       view_info: viewInfo as Table['view_info'],

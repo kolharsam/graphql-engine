@@ -155,4 +155,7 @@ export const mysql: DataSourcesAPI = {
   getFunctionDefinitionSql: () => {
     throw new Error('not implemented');
   },
+  primaryKeysInfoSql: '',
+  uniqueKeysSql: '',
+  checkConstraintsSql: '',
 };

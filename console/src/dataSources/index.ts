@@ -266,6 +266,9 @@ export interface DataSourcesAPI {
     functionName?: string | null | undefined,
     type?: 'trackable' | 'non-trackable' | undefined
   ) => string;
+  primaryKeysInfoSql: string;
+  uniqueKeysSql: string;
+  checkConstraintsSql: string;
 }
 
 export let currentDriver: Driver = 'postgres';
