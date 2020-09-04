@@ -172,11 +172,17 @@ const loadSchema = configOptions => {
           let checkConstraints;
           try {
             primaryKeys = JSON.parse(data[3].result[1]);
-            uniqueKeys = JSON.parse(data[4].result[1]);
-            checkConstraints = JSON.parse(data[5].result[1]);
           } catch {
             primaryKeys = [];
+          }
+          try {
+            uniqueKeys = JSON.parse(data[4].result[1]);
+          } catch {
             uniqueKeys = [];
+          }
+          try {
+            checkConstraints = JSON.parse(data[5].result[1]);
+          } catch {
             checkConstraints = [];
           }
 
