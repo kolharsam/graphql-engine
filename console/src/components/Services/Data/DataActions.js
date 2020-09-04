@@ -27,11 +27,10 @@ import {
   fetchTrackedTableReferencedFkQuery,
   fetchTrackedTableFkQuery,
   fetchTableListQuery,
-  fetchTrackedTableListQuery,
-  mergeLoadSchemaData,
   cascadeUpQueries,
   getDependencyError,
 } from './utils';
+import { mergeLoadSchemaData } from './mergeData';
 
 import _push from './push';
 
@@ -145,7 +144,6 @@ const loadSchema = configOptions => {
       type: 'bulk',
       args: [
         fetchTableListQuery(configOptions),
-        fetchTrackedTableListQuery(configOptions), // v1/query
         fetchTrackedTableFkQuery(configOptions),
         fetchTrackedTableReferencedFkQuery(configOptions),
       ],
@@ -163,12 +161,11 @@ const loadSchema = configOptions => {
       return dispatch(requestAction(url, options)).then(
         data => {
           const tableList = JSON.parse(data[0].result[1]);
-          const fkList = JSON.parse(data[2].result[1]);
-          const refFkList = JSON.parse(data[3].result[1]);
+          const fkList = JSON.parse(data[1].result[1]);
+          const refFkList = JSON.parse(data[2].result[1]);
 
           const mergedData = mergeLoadSchemaData(
             tableList,
-            data[1],
             fkList,
             refFkList,
             metadataTables
