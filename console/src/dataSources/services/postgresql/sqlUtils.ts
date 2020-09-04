@@ -924,7 +924,10 @@ ${functionName ? 'LIMIT 1' : ''}
 ) as functions;
 `;
 
-export const primaryKeysInfoSql = `
+export const primaryKeysInfoSql = (options: {
+  schemas: string[];
+  tables: Table[];
+}) => `
 SELECT
 Json_agg(Row_to_json(info))
 FROM (
@@ -999,13 +1002,16 @@ JOIN (
       AND(r.relkind = ANY (ARRAY ['r'::"char", 'p'::"char"]))) x (tblschema, tblname, colname, cstrname)) constraint_column_usage ON tc.constraint_name::text = constraint_column_usage.constraint_name::text
   AND tc.table_schema::text = constraint_column_usage.table_schema::text
   AND tc.table_name::text = constraint_column_usage.table_name::text
-WHERE
-  tc.constraint_type::text = 'PRIMARY KEY'::text
+${generateWhereClause(options, 'tc.table_name', 'tc.table_schema')}
+  AND tc.constraint_type::text = 'PRIMARY KEY'::text
 GROUP BY
   tc.table_schema, tc.table_name, tc.constraint_name) as info;
 `;
 
-export const uniqueKeysSql = `
+export const uniqueKeysSql = (options: {
+  schemas: string[];
+  tables: Table[];
+}) => `
 SELECT
 	Json_agg(Row_to_json(info))
 FROM (
@@ -1017,15 +1023,18 @@ FROM (
 	FROM
 		information_schema.table_constraints tc
 		JOIN information_schema.key_column_usage kcu USING (constraint_schema, constraint_name)
-	WHERE
-		tc.constraint_type::text = 'UNIQUE'::text
+    ${generateWhereClause(options, 'tc.table_name', 'tc.constraint_schema')}
+		AND tc.constraint_type::text = 'UNIQUE'::text
 	GROUP BY
 		tc.table_name,
 		tc.constraint_schema,
 		tc.constraint_name) AS info;
 `;
 
-export const checkConstraintsSql = `
+export const checkConstraintsSql = (options: {
+  schemas: string[];
+  tables: Table[];
+}) => `
 SELECT
 	Json_agg(Row_to_json(info))
 FROM (
@@ -1036,5 +1045,7 @@ SELECT n.nspname::text AS table_schema,
    FROM pg_constraint r
      JOIN pg_class ct ON r.conrelid = ct.oid
      JOIN pg_namespace n ON ct.relnamespace = n.oid
-  WHERE r.contype = 'c'::"char") AS info;
+   ${generateWhereClause(options, 'ct.relname', 'n.nspname')}
+   AND r.contype = 'c'::"char"
+   ) AS info;
 `;

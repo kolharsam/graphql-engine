@@ -57,7 +57,7 @@ export const mergeLoadSchemaData = (
       ) || null;
 
     const unique =
-      uniqueKeys.find(
+      uniqueKeys.filter(
         (key: any) =>
           key?.table_name === tableName && key.table_schema === tableSchema
       ) || [];
@@ -133,7 +133,6 @@ export const mergeLoadSchemaData = (
       const rolePermMap: Record<string, any> = {};
 
       permKeys.forEach(key => {
-        console.log({ metadataTable });
         if (metadataTable) {
           metadataTable[key]?.forEach((perm: any) => {
             rolePermMap[perm.role] = {

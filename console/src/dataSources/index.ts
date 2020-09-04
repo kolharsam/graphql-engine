@@ -268,9 +268,15 @@ export interface DataSourcesAPI {
     functionName?: string | null | undefined,
     type?: 'trackable' | 'non-trackable' | undefined
   ) => string;
-  primaryKeysInfoSql: string;
-  uniqueKeysSql: string;
-  checkConstraintsSql: string;
+  primaryKeysInfoSql: (options: {
+    schemas: string[];
+    tables: Table[];
+  }) => string;
+  uniqueKeysSql: (options: { schemas: string[]; tables: Table[] }) => string;
+  checkConstraintsSql: (options: {
+    schemas: string[];
+    tables: Table[];
+  }) => string;
 }
 
 export let currentDriver: Driver = 'postgres';
