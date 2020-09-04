@@ -26,8 +26,7 @@ import {
   getCreateSchemaSql,
   getDropTableSql,
   isColTypeString,
-  cascadeSqlQuery,
-  // getCreateTableQueries,
+  getCreateTableQueries,
 } from './sqlUtils';
 
 export const isTable = (table: Table) => {
@@ -114,7 +113,7 @@ const commonDataTypes = [
   },
 ];
 
-const createSQLRegex = /create\s*(?:|or\s*replace)\s*(view|table|function)\s*(?:\s*if*\s*not\s*exists\s*)?((\`?\w+\`?)|(\`?\w+\`?)\.(\`?\w+\`?))/; // eslint-disable-line
+const createSQLRegex = /create\s*((?:|or\s*replace)\s*view|\s*(table|function))\s*(?:\s*if*\s*not\s*exists\s*)?(((\`?\w+\`?)\.(\`?\w+\`?))|(\`?\w+\`?))/; // eslint-disable-line
 
 // Change this to the format to what is present on the postgres side
 export const mysql: DataSourcesAPI = {
@@ -182,7 +181,7 @@ export const mysql: DataSourcesAPI = {
   getViewDefinitionSql: () => {
     throw new Error('not implemented');
   },
-  getCreateTableQueries: () => {
+  cascadeSqlQuery: () => {
     throw new Error('not implemented');
   },
   initQueries: {} as DataSourcesAPI['initQueries'],
@@ -194,7 +193,7 @@ export const mysql: DataSourcesAPI = {
   createSQLRegex,
   isTable,
   displayTableName,
-  cascadeSqlQuery,
+  getCreateTableQueries,
   isColTypeString,
   getDropTableSql,
   getCreateSchemaSql,
