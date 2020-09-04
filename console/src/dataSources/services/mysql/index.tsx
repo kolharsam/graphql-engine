@@ -114,6 +114,8 @@ const commonDataTypes = [
   },
 ];
 
+const createSQLRegex = /create\s*(?:|or\s*replace)\s*(view|table|function)\s*(?:\s*if*\s*not\s*exists\s*)?((\`?\w+\`?)|(\`?\w+\`?)\.(\`?\w+\`?))/; // eslint-disable-line
+
 // Change this to the format to what is present on the postgres side
 export const mysql: DataSourcesAPI = {
   getFunctionSchema: () => {
@@ -185,7 +187,6 @@ export const mysql: DataSourcesAPI = {
   },
   initQueries: {} as DataSourcesAPI['initQueries'],
   dependencyErrorCode: '',
-  createSQLRegex: new RegExp(''), // TODO
   fetchColumnTypesQuery: '',
   fetchColumnCastsQuery: '',
   primaryKeysInfoSql: '',
@@ -193,6 +194,7 @@ export const mysql: DataSourcesAPI = {
   checkConstraintsSql: '',
   columnDataTypes,
   commonDataTypes,
+  createSQLRegex,
   isTable,
   displayTableName,
   cascadeSqlQuery,
