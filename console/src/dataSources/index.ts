@@ -88,7 +88,7 @@ export interface DataSourcesAPI {
   getEstimateCountQuery: (schemaName: string, tableName: string) => string;
   isColTypeString(colType: string): boolean;
   cascadeSqlQuery(sql: string): string;
-  dependecyErrorCode: string;
+  dependencyErrorCode: string;
   getCreateTableQueries: (
     currentSchema: string,
     tableName: string,
