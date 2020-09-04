@@ -871,7 +871,12 @@ export const getFunctionDefinitionSql = (
   type?: keyof typeof functionWhereStatement
 ) => `
 SELECT
-  Json_agg(Row_to_json(functions)) AS result from (
+COALESCE(
+  json_agg(
+    Row_to_json(functions)
+  ),
+  '[]' :: JSON
+) from (
 SELECT * FROM (
 SELECT p.proname::text AS function_name,
 pn.nspname::text AS function_schema,
@@ -929,7 +934,12 @@ export const primaryKeysInfoSql = (options: {
   tables: Table[];
 }) => `
 SELECT
-Json_agg(Row_to_json(info))
+COALESCE(
+  json_agg(
+    row_to_json(info)
+  ),
+  '[]' :: JSON
+)
 FROM (
 SELECT
 tc.table_schema,
@@ -1013,7 +1023,12 @@ export const uniqueKeysSql = (options: {
   tables: Table[];
 }) => `
 SELECT
-	Json_agg(Row_to_json(info))
+COALESCE(
+  json_agg(
+    row_to_json(info)
+  ),
+  '[]' :: JSON
+)
 FROM (
 	SELECT
 		tc.table_name,
@@ -1036,7 +1051,12 @@ export const checkConstraintsSql = (options: {
   tables: Table[];
 }) => `
 SELECT
-	Json_agg(Row_to_json(info))
+COALESCE(
+  json_agg(
+    row_to_json(info)
+  ),
+  '[]' :: JSON
+)
 FROM (
 SELECT n.nspname::text AS table_schema,
     ct.relname::text AS table_name,
