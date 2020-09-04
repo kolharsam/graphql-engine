@@ -1072,12 +1072,14 @@ const deleteColumnSql = (column, tableSchema) => {
     if (is_nullable) {
       schemaChangesDown.push(
         getRunSqlQuery(
-          dataSource.getDropNullSql(tableName, currentSchema, name)
+          dataSource.getDropNotNullSql(tableName, currentSchema, name)
         )
       );
     } else {
       schemaChangesDown.push(
-        getRunSqlQuery(dataSource.getSetNullSql(tableName, currentSchema, name))
+        getRunSqlQuery(
+          dataSource.getSetNotNullSql(tableName, currentSchema, name)
+        )
       );
     }
 
@@ -1508,12 +1510,12 @@ const saveColumnChangesSql = (colName, column, onSuccess) => {
 
     /* column nullable up/down migration */
     if (nullable) {
-      const nullableUpQuery = dataSource.getDropNullSql(
+      const nullableUpQuery = dataSource.getDropNotNullSql(
         tableName,
         currentSchema,
         colName
       );
-      const nullableDownQuery = dataSource.getSetNullSql(
+      const nullableDownQuery = dataSource.getSetNotNullSql(
         tableName,
         currentSchema,
         colName
@@ -1524,12 +1526,12 @@ const saveColumnChangesSql = (colName, column, onSuccess) => {
         schemaChangesDown.push(getRunSqlQuery(nullableDownQuery));
       }
     } else {
-      const nullableUpQuery = dataSource.getSetNullSql(
+      const nullableUpQuery = dataSource.getSetNotNullSql(
         tableName,
         currentSchema,
         colName
       );
-      const nullableDownQuery = dataSource.getDropNullSql(
+      const nullableDownQuery = dataSource.getDropNotNullSql(
         tableName,
         currentSchema,
         colName
