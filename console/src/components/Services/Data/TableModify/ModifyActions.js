@@ -820,9 +820,9 @@ const deleteTrigger = (trigger, table) => {
     const tableSchema = table.table_schema;
 
     const upMigrationSql = dataSource.getDropTriggerSql(
-      tableName,
       tableSchema,
-      triggerName
+      triggerName,
+      tableName
     );
     const migrationUp = [getRunSqlQuery(upMigrationSql)];
 
@@ -1147,7 +1147,8 @@ const deleteColumnSql = (column, tableSchema) => {
             tableName,
             currentSchema,
             name,
-            comment
+            comment,
+            col_type
           )
         )
       );
@@ -1584,7 +1585,8 @@ const saveColumnChangesSql = (colName, column, onSuccess) => {
         tableName,
         currentSchema,
         colName,
-        comment
+        comment,
+        colType
       );
 
       const columnCommentDownQuery = dataSource.getSetCommentSql(
@@ -1592,7 +1594,8 @@ const saveColumnChangesSql = (colName, column, onSuccess) => {
         tableName,
         currentSchema,
         colName,
-        originalColComment
+        originalColComment,
+        colType
       );
 
       schemaChangesUp.push(getRunSqlQuery(columnCommentUpQuery));
@@ -1616,7 +1619,8 @@ const saveColumnChangesSql = (colName, column, onSuccess) => {
             tableName,
             currentSchema,
             newName,
-            colName
+            colName,
+            colType
           )
         )
       );
@@ -1626,7 +1630,8 @@ const saveColumnChangesSql = (colName, column, onSuccess) => {
             tableName,
             currentSchema,
             colName,
-            newName
+            newName,
+            colType
           )
         ),
         ...schemaChangesDown,

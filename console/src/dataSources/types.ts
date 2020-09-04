@@ -79,7 +79,8 @@ export interface Table extends BaseTable {
     | 'VIEW'
     | 'MATERIALIZED VIEW'
     | 'FOREIGN TABLE'
-    | 'PARTITIONED TABLE';
+    | 'PARTITIONED TABLE'
+    | 'BASE TABLE';
   primary_key: {
     table_name: string;
     table_schema: string;
