@@ -282,73 +282,61 @@ const commonDataTypes = [
     name: 'Integer',
     value: 'integer',
     description: 'signed four-byte integer',
-    hasuraDatatype: 'integer',
   },
   {
     name: 'Integer (auto-increment)',
     value: 'serial',
     description: 'autoincrementing four-byte integer',
-    hasuraDatatype: null,
   },
   {
     name: 'Text',
     value: 'text',
     description: 'variable-length character string',
-    hasuraDatatype: 'text',
   },
   {
     name: 'Boolean',
     value: 'boolean',
     description: 'logical Boolean (true/false)',
-    hasuraDatatype: 'boolean',
   },
   {
     name: 'Numeric',
     value: 'numeric',
     description: 'exact numeric of selected precision',
-    hasuraDatatype: 'numeric',
   },
   {
     name: 'Timestamp',
     value: 'timestamptz',
     description: 'date and time, including time zone',
-    hasuraDatatype: 'timestamp with time zone',
   },
   {
     name: 'Time',
     value: 'timetz',
     description: 'time of day (no time zone)',
-    hasuraDatatype: 'time with time zone',
   },
   {
     name: 'Date',
     value: 'date',
     description: 'calendar date (year, month, day)',
-    hasuraDatatype: 'date',
   },
   {
     name: 'UUID',
     value: 'uuid',
     description: 'universal unique identifier',
-    hasuraDatatype: 'uuid',
   },
   {
     name: 'JSONB',
     value: 'jsonb',
     description: 'binary format JSON data',
-    hasuraDatatype: 'jsonb',
   },
   {
     name: 'Big Integer',
     value: 'bigint',
     description: 'signed eight-byte integer',
-    hasuraDatatype: 'bigint',
   },
   {
     name: 'Big Integer (auto-increment)',
     value: 'bigserial',
     description: 'autoincrementing eight-byte integer',
-    hasuraDatatype: null,
   },
 ];
 
