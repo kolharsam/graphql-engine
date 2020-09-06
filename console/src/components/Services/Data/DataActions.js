@@ -160,9 +160,6 @@ const loadSchema = configOptions => {
           false,
           checkFeatureSupport(READ_ONLY_RUN_SQL_QUERIES) ? true : false
         ),
-        getRunSqlQuery(dataSource.primaryKeysInfoSql(configOptions)),
-        getRunSqlQuery(dataSource.uniqueKeysSql(configOptions)),
-        getRunSqlQuery(dataSource.checkConstraintsSql(configOptions)),
       ],
     };
 
