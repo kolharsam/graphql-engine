@@ -1,6 +1,10 @@
 import inflection from 'inflection';
 
-import { makeMigrationCall, updateSchemaInfo } from '../DataActions';
+import {
+  makeMigrationCall,
+  updateSchemaInfo,
+  LOAD_UNTRACKED_RELATIONS,
+} from '../DataActions';
 import gqlPattern, { gqlRelErrorNotif } from '../Common/GraphQLValidation';
 import { showErrorNotification } from '../../Common/Notification';
 import { getConfirmation } from '../../../Common/utils/jsUtils';
@@ -633,6 +637,9 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
   const trackedTables = allSchemas.filter(
     table => table.is_table_tracked && table.table_schema === currentSchema
   );
+  const allTrackedRelations = trackedTables
+    .map(tab => tab.relationships)
+    .flat();
   const tableRelMapping = trackedTables.map(table => ({
     table_name: table.table_name,
     existingFields: getExistingFieldsMap(table),
@@ -644,10 +651,8 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
   }));
 
   const bulkRelTrack = [];
-  const bulkRelTrackDown = [];
 
   tableRelMapping.forEach(table => {
-    console.log("JJJ", table)
     // check relations.obj and relations.arr length and form queries
     if (table.relations.objectRel.length) {
       table.relations.objectRel.forEach(indivObjectRel => {
@@ -667,7 +672,26 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
           data: indivObjectRel,
         };
 
-        bulkRelTrack.push(objTrack);
+        const isRelationTracked = allTrackedRelations.find(rels => {
+          const { table_schema, table_name } = rels;
+          const { schema, name } = rels.rel_def.table;
+          const { column } = rels.rel_def.foreign_key_constraint_on;
+          if (
+            rels.rel_type === 'object' &&
+            table_schema === indivObjectRel.lSchema &&
+            table_name === indivObjectRel.lTable &&
+            indivObjectRel.lcol[0] === column &&
+            indivObjectRel.rcol[0] === column &&
+            name === indivObjectRel.rTable &&
+            schema === indivObjectRel.rSchema
+          ) {
+            return rels;
+          }
+        });
+
+        if (!isRelationTracked) {
+          bulkRelTrack.push(objTrack);
+        }
       });
     }
 
@@ -689,12 +713,30 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
           data: indivArrayRel,
         };
 
-        bulkRelTrack.push(arrTrack);
+        const isRelationTracked = allTrackedRelations.find(rels => {
+          const { table_schema, table_name } = rels;
+          const { schema, name } = rels.rel_def.table;
+          const { column } = rels.rel_def.foreign_key_constraint_on;
+          if (
+            rels.rel_type === 'array' &&
+            table_schema === indivArrayRel.lSchema &&
+            table_name === indivArrayRel.lTable &&
+            indivArrayRel.lcol[0] === column &&
+            indivArrayRel.rcol[0] === column &&
+            name === indivArrayRel.rTable &&
+            schema === indivArrayRel.rSchema
+          ) {
+            return rels;
+          }
+        });
+        if (!isRelationTracked) {
+          bulkRelTrack.push(arrTrack);
+        }
       });
     }
   });
-  console.log("HERE", bulkRelTrack, bulkRelTrackDown)
-  return { bulkRelTrack: bulkRelTrack, bulkRelTrackDown: bulkRelTrackDown };
+
+  return { bulkRelTrack, bulkRelTrackDown: [] };
 };
 
 const autoTrackRelations = autoTrackData => (dispatch, getState) => {
@@ -706,8 +748,12 @@ const autoTrackRelations = autoTrackData => (dispatch, getState) => {
   const requestMsg = 'Adding Relationship...';
   const successMsg = 'Relationship created';
   const errorMsg = 'Creating relationship failed';
-  const customOnSuccess = () => dispatch(updateSchemaInfo());
-  const customOnError = () => {};
+  // todo: these dispatch should probably be within onSuccessError
+  dispatch({
+    type: LOAD_UNTRACKED_RELATIONS,
+    untrackedRelations: [],
+  });
+  const onSuccessOrError = () => dispatch(updateSchemaInfo());
 
   makeMigrationCall(
     dispatch,
@@ -715,8 +761,8 @@ const autoTrackRelations = autoTrackData => (dispatch, getState) => {
     relChangesUp,
     relChangesDown,
     migrationName,
-    customOnSuccess,
-    customOnError,
+    onSuccessOrError,
+    onSuccessOrError,
     requestMsg,
     successMsg,
     errorMsg,
@@ -727,6 +773,7 @@ const autoTrackRelations = autoTrackData => (dispatch, getState) => {
 const autoAddRelName = obj => (dispatch, getState) => {
   const currentSchema = getState().tables.currentSchema;
   const relName = obj.upQuery.args.name;
+  const untrackedRelations = getState().tables.untrackedRelations;
 
   const relChangesUp = [obj.upQuery];
   const relChangesDown = [obj.downQuery];
@@ -738,8 +785,15 @@ const autoAddRelName = obj => (dispatch, getState) => {
   const successMsg = 'Relationship created';
   const errorMsg = 'Creating relationship failed';
 
-  const customOnSuccess = () => dispatch(updateSchemaInfo());
-  const customOnError = () => {};
+  const filteredUntrackedRelations = untrackedRelations.filter(
+    relation => relation.data.relName !== relName
+  );
+  dispatch({
+    type: LOAD_UNTRACKED_RELATIONS,
+    untrackedRelations: filteredUntrackedRelations,
+  });
+
+  const onSuccessOrError = () => dispatch(updateSchemaInfo());
 
   makeMigrationCall(
     dispatch,
@@ -747,8 +801,8 @@ const autoAddRelName = obj => (dispatch, getState) => {
     relChangesUp,
     relChangesDown,
     migrationName,
-    customOnSuccess,
-    customOnError,
+    onSuccessOrError,
+    onSuccessOrError,
     requestMsg,
     successMsg,
     errorMsg

@@ -195,8 +195,6 @@ const loadSchema = configOptions => {
             checkConstraints
           );
 
-          console.log("GOLD", mergedData, allSchemas);
-
           // todo
           const { inconsistentObjects } = state.metadata;
           const maybeInconsistentSchemas = [...allSchemas, ...mergedData];
@@ -283,7 +281,9 @@ const fetchDataInit = () => (dispatch, getState) => {
 
   return dispatch(requestAction(url, options)).then(
     data => {
-      const filteredSchemaList = data.filter(s => !s.schema_name.includes('hdb'));
+      const filteredSchemaList = data.filter(
+        s => !s.schema_name.includes('hdb')
+      );
       dispatch({ type: FETCH_SCHEMA_LIST, schemaList: filteredSchemaList });
       dispatch(updateSchemaInfo());
     },
@@ -358,8 +358,9 @@ const fetchSchemaList = () => (dispatch, getState) => {
   };
   return dispatch(requestAction(url, options)).then(
     data => {
-      const filteredSchemaList = data.filter(d => !d.schema_name.includes('hdb'));
-      console.log("HERE", filteredSchemaList)
+      const filteredSchemaList = data.filter(
+        d => !d.schema_name.includes('hdb')
+      );
       dispatch({ type: FETCH_SCHEMA_LIST, schemaList: filteredSchemaList });
     },
     error => {

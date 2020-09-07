@@ -137,9 +137,9 @@ export interface Table extends BaseTable {
     table_name: string;
     view_definition: string;
   };
-  comment: string | null,
-  unique_constraints: any, // todo
-  remote_relationships: any, // todo
+  comment: string | null;
+  unique_constraints: any; // todo
+  remote_relationships: any; // todo
 }
 
 export type ColumnAction = 'add' | 'modify';

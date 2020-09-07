@@ -88,7 +88,6 @@ const getReqHeader = headers => {
 const fetchRemoteSchema = remoteSchema => {
   return (dispatch, getState) => {
     const schema = getRemoteSchemaSelector(getState())(remoteSchema);
-    console.log({ schema, state: getState() });
 
     if (schema) {
       dispatch({ type: REMOTE_SCHEMA_FETCH_SUCCESS, data: schema });
