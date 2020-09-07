@@ -647,6 +647,7 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
   const bulkRelTrackDown = [];
 
   tableRelMapping.forEach(table => {
+    console.log("JJJ", table)
     // check relations.obj and relations.arr length and form queries
     if (table.relations.objectRel.length) {
       table.relations.objectRel.forEach(indivObjectRel => {
@@ -692,7 +693,7 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
       });
     }
   });
-
+  console.log("HERE", bulkRelTrack, bulkRelTrackDown)
   return { bulkRelTrack: bulkRelTrack, bulkRelTrackDown: bulkRelTrackDown };
 };
 
@@ -705,9 +706,7 @@ const autoTrackRelations = autoTrackData => (dispatch, getState) => {
   const requestMsg = 'Adding Relationship...';
   const successMsg = 'Relationship created';
   const errorMsg = 'Creating relationship failed';
-  const customOnSuccess = () => {
-    dispatch(updateSchemaInfo());
-  };
+  const customOnSuccess = () => dispatch(updateSchemaInfo());
   const customOnError = () => {};
 
   makeMigrationCall(
@@ -739,9 +738,7 @@ const autoAddRelName = obj => (dispatch, getState) => {
   const successMsg = 'Relationship created';
   const errorMsg = 'Creating relationship failed';
 
-  const customOnSuccess = () => {
-    Promise.all([dispatch(updateSchemaInfo())]);
-  };
+  const customOnSuccess = () => dispatch(updateSchemaInfo());
   const customOnError = () => {};
 
   makeMigrationCall(

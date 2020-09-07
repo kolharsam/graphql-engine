@@ -195,9 +195,11 @@ const loadSchema = configOptions => {
             checkConstraints
           );
 
+          console.log("GOLD", mergedData, allSchemas);
+
           // todo
           const { inconsistentObjects } = state.metadata;
-          const maybeInconsistentSchemas = allSchemas.concat(mergedData);
+          const maybeInconsistentSchemas = [...allSchemas, ...mergedData];
 
           let consistentSchemas;
           if (inconsistentObjects.length > 0) {
@@ -355,7 +357,9 @@ const fetchSchemaList = () => (dispatch, getState) => {
   };
   return dispatch(requestAction(url, options)).then(
     data => {
-      dispatch({ type: FETCH_SCHEMA_LIST, schemaList: data });
+      const filteredSchemaList = data.filter(d => !d.schema_name.includes('hdb'));
+      console.log("HERE", filteredSchemaList)
+      dispatch({ type: FETCH_SCHEMA_LIST, schemaList: filteredSchemaList });
     },
     error => {
       console.error('Failed to fetch schema ' + JSON.stringify(error));

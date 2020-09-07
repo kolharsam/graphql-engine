@@ -171,7 +171,7 @@ export const mergeLoadSchemaData = (
       });
     }
 
-    const _mergedInfo = {
+    const _mergedInfo: Table & PostgresTable = {
       table_schema: tableSchema,
       table_name: tableName,
       table_type: tableType as Table['table_type'],
