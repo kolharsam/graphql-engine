@@ -280,8 +280,9 @@ class Schema extends Component {
 
     const getCurrentSchemaSection = () => {
       const getSchemaOptions = () => {
-        return schemaList.map(s => (
-          <option key={s.schema_name}>{s.schema_name}</option>
+        const filteredSchemaList = schemaList.filter(sch => !sch.schema_name.includes("hdb"));
+        return filteredSchemaList.map(s => (
+          <option key={s.schema_name} selected={s.schema_name === 'public'}>{s.schema_name}</option>
         ));
       };
 
