@@ -139,8 +139,8 @@ const AddRelationship = ({
   );
 
   if (
-    suggestedRelationshipsData.objectRel.length < 1 &&
-    suggestedRelationshipsData.arrayRel.length < 1
+    !suggestedRelationshipsData.objectRel.length &&
+    !suggestedRelationshipsData.arrayRel.length
   ) {
     return (
       <div className={styles.add_mar_bottom}>

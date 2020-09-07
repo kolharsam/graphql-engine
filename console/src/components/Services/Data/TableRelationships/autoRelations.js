@@ -52,7 +52,7 @@ const isExistingArrRel = (currentArrRels, relCols, relTable) => {
       currRCol = Object.values(arrRelDef.manual_configuration.column_mapping);
     }
 
-    if (currTable.table_name === relTable && sameRelCols(currRCol, relCols)) {
+    if (currTable.name === relTable && sameRelCols(currRCol, relCols)) {
       _isExistingArrRel = true;
       break;
     }
@@ -125,7 +125,7 @@ const suggestedRelationshipsRaw = (tableName, allSchemas, currentSchema) => {
         });
       }
     } else {
-      if (!isExistingArrRel(currentArrRels, rcol, o_fk_obj.table_name)) {
+      if (!isExistingArrRel(currentArrRels, rcol, rTable)) {
         arrRels.push({
           lTable: o_fk_obj.ref_table,
           lSchema: o_fk_obj.ref_table_table_schema,
