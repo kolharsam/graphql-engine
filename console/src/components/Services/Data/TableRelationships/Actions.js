@@ -673,6 +673,15 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
         };
 
         const isRelationTracked = allTrackedRelations.find(rels => {
+          if (
+            !rels.table_name ||
+            !rels.table_schema ||
+            !rels.rel_def ||
+            !rels.rel_def.schema ||
+            !rels.rel_def.name
+          ) {
+            return;
+          }
           const { table_schema, table_name } = rels;
           const { schema, name } = rels.rel_def.table;
           // const { column } = rels.rel_def.foreign_key_constraint_on;
@@ -713,6 +722,15 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
         };
 
         const isRelationTracked = allTrackedRelations.find(rels => {
+          if (
+            !rels.table_name ||
+            !rels.table_schema ||
+            !rels.rel_def ||
+            !rels.rel_def.schema ||
+            !rels.rel_def.name
+          ) {
+            return;
+          }
           const { table_schema, table_name } = rels;
           const { schema, name } = rels.rel_def.table;
           // const { column } = rels.rel_def.foreign_key_constraint_on;
