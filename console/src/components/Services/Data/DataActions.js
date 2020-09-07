@@ -283,7 +283,8 @@ const fetchDataInit = () => (dispatch, getState) => {
 
   return dispatch(requestAction(url, options)).then(
     data => {
-      dispatch({ type: FETCH_SCHEMA_LIST, schemaList: data });
+      const filteredSchemaList = data.filter(s => !s.schema_name.includes('hdb'));
+      dispatch({ type: FETCH_SCHEMA_LIST, schemaList: filteredSchemaList });
       dispatch(updateSchemaInfo());
     },
     error => {
