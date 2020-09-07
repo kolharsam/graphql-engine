@@ -39,7 +39,7 @@ import {
   checkFeatureSupport,
   READ_ONLY_RUN_SQL_QUERIES,
 } from '../../../helpers/versionUtils';
-import { getRunSqlQuery } from '../../../metadata/queryUtils';
+import { getRunSqlQuery } from '../../Common/utils/v1QueryUtils';
 
 const SET_TABLE = 'Data/SET_TABLE';
 const LOAD_FUNCTIONS = 'Data/LOAD_FUNCTIONS';
@@ -365,6 +365,7 @@ const fetchSchemaList = () => (dispatch, getState) => {
     },
     error => {
       console.error('Failed to fetch schema ' + JSON.stringify(error));
+      return error;
     }
   );
 };
