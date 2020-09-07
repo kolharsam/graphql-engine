@@ -675,13 +675,12 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
         const isRelationTracked = allTrackedRelations.find(rels => {
           const { table_schema, table_name } = rels;
           const { schema, name } = rels.rel_def.table;
-          const { column } = rels.rel_def.foreign_key_constraint_on;
+          // const { column } = rels.rel_def.foreign_key_constraint_on;
+          // this changes for the different relationships that are there
           if (
             rels.rel_type === 'object' &&
             table_schema === indivObjectRel.lSchema &&
             table_name === indivObjectRel.lTable &&
-            indivObjectRel.lcol[0] === column &&
-            indivObjectRel.rcol[0] === column &&
             name === indivObjectRel.rTable &&
             schema === indivObjectRel.rSchema
           ) {
@@ -716,13 +715,12 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
         const isRelationTracked = allTrackedRelations.find(rels => {
           const { table_schema, table_name } = rels;
           const { schema, name } = rels.rel_def.table;
-          const { column } = rels.rel_def.foreign_key_constraint_on;
+          // const { column } = rels.rel_def.foreign_key_constraint_on;
+          // this changes for the different relationships that are there
           if (
             rels.rel_type === 'array' &&
             table_schema === indivArrayRel.lSchema &&
             table_name === indivArrayRel.lTable &&
-            indivArrayRel.lcol[0] === column &&
-            indivArrayRel.rcol[0] === column &&
             name === indivArrayRel.rTable &&
             schema === indivArrayRel.rSchema
           ) {
