@@ -15,14 +15,14 @@ import { RemoteRelationshipPayload } from '../components/Services/Data/TableRela
 import { Driver } from '../dataSources';
 
 export type MetadataQueryType =
-  | 'createSelectPermissions'
-  | 'createUpdatePermissions'
-  | 'createDeletePermissions'
-  | 'createInsertPermissions'
-  | 'dropSelectPermissions'
-  | 'dropUpdatePermissions'
-  | 'dropDeletePermissions'
-  | 'dropInsertPermissions'
+  | 'create_select_permission'
+  | 'create_update_permission'
+  | 'create_delete_permission'
+  | 'create_insert_permission'
+  | 'drop_select_permission'
+  | 'drop_update_permission'
+  | 'drop_delete_permission'
+  | 'drop_insert_permission'
   | 'set_custom_types'
   | 'create_action'
   | 'set_table_custom_fields'
@@ -35,15 +35,31 @@ export type MetadataQueryType =
   | 'untrack_table'
   | 'add_computed_field'
   | 'drop_computed_field'
-  | 'add_source';
+  | 'add_source'
+  | 'add_existing_table_or_view'
+  | 'track_function'
+  | 'untrack_function'
+  | 'rename_relationship'
+  | 'create_object_relationship'
+  | 'drop_relationship'
+  | 'create_array_relationship';
 
 export type MetadataQueries = Record<Driver, Record<MetadataQueryType, string>>;
 
+type MetadataQueryArgs = {
+  source: string;
+  [key: string]: any;
+};
+
 export const getMetadataQuery = (
   type: MetadataQueryType,
-  args: Record<string, any>,
+  args: MetadataQueryArgs,
   options?: { version: number }
-) => {
+): {
+  type: string;
+  args: MetadataQueryArgs;
+  version?: number;
+} => {
   // const prefix = currentDriver === 'postgres' ? 'pg_' : 'mysq_';
   const prefix = '';
   return {
@@ -57,21 +73,22 @@ export const getCreatePermissionQuery = (
   action: 'update' | 'insert' | 'delete' | 'select',
   tableDef: QualifiedTable,
   role: string,
-  permission: any
+  permission: any,
+  source: string
 ) => {
   let queryType: MetadataQueryType;
   switch (action) {
     case 'delete':
-      queryType = 'createDeletePermissions';
+      queryType = 'create_delete_permission';
       break;
     case 'insert':
-      queryType = 'createInsertPermissions';
+      queryType = 'create_insert_permission';
       break;
     case 'select':
-      queryType = 'createSelectPermissions';
+      queryType = 'create_select_permission';
       break;
     case 'update':
-      queryType = 'createUpdatePermissions';
+      queryType = 'create_update_permission';
       break;
     default:
       throw new Error('Invalid action type');
@@ -81,27 +98,29 @@ export const getCreatePermissionQuery = (
     table: tableDef,
     role,
     permission,
+    source,
   });
 };
 
 export const getDropPermissionQuery = (
   action: string,
   tableDef: QualifiedTable,
-  role: string
+  role: string,
+  source: string
 ) => {
   let queryType: MetadataQueryType;
   switch (action) {
     case 'delete':
-      queryType = 'dropDeletePermissions';
+      queryType = 'drop_delete_permission';
       break;
     case 'insert':
-      queryType = 'dropInsertPermissions';
+      queryType = 'drop_insert_permission';
       break;
     case 'select':
-      queryType = 'dropSelectPermissions';
+      queryType = 'drop_select_permission';
       break;
     case 'update':
-      queryType = 'dropUpdatePermissions';
+      queryType = 'drop_update_permission';
       break;
     default:
       throw new Error('Invalid action type');
@@ -109,6 +128,7 @@ export const getDropPermissionQuery = (
   return getMetadataQuery(queryType, {
     table: tableDef,
     role,
+    source,
   });
 };
 
@@ -182,11 +202,14 @@ export const getUpdateActionQuery = (
   actionName: string,
   actionComment: string
 ) => {
-  return getMetadataQuery('update_action', {
-    name: actionName,
-    definition: def,
-    comment: actionComment,
-  });
+  return {
+    type: 'update_action',
+    args: {
+      name: actionName,
+      definition: def,
+      comment: actionComment,
+    },
+  };
 };
 
 export const getDropActionPermissionQuery = (
@@ -204,43 +227,58 @@ export const getDropActionPermissionQuery = (
 
 export const getSetTableEnumQuery = (
   tableDef: QualifiedTable,
-  isEnum: boolean
+  isEnum: boolean,
+  source: string
 ) => {
   return getMetadataQuery('set_table_is_enum', {
     table: tableDef,
     is_enum: isEnum,
+    source,
   });
 };
 
-export const getTrackTableQuery = (tableDef: QualifiedTable) => {
-  return getMetadataQuery('add_existing_table_or_view', tableDef);
+export const getTrackTableQuery = (
+  tableDef: QualifiedTable,
+  source: string
+) => {
+  return getMetadataQuery('add_existing_table_or_view', {
+    ...tableDef,
+    source,
+  });
 };
 
-export const getUntrackTableQuery = (tableDef: QualifiedTable) => {
-  return getMetadataQuery('untrack_table', tableDef);
+export const getUntrackTableQuery = (
+  tableDef: QualifiedTable,
+  source: string
+) => {
+  return getMetadataQuery('untrack_table', { ...tableDef, source });
 };
 
 export const getAddComputedFieldQuery = (
   tableDef: QualifiedTable,
   computedFieldName: string,
   definition: any,
-  comment: string
+  comment: string,
+  source: string
 ) => {
   return getMetadataQuery('add_computed_field', {
     table: tableDef,
     name: computedFieldName,
     definition,
     comment,
+    source,
   });
 };
 
 export const getDropComputedFieldQuery = (
   tableDef: QualifiedTable,
-  computedFieldName: string
+  computedFieldName: string,
+  source: string
 ) => {
   return getMetadataQuery('drop_computed_field', {
     table: tableDef,
     name: computedFieldName,
+    source,
   });
 };
 
@@ -421,3 +459,86 @@ export const getBulkQuery = (args: any[]) => {
     args,
   };
 };
+
+export const addExistingTableOrView = (
+  tableName: string,
+  schemaName: string,
+  source: string
+) =>
+  getMetadataQuery('add_existing_table_or_view', {
+    name: tableName,
+    schema: schemaName,
+    source,
+  });
+
+export const getTrackFunctionQuery = (
+  name: string,
+  schema: string,
+  source: string
+) => getMetadataQuery('track_function', { name, schema, source });
+
+export const getTrackFunctionV2Query = (
+  name: string,
+  schema: string,
+  configuration: Record<string, string>,
+  source: string
+) =>
+  getMetadataQuery('track_function', {
+    function: { name, schema },
+    source,
+    configuration,
+  });
+
+export const getUntrackFunctionQuery = (
+  name: string,
+  schema: string,
+  source: string
+) => getMetadataQuery('untrack_function', { name, schema, source });
+
+export const getRenameRelationshipQuery = (
+  table: QualifiedTable,
+  name: string,
+  newName: string,
+  source: string
+) =>
+  getMetadataQuery('rename_relationship', {
+    table,
+    name,
+    new_name: newName,
+    source,
+  });
+
+export const getCreateObjectRelationshipQuery = (
+  table: QualifiedTable,
+  name: string,
+  source: string
+) =>
+  getMetadataQuery('create_object_relationship', {
+    name,
+    table,
+    using: {},
+    source,
+  });
+
+export const getDropRelationshipQuery = (
+  table: QualifiedTable,
+  name: string,
+  source: string
+) =>
+  getMetadataQuery('drop_relationship', {
+    table,
+    relationship: name,
+    source,
+  });
+
+export const getCreateArrayRelationshipQuery = (
+  table: QualifiedTable,
+  name: string,
+  source: string
+) =>
+  getMetadataQuery('create_array_relationship', {
+    name,
+    table,
+    using: {},
+    source,
+  });

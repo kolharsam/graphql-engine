@@ -16,6 +16,10 @@ import {
 import {
   getSaveRemoteRelQuery,
   getDropRemoteRelQuery,
+  getRenameRelationshipQuery,
+  getCreateObjectRelationshipQuery,
+  getCreateArrayRelationshipQuery,
+  getDropRelationshipQuery,
 } from '../../../../metadata/queryUtils';
 
 export const SET_MANUAL_REL_ADD = 'ModifyTable/SET_MANUAL_REL_ADD';
@@ -221,31 +225,28 @@ const manualRelRSchemaChanged = rSchema => ({
 const saveRenameRelationship = (oldName, newName, tableName, callback) => {
   return (dispatch, getState) => {
     const currentSchema = getState().tables.currentSchema;
+    const currentSource = getState().tables.currentDataSource;
     const migrateUp = [
-      {
-        type: 'rename_relationship',
-        args: {
-          table: {
-            name: tableName,
-            schema: currentSchema,
-          },
-          name: oldName,
-          new_name: newName,
+      getRenameRelationshipQuery(
+        {
+          name: tableName,
+          schema: currentSchema,
         },
-      },
+        oldName,
+        newName,
+        currentSource
+      ),
     ];
     const migrateDown = [
-      {
-        type: 'rename_relationship',
-        args: {
-          table: {
-            name: tableName,
-            schema: currentSchema,
-          },
-          name: newName,
-          new_name: oldName,
+      getRenameRelationshipQuery(
+        {
+          name: tableName,
+          schema: currentSchema,
         },
-      },
+        newName,
+        oldName,
+        currentSource
+      ),
     ];
     // Apply migrations
     const migrationName = `rename_relationship_${oldName}_to_${newName}_schema_${currentSchema}_table_${tableName}`;
@@ -275,22 +276,19 @@ const saveRenameRelationship = (oldName, newName, tableName, callback) => {
   };
 };
 
-const generateRelationshipsQuery = relMeta => {
+const generateRelationshipsQuery = (relMeta, currentDataSource) => {
   let _upQuery;
   let _downQuery;
 
   if (relMeta.isObjRel) {
-    _upQuery = {
-      type: 'create_object_relationship',
-      args: {
-        name: relMeta.relName,
-        table: {
-          name: relMeta.lTable,
-          schema: relMeta.lSchema,
-        },
-        using: {},
+    _upQuery = getCreateObjectRelationshipQuery(
+      {
+        name: relMeta.lTable,
+        schema: relMeta.lSchema,
       },
-    };
+      relMeta.relName,
+      currentDataSource
+    );
     const columnMaps = relMeta.lcol.map((column, index) => ({
       lcol: column,
       rcol: relMeta.rcol[index],
@@ -315,25 +313,20 @@ const generateRelationshipsQuery = relMeta => {
       };
     }
 
-    _downQuery = {
-      type: 'drop_relationship',
-      args: {
-        table: { name: relMeta.lTable, schema: relMeta.lSchema },
-        relationship: relMeta.relName,
-      },
-    };
+    _downQuery = getDropRelationshipQuery(
+      { name: relMeta.lTable, schema: relMeta.lSchema },
+      relMeta.relName,
+      currentDataSource
+    );
   } else {
-    _upQuery = {
-      type: 'create_array_relationship',
-      args: {
-        name: relMeta.relName,
-        table: {
-          name: relMeta.lTable,
-          schema: relMeta.lSchema,
-        },
-        using: {},
+    _upQuery = getCreateArrayRelationshipQuery(
+      {
+        name: relMeta.lTable,
+        schema: relMeta.lSchema,
       },
-    };
+      relMeta.relName,
+      currentDataSource
+    );
     const columnMaps = relMeta.rcol.map((column, index) => ({
       rcol: column,
       lcol: relMeta.lcol[index],
@@ -364,13 +357,11 @@ const generateRelationshipsQuery = relMeta => {
       };
     }
 
-    _downQuery = {
-      type: 'drop_relationship',
-      args: {
-        table: { name: relMeta.lTable, schema: relMeta.lSchema },
-        relationship: relMeta.relName,
-      },
-    };
+    _downQuery = getDropRelationshipQuery(
+      { name: relMeta.lTable, schema: relMeta.lSchema },
+      relMeta.relName,
+      currentDataSource
+    );
   }
 
   return { upQuery: _upQuery, downQuery: _downQuery };
@@ -483,6 +474,7 @@ const addRelViewMigrate = (tableSchema, toggleEditor) => (
   const currentTableSchema = tableSchema.table_schema;
   const isObjRel = relType === 'object' ? true : false;
   const columnMapping = {};
+  const { currentDataSource } = getState().tables;
 
   colMappings.forEach(colMap => {
     if (colMap.column === '') {
@@ -509,13 +501,11 @@ const addRelViewMigrate = (tableSchema, toggleEditor) => (
     },
   ];
   const relChangesDown = [
-    {
-      type: 'drop_relationship',
-      args: {
-        table: { name: currentTableName, schema: currentTableSchema },
-        relationship: relName,
-      },
-    },
+    getDropRelationshipQuery(
+      { name: currentTableName, schema: currentTableSchema },
+      relName,
+      currentDataSource
+    ),
   ];
 
   // Apply migrations
@@ -633,7 +623,7 @@ const getExistingFieldsMap = tableSchema => {
   return fieldMap;
 };
 
-const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
+const getAllUnTrackedRelations = (allSchemas, currentSchema, currentSource) => {
   const trackedTables = allSchemas.filter(
     table => table.is_table_tracked && table.table_schema === currentSchema
   );
@@ -663,7 +653,8 @@ const getAllUnTrackedRelations = (allSchemas, currentSchema) => {
         /* Added to ensure that fallback relationship name is created in case of tracking all relationship at once */
         table.existingFields[indivObjectRel.relName] = true;
         const { upQuery, downQuery } = generateRelationshipsQuery(
-          indivObjectRel
+          indivObjectRel,
+          currentSource
         );
 
         const objTrack = {

@@ -31,7 +31,7 @@ const insertItem = (tableName, colValues) => {
     dispatch({ type: I_ONGOING_REQ });
     const insertObject = {};
     const state = getState();
-    const { currentSchema } = state.tables;
+    const { currentSchema, currentDataSource } = state.tables;
     const columns = state.tables.allSchemas.find(
       t => t.table_name === tableName && t.table_schema === currentSchema
     ).columns;
@@ -98,6 +98,7 @@ const insertItem = (tableName, colValues) => {
         table: { name: tableName, schema: getState().tables.currentSchema },
         objects: [insertObject],
         returning: [],
+        source: currentDataSource,
       },
     };
     const options = {
@@ -128,7 +129,7 @@ const insertItem = (tableName, colValues) => {
 const fetchEnumOptions = () => {
   return (dispatch, getState) => {
     const {
-      tables: { allSchemas, currentTable, currentSchema },
+      tables: { allSchemas, currentTable, currentSchema, currentDataSource },
     } = getState();
 
     const requests = getEnumColumnMappings(
@@ -147,7 +148,11 @@ const fetchEnumOptions = () => {
     const url = Endpoints.query;
 
     requests.forEach(request => {
-      const req = getEnumOptionsQuery(request, currentSchema);
+      const req = getEnumOptionsQuery(
+        request,
+        currentSchema,
+        currentDataSource
+      );
 
       return dispatch(
         requestAction(url, {
