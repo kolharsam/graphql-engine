@@ -219,4 +219,5 @@ WHERE
   checkConstraintsSql: undefined, // todo
   getFKRelations,
   getReferenceOption: (option: string) => option,
+  deleteFunctionSql: () => {}, // not supported
 };

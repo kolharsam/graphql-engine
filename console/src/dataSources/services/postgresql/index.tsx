@@ -43,6 +43,7 @@ import {
   uniqueKeysSql,
   frequentlyUsedColumns,
   getFKRelations,
+  deleteFunctionSql,
 } from './sqlUtils';
 
 export const isTable = (table: Table) => {
@@ -421,4 +422,5 @@ export const postgres: DataSourcesAPI = {
   frequentlyUsedColumns,
   getFKRelations,
   getReferenceOption,
+  deleteFunctionSql,
 };
