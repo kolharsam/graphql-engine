@@ -1,14 +1,6 @@
 import { Table, FrequentlyUsedColumn } from '../../types';
 import { isColTypeString } from '.';
-import { Dispatch, GetReduxState } from '../../../types';
-import { makeRequest } from '../../../components/Services/RemoteSchema/Actions';
-import {
-  DELETING_CUSTOM_FUNCTION,
-  DELETE_CUSTOM_FUNCTION_FAIL,
-} from '../../../components/Services/Data/Function/customFunctionReducer';
-import _push from '../../../components/Services/Data/push';
-import { getSchemaBaseRoute } from '../../../components/Common/utils/routesUtils';
-import { getRunSqlQuery } from '../../../components/Common/utils/v1QueryUtils';
+import { FunctionState } from './types';
 
 const sqlEscapeText = (rawText: string) => {
   let text = rawText;
@@ -1141,64 +1133,24 @@ FROM (
 			q.table_name,
       q.constraint_name) AS info;`;
 
-export const deleteFunctionSql = () => (
-  dispatch: Dispatch,
-  getState: GetReduxState
+export const deleteFunctionSql = (
+  schemaName: string,
+  functionState: FunctionState
 ) => {
-  const currentSchema = getState().tables.currentSchema;
-  const source = getState().tables.currentDataSource;
-  const {
-    functionName,
-    functionDefinition,
-    inputArgTypes,
-  } = getState().functions;
+  const { functionName, inputArgTypes } = functionState;
 
-  const functionNameWithSchema = `"${currentSchema}"."${functionName}"`;
+  const functionNameWithSchema = `"${schemaName}"."${functionName}"`;
 
   let functionArgString = '';
   if (inputArgTypes.length > 0) {
     functionArgString += '(';
-    inputArgTypes.forEach(
-      (inputArg: { schema: string; name: string }, i: number) => {
-        functionArgString += i > 0 ? ', ' : '';
+    inputArgTypes.forEach((inputArg, i) => {
+      functionArgString += i > 0 ? ', ' : '';
 
-        functionArgString += `"${inputArg.schema}"."${inputArg.name}"`;
-      }
-    );
+      functionArgString += `"${inputArg.schema}"."${inputArg.name}"`;
+    });
     functionArgString += ')';
   }
 
-  const sqlDropFunction = `DROP FUNCTION ${functionNameWithSchema}${functionArgString}`;
-
-  const sqlUpQueries = [getRunSqlQuery(sqlDropFunction, source)];
-
-  const sqlDownQueries = [];
-  if (functionDefinition && functionDefinition.length > 0) {
-    sqlDownQueries.push(getRunSqlQuery(functionDefinition, source));
-  }
-
-  // Apply migrations
-  const migrationName = `drop_function_${currentSchema}_${functionName}`;
-
-  const requestMsg = 'Deleting function...';
-  const successMsg = 'Function deleted';
-  const errorMsg = 'Deleting function failed';
-
-  const customOnSuccess = () =>
-    dispatch(_push(getSchemaBaseRoute(currentSchema)));
-  const customOnError = () => dispatch({ type: DELETE_CUSTOM_FUNCTION_FAIL });
-
-  dispatch({ type: DELETING_CUSTOM_FUNCTION });
-  return dispatch(
-    makeRequest(
-      sqlUpQueries,
-      sqlDownQueries,
-      migrationName,
-      customOnSuccess,
-      customOnError,
-      requestMsg,
-      successMsg,
-      errorMsg
-    )
-  );
+  return `DROP FUNCTION ${functionNameWithSchema}${functionArgString}`;
 };

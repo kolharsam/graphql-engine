@@ -137,6 +137,9 @@ export const mysql: DataSourcesAPI = {
   findFunction: () => {
     return undefined;
   },
+  deleteFunctionSql: () => {
+    throw new Error('not supported');
+  },
   getGroupedTableComputedFields: () => {
     return { scalar: [], table: [] };
   },
@@ -232,5 +235,4 @@ WHERE
   checkConstraintsSql: undefined, // todo
   getFKRelations,
   getReferenceOption: (option: string) => option,
-  deleteFunctionSql: () => {}, // not supported
 };
