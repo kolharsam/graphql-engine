@@ -161,6 +161,47 @@ const fetchCustomFunction = (functionName, schema, source) => {
   };
 };
 
+const deleteFunction = () => (dispatch, getState) => {
+  const currentSchema = getState().tables.currentSchema;
+  const { functionName, functionDefinition } = getState().functions;
+  const source = getState().tables.currentDataSource;
+  const upSql = dataSource.deleteFunctionSql(
+    currentSchema,
+    getState().functions
+  );
+
+  const sqlUpQueries = [getRunSqlQuery(upSql, source)];
+  const sqlDownQueries = [];
+  if (functionDefinition && functionDefinition.length > 0) {
+    sqlDownQueries.push(getRunSqlQuery(functionDefinition, source));
+  }
+
+  // Apply migrations
+  const migrationName = `drop_function_${currentSchema}_${functionName}`;
+
+  const requestMsg = 'Deleting function...';
+  const successMsg = 'Function deleted';
+  const errorMsg = 'Deleting function failed';
+
+  const customOnSuccess = () =>
+    dispatch(_push(getSchemaBaseRoute(currentSchema)));
+  const customOnError = () => dispatch({ type: DELETE_CUSTOM_FUNCTION_FAIL });
+
+  dispatch({ type: DELETING_CUSTOM_FUNCTION });
+  return dispatch(
+    makeRequest(
+      sqlUpQueries,
+      sqlDownQueries,
+      migrationName,
+      customOnSuccess,
+      customOnError,
+      requestMsg,
+      successMsg,
+      errorMsg
+    )
+  );
+};
+
 const unTrackCustomFunction = () => {
   return (dispatch, getState) => {
     const currentSchema = getState().tables.currentSchema;
@@ -383,7 +424,6 @@ export {
   fetchCustomFunction,
   unTrackCustomFunction,
   updateSessVar,
-  DELETE_CUSTOM_FUNCTION_FAIL,
-  DELETING_CUSTOM_FUNCTION,
+  deleteFunction,
 };
 export default customFunctionReducer;

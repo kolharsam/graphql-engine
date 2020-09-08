@@ -20,6 +20,7 @@ import {
   fetchCustomFunction,
   unTrackCustomFunction,
   updateSessVar,
+  deleteFunction,
 } from '../customFunctionReducer';
 
 import { NotFoundError } from '../../../../Error/PageNotFound';
@@ -30,7 +31,6 @@ import {
 } from '../../../../Common/utils/routesUtils';
 import SessionVarSection from './SessionVarSection';
 import RawSqlButton from '../../Common/Components/RawSqlButton';
-import { dataSource } from '../../../../../dataSources';
 
 class ModifyCustomFunction extends React.Component {
   constructor() {
@@ -114,7 +114,7 @@ class ModifyCustomFunction extends React.Component {
     if (isOk) {
       try {
         this.updateDeleteConfirmationError(null);
-        this.props.dispatch(dataSource.deleteFunctionSql());
+        this.props.dispatch(deleteFunction());
       } catch (err) {
         console.error('Delete custom function error: ', err);
       }
