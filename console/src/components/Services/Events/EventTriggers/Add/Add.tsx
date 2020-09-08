@@ -31,6 +31,7 @@ const Add: React.FC<Props> = props => {
     webhook,
     retryConf,
     headers,
+    dataSource,
   } = state;
   const { dispatch, allSchemas, schemaList, readOnlyMode } = props;
 
@@ -69,6 +70,11 @@ const Add: React.FC<Props> = props => {
   const handleSchemaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSchemaName = e.target.value;
     setState.table(undefined, selectedSchemaName);
+  };
+
+  const handleDataSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedDSName = e.target.value;
+    setState.dataSource(selectedDSName as 'mysql' | 'postgres');
   };
 
   const handleTableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -158,6 +164,18 @@ const Add: React.FC<Props> = props => {
     <Headers headers={headers} setHeaders={setState.headers} />
   );
 
+  // TODO: this has to be from redux
+  const dataSourcesList = [
+    {
+      value: 'postgres',
+      name: 'Warehouse DB(postgres)',
+    },
+    {
+      value: 'mysql',
+      name: 'MySQL',
+    },
+  ];
+
   return (
     <div
       className={`${styles.addTablesBody} ${styles.clear_fix} ${styles.padd_left}`}
@@ -194,6 +212,35 @@ const Add: React.FC<Props> = props => {
               value={name}
               onChange={handleTriggerNameChange}
             />
+            <hr />
+            <h4 className={styles.subheading_text}>
+              Data Source &nbsp; &nbsp;
+              <OverlayTrigger
+                placement="right"
+                overlay={tooltip.dataSourceDescription}
+              >
+                <i className="fa fa-question-circle" aria-hidden="true" />
+              </OverlayTrigger>{' '}
+            </h4>
+            <select
+              onChange={handleDataSourceChange}
+              data-test="select-datasource-event-trigger"
+              className={`${styles.selectTrigger} form-control`}
+              value={dataSource}
+            >
+              {dataSourcesList.map(s => {
+                return (
+                  <option
+                    value={s.value}
+                    key={s.value}
+                    selected={false}
+                    // TODO: selected must done w.r.t the datasource that's chosen
+                  >
+                    {s.name}
+                  </option>
+                );
+              })}
+            </select>
             <hr />
             <h4 className={styles.subheading_text}>
               Schema/Table &nbsp; &nbsp;

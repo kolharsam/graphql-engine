@@ -49,3 +49,9 @@ export const statusCodeDescription = (
     Status code of the webhook response
   </Tooltip>
 );
+
+export const dataSourceDescription = (
+  <Tooltip id="tooltip-data-source-description">
+    Select the data source for the table
+  </Tooltip>
+);

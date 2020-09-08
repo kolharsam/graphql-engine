@@ -26,6 +26,7 @@ export type LocalEventTriggerState = {
   webhook: URLConf;
   retryConf: RetryConf;
   headers: Header[];
+  dataSource: 'postgres' | 'mysql';
 };
 
 const defaultState: LocalEventTriggerState = {
@@ -52,6 +53,7 @@ const defaultState: LocalEventTriggerState = {
     tolerance_sec: null,
   },
   headers: [defaultHeader],
+  dataSource: 'postgres',
 };
 
 export const parseServerETDefinition = (
@@ -83,9 +85,11 @@ export const parseServerETDefinition = (
     webhook: parseServerWebhook(etConf.webhook, etConf.webhook_from_env),
     retryConf: etConf.retry_conf,
     headers: parseServerHeaders(eventTrigger.configuration.headers),
+    dataSource: 'postgres',
   };
 };
 
+// TODO: change the types and other details based on the dataSource in redux state
 export const useEventTrigger = (initState?: LocalEventTriggerState) => {
   const [state, setState] = React.useState(initState || defaultState);
   return {
@@ -95,6 +99,12 @@ export const useEventTrigger = (initState?: LocalEventTriggerState) => {
         setState(s => ({
           ...s,
           name,
+        }));
+      },
+      dataSource: (source: 'mysql' | 'postgres') => {
+        setState(s => ({
+          ...s,
+          dataSource: source,
         }));
       },
       table: (tableName?: string, schemaName?: string) => {
