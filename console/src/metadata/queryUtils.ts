@@ -98,7 +98,6 @@ export type MetadataQueryType =
   | 'track_function'
   | 'untrack_function'
   | 'rename_relationship'
-  | 'create_object_relationship'
   | 'drop_relationship'
   | 'create_array_relationship'
   | 'create_object_relationship'
