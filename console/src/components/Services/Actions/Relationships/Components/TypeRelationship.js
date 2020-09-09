@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from '../../Actions.scss';
-import { updateSchemaInfo } from '../../../Data/DataActions';
+import { updateSchemaInfo, getSchemaList } from '../../../Data/DataActions';
 import { isEmpty, getLastArrayElement } from '../../../../Common/utils/jsUtils';
 import ExpandableEditor from '../../../../Common/Layout/ExpandableEditor/Editor';
 import {
@@ -28,6 +28,7 @@ const RelationshipEditor = ({
   dispatch,
   existingRelConfig,
   stateCallback,
+  dataSources,
 }) => {
   const [relConfig, setRelConfig] = React.useState(
     existingRelConfig || defaultRelConfig
@@ -47,7 +48,7 @@ const RelationshipEditor = ({
     }
   }, [relConfig]);
 
-  const { name, type, refSchema, refTable, fieldMapping } = relConfig;
+  const { name, type, refDb, refSchema, refTable, fieldMapping } = relConfig;
 
   // relname on change
   const setRelName = e => {
@@ -65,6 +66,22 @@ const RelationshipEditor = ({
       ...rc,
       type: relType,
     }));
+  };
+
+  const setDBType = e => {
+    const value = e.target.value;
+    let dbName;
+    let dbDriver;
+    try {
+      [dbName, dbDriver] = JSON.parse(value);
+    } catch (err) {
+      return;
+    }
+    setRelConfig(rc => ({
+      ...rc,
+      refDb: dbName,
+    }));
+    dispatch(getSchemaList(dbDriver, value));
   };
 
   // ref schema on change
@@ -115,7 +132,7 @@ const RelationshipEditor = ({
   }, {});
 
   // rel name input
-  const getRelNameInput = () => {
+  const relNameInput = () => {
     /*
       There is no neat solution to renaming a relationship.
       This is because name is the only unique identifier of a relationship.
@@ -144,7 +161,7 @@ const RelationshipEditor = ({
   };
 
   // rel type select
-  const getRelTypeSelect = () => {
+  const relTypeSelect = () => {
     return (
       <div className={`${styles.add_mar_bottom}`}>
         <div className={`${styles.add_mar_bottom_mid}`}>
@@ -172,8 +189,39 @@ const RelationshipEditor = ({
     );
   };
 
+  const refDbSelect = () => {
+    return (
+      <div className={`${styles.add_mar_bottom}`}>
+        <div className={`${styles.add_mar_bottom_mid}`}>
+          <b>Data Source:</b>
+        </div>
+        <select
+          className={`${styles.select} form-control ${styles.add_pad_left}`}
+          data-test={'manual-relationship-db-choice'}
+          onChange={setDBType}
+          disabled={!name}
+        >
+          {type === '' && (
+            <option value={''} disabled selected={!refDb}>
+              {'-- data source --'}
+            </option>
+          )}
+          {dataSources.map(s => (
+            <option
+              key={s.name}
+              value={JSON.stringify([s.name, s.driver])}
+              selected={s.name === refDb}
+            >
+              {s.name} ({s.driver})
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  };
+
   // ref schema select
-  const getRefSchemaSelect = () => {
+  const refSchemaSelect = () => {
     const orderedSchemaList = schemaList.map(s => s.schema_name).sort();
     return (
       <div className={`${styles.add_mar_bottom}`}>
@@ -209,7 +257,7 @@ const RelationshipEditor = ({
   };
 
   // ref table select
-  const getRefTableSelect = () => {
+  const refTableSelect = () => {
     return (
       <div className={`${styles.add_mar_bottom}`}>
         <div className={`${styles.add_mar_bottom_mid}`}>
@@ -240,7 +288,7 @@ const RelationshipEditor = ({
   };
 
   // field mapping array builder
-  const getRelFieldMappings = () => {
+  const relFieldMappings = () => {
     return (
       <div className={`${styles.add_mar_bottom}`}>
         <div className={`row ${styles.add_mar_bottom_mid}`}>
@@ -362,17 +410,25 @@ const RelationshipEditor = ({
 
   return (
     <div className="form-group">
-      {getRelTypeSelect()}
-      {getRelNameInput()}
-      {getRefSchemaSelect()}
-      {getRefTableSelect()}
-      {getRelFieldMappings()}
+      {relTypeSelect()}
+      {relNameInput()}
+      {refDbSelect()}
+      {refSchemaSelect()}
+      {refTableSelect()}
+      {relFieldMappings()}
     </div>
   );
 };
 
 const RelEditor = props => {
-  const { dispatch, relConfig, objectType, isNew, readOnlyMode } = props;
+  const {
+    dispatch,
+    relConfig,
+    objectType,
+    isNew,
+    readOnlyMode,
+    dataSources,
+  } = props;
 
   const [relConfigState, setRelConfigState] = React.useState(null);
 
@@ -401,6 +457,7 @@ const RelEditor = props => {
         {...props}
         existingRelConfig={existingRelConfig}
         stateCallback={setRelConfigState}
+        dataSources={dataSources}
       />
     );
   };
@@ -431,7 +488,14 @@ const RelEditor = props => {
   let removeFunc;
   if (!isNew) {
     removeFunc = toggle => {
-      dispatch(removeActionRel(relConfig.name, objectType.name, toggle));
+      dispatch(
+        removeActionRel(
+          relConfig.name,
+          relConfig.refDb,
+          objectType.name,
+          toggle
+        )
+      );
     };
   }
 

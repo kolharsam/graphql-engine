@@ -40,6 +40,8 @@ import {
   READ_ONLY_RUN_SQL_QUERIES,
 } from '../../../helpers/versionUtils';
 import { getRunSqlQuery } from '../../Common/utils/v1QueryUtils';
+import { metadataQueryTypes } from '../../../metadata/queryUtils';
+import { services } from '../../../dataSources/services';
 
 const SET_TABLE = 'Data/SET_TABLE';
 const LOAD_FUNCTIONS = 'Data/LOAD_FUNCTIONS';
@@ -48,6 +50,7 @@ const LOAD_SCHEMA = 'Data/LOAD_SCHEMA';
 const LOAD_UNTRACKED_RELATIONS = 'Data/LOAD_UNTRACKED_RELATIONS';
 const FETCH_SCHEMA_LIST = 'Data/FETCH_SCHEMA_LIST';
 const UPDATE_CURRENT_SCHEMA = 'Data/UPDATE_CURRENT_SCHEMA';
+const UPDATE_CURRENT_DATA_SOURCE = 'Data/UPDATE_CURRENT_DATA_SOURCE';
 const ADMIN_SECRET_ERROR = 'Data/ADMIN_SECRET_ERROR';
 const UPDATE_REMOTE_SCHEMA_MANUAL_REL = 'Data/UPDATE_SCHEMA_MANUAL_REL';
 const SET_CONSISTENT_SCHEMA = 'Data/SET_CONSISTENT_SCHEMA';
@@ -104,9 +107,10 @@ const setUntrackedRelations = () => (dispatch, getState) => {
 // todo: it's called 4 times on start
 const loadSchema = configOptions => {
   return (dispatch, getState) => {
-    const url = Endpoints.getSchema;
+    const url = Endpoints.query;
 
     let allSchemas = getState().tables.allSchemas;
+    const source = getState().tables.currentDataSource;
 
     if (
       !configOptions ||
@@ -143,16 +147,18 @@ const loadSchema = configOptions => {
     const body = {
       type: 'bulk',
       args: [
-        fetchTableListQuery(configOptions),
-        fetchTrackedTableFkQuery(configOptions),
+        fetchTableListQuery(configOptions, source),
+        fetchTrackedTableFkQuery(configOptions, source),
         // todo: queries below could be done only when user visits `Data` page
         getRunSqlQuery(
           dataSource.primaryKeysInfoSql(configOptions),
+          source,
           false,
           checkFeatureSupport(READ_ONLY_RUN_SQL_QUERIES) ? true : false
         ),
         getRunSqlQuery(
           dataSource.uniqueKeysSql(configOptions),
+          source,
           false,
           checkFeatureSupport(READ_ONLY_RUN_SQL_QUERIES) ? true : false
         ),
@@ -162,6 +168,7 @@ const loadSchema = configOptions => {
       body.args.push(
         getRunSqlQuery(
           dataSource.checkConstraintsSql(configOptions),
+          source,
           false,
           checkFeatureSupport(READ_ONLY_RUN_SQL_QUERIES) ? true : false
         )
@@ -275,13 +282,16 @@ const setConsistentSchema = data => ({
 });
 
 const fetchDataInit = () => (dispatch, getState) => {
-  const url = Endpoints.getSchema;
+  const url = Endpoints.query;
+
+  const query = dataSource.schemaList;
+  query.args.source = getState().tables.currentDataSource;
 
   const options = {
     credentials: globalCookiePolicy,
     method: 'POST',
     headers: dataHeaders(getState),
-    body: JSON.stringify(dataSource.schemaList),
+    body: JSON.stringify(query),
   };
 
   return dispatch(requestAction(url, options)).then(
@@ -296,16 +306,19 @@ const fetchDataInit = () => (dispatch, getState) => {
 };
 
 const fetchFunctionInit = (schema = null) => (dispatch, getState) => {
-  const url = Endpoints.getSchema;
+  const url = Endpoints.query;
   const fnSchema = schema || getState().tables.currentSchema;
+  const source = getState().tables.currentDataSource;
   const body = {
     type: 'bulk',
     args: [
       getRunSqlQuery(
-        dataSource.getFunctionDefinitionSql(fnSchema, null, 'trackable')
+        dataSource.getFunctionDefinitionSql(fnSchema, null, 'trackable'),
+        source
       ),
       getRunSqlQuery(
-        dataSource.getFunctionDefinitionSql(fnSchema, null, 'non-trackable')
+        dataSource.getFunctionDefinitionSql(fnSchema, null, 'non-trackable'),
+        source
       ),
     ],
   };
@@ -336,7 +349,18 @@ const fetchFunctionInit = (schema = null) => (dispatch, getState) => {
   );
 };
 
-const updateCurrentSchema = (schemaName, redirect = true) => dispatch => {
+const updateCurrentSchema = (
+  schemaName,
+  redirect = true,
+  schemaList = []
+) => dispatch => {
+  if (
+    schemaList.length &&
+    !schemaList.find(s => s.schema_name === schemaName)
+  ) {
+    schemaName = schemaList[0].schema_name;
+  }
+
   if (redirect) {
     dispatch(_push(getSchemaBaseRoute(schemaName)));
   }
@@ -351,7 +375,7 @@ const updateCurrentSchema = (schemaName, redirect = true) => dispatch => {
 
 /* ************ action creators *********************** */
 const fetchSchemaList = () => (dispatch, getState) => {
-  const url = Endpoints.getSchema;
+  const url = Endpoints.query;
   const currentSource = getState().tables.currentDataSource;
   const query = dataSource.schemaList;
   query.args.source = currentSource;
@@ -364,6 +388,30 @@ const fetchSchemaList = () => (dispatch, getState) => {
   return dispatch(requestAction(url, options)).then(
     data => {
       dispatch({ type: FETCH_SCHEMA_LIST, schemaList: data });
+      return data;
+    },
+    error => {
+      console.error('Failed to fetch schema ' + JSON.stringify(error));
+      return error;
+    }
+  );
+};
+
+export const getSchemaList = (sourceType, sourceName) => (
+  dispatch,
+  getState
+) => {
+  const url = Endpoints.query;
+  const query = services[sourceType].schemaList;
+  query.args.source = sourceName;
+  const options = {
+    credentials: globalCookiePolicy,
+    method: 'POST',
+    headers: dataHeaders(getState),
+    body: JSON.stringify(query),
+  };
+  return dispatch(requestAction(url, options)).then(
+    data => {
       return data;
     },
     error => {
@@ -431,7 +479,18 @@ const makeMigrationCall = (
 
   const currMigrationMode = getState().main.migrationMode;
 
-  const migrateUrl = returnMigrateUrl(currMigrationMode);
+  let migrateUrl = returnMigrateUrl(currMigrationMode);
+  // todo: this is a temprorary, pre-release solution
+  if (migrateUrl === Endpoints.query) {
+    if (
+      upQueries.some(query => {
+        const type = query.type.replace('pg_', '').replace('mysql_', '');
+        metadataQueryTypes.includes(type);
+      })
+    ) {
+      migrateUrl = Endpoints.metadata;
+    }
+  }
 
   let finalReqBody;
   if (globals.consoleMode === SERVER_CONSOLE_MODE) {
@@ -523,19 +582,22 @@ const makeMigrationCall = (
   );
 };
 
-const getBulkColumnInfoFetchQuery = schema => {
+const getBulkColumnInfoFetchQuery = (schema, source) => {
   const fetchColumnTypes = getRunSqlQuery(
     dataSource.fetchColumnTypesQuery,
+    source,
     false,
     true
   );
   const fetchTypeDefaultValues = getRunSqlQuery(
     dataSource.fetchColumnDefaultFunctions(schema),
+    source,
     false,
     true
   );
   const fetchValidTypeCasts = getRunSqlQuery(
     dataSource.fetchColumnCastsQuery,
+    source,
     false,
     true
   );
@@ -548,10 +610,13 @@ const getBulkColumnInfoFetchQuery = schema => {
 
 const fetchColumnTypeInfo = () => {
   return (dispatch, getState) => {
-    const url = Endpoints.getSchema;
+    const url = Endpoints.query;
     const currState = getState();
-    const { currentSchema } = currState.tables;
-    const reqQuery = getBulkColumnInfoFetchQuery(currentSchema);
+    const { currentSchema, currentDataSource } = currState.tables;
+    const reqQuery = getBulkColumnInfoFetchQuery(
+      currentSchema,
+      currentDataSource
+    );
     const options = {
       credentials: globalCookiePolicy,
       method: 'POST',
@@ -669,6 +734,8 @@ const dataReducer = (state = defaultState, action) => {
       return { ...state, allSchemas: action.data, listingSchemas: action.data };
     case UPDATE_CURRENT_SCHEMA:
       return { ...state, currentSchema: action.currentSchema };
+    case UPDATE_CURRENT_DATA_SOURCE:
+      return { ...state, currentDataSource: action.source };
     case ADMIN_SECRET_ERROR:
       return { ...state, adminSecretError: action.data };
     case UPDATE_DATA_HEADERS:
@@ -740,6 +807,7 @@ export {
   makeMigrationCall,
   LOAD_UNTRACKED_RELATIONS,
   UPDATE_CURRENT_SCHEMA,
+  UPDATE_CURRENT_DATA_SOURCE,
   fetchSchemaList,
   fetchDataInit,
   fetchFunctionInit,

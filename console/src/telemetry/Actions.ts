@@ -32,7 +32,7 @@ const setConsoleOptsInDB = (
   dispatch: ThunkDispatch<ReduxState, unknown, AnyAction>,
   getState: GetReduxState
 ) => {
-  const url = Endpoints.getSchema;
+  const url = Endpoints.query;
 
   const { hasura_uuid, console_opts } = getState().telemetry;
 
@@ -59,7 +59,8 @@ const setConsoleOptsInDB = (
       getRunSqlQuery(
         `update hdb_catalog.hdb_version set console_state = '${JSON.stringify(
           consoleState
-        )}' where hasura_uuid='${hasura_uuid}';`
+        )}' where hasura_uuid='${hasura_uuid}';`,
+        ''
       )
     ),
   };
@@ -135,7 +136,7 @@ const loadConsoleOpts = () => {
     dispatch: ThunkDispatch<ReduxState, unknown, AnyAction>,
     getState: GetReduxState
   ) => {
-    const url = Endpoints.getSchema;
+    const url = Endpoints.query;
     const options: RequestInit = {
       credentials: globalCookiePolicy,
       method: 'POST',
