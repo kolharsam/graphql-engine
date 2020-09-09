@@ -213,15 +213,20 @@ const Add: React.FC<Props> = props => {
               onChange={handleTriggerNameChange}
             />
             <hr />
-            <h4 className={styles.subheading_text}>
-              Data Source &nbsp; &nbsp;
-              <OverlayTrigger
-                placement="right"
-                overlay={tooltip.dataSourceDescription}
-              >
-                <i className="fa fa-question-circle" aria-hidden="true" />
-              </OverlayTrigger>{' '}
-            </h4>
+            <div className={styles.add_mar_bottom}>
+              <h4 className={styles.subheading_text_no_padd}>
+                Data Source &nbsp; &nbsp;
+                <OverlayTrigger
+                  placement="right"
+                  overlay={tooltip.dataSourceDescription}
+                >
+                  <i className="fa fa-question-circle" aria-hidden="true" />
+                </OverlayTrigger>{' '}
+              </h4>
+              <small>
+                <i>Note: This feature is currently not supported for MySQL</i>
+              </small>
+            </div>
             <select
               onChange={handleDataSourceChange}
               data-test="select-datasource-event-trigger"
