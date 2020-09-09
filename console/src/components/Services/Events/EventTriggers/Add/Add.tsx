@@ -18,6 +18,8 @@ import * as tooltip from '../Common/Tooltips';
 import { EVENTS_SERVICE_HEADING } from '../../constants';
 import { mapDispatchToPropsEmpty } from '../../../../Common/utils/reactUtils';
 import { Table } from '../../../../../dataSources/types';
+import { getDataSources } from '../../../../../metadata/selector';
+import { DataSource } from '../../../../../metadata/types';
 
 interface Props extends InjectedProps {}
 
@@ -32,7 +34,7 @@ const Add: React.FC<Props> = props => {
     retryConf,
     headers,
   } = state;
-  const { dispatch, allSchemas, schemaList, readOnlyMode } = props;
+  const { dispatch, allSchemas, schemaList, readOnlyMode, dataSourcesList } = props;
 
   const selectedTableSchema = findTable(allSchemas, table);
 
@@ -69,6 +71,11 @@ const Add: React.FC<Props> = props => {
   const handleSchemaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSchemaName = e.target.value;
     setState.table(undefined, selectedSchemaName);
+  };
+
+  const handleDataSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedSourceName = e.target.value;
+    setState.table(undefined, selectedSourceName);
   };
 
   const handleTableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -194,6 +201,38 @@ const Add: React.FC<Props> = props => {
               value={name}
               onChange={handleTriggerNameChange}
             />
+            <hr />
+            <div className={styles.add_mar_bottom}>
+              <h4 className={styles.subheading_text_no_padd}>
+                Data Source &nbsp; &nbsp;
+                <OverlayTrigger
+                  placement="right"
+                  overlay={tooltip.dataSourceDescription}
+                >
+                  <i className="fa fa-question-circle" aria-hidden="true" />
+                </OverlayTrigger>{' '}
+              </h4>
+              <small>
+                <i>Note: This feature is currently not supported for MySQL</i>
+              </small>
+            </div>
+            <select
+              onChange={handleDataSourceChange}
+              data-test="select-datasource-event-trigger"
+              className={`${styles.selectTrigger} form-control`}
+            >
+              {dataSourcesList.map(s => {
+                return (
+                  <option
+                    value={s.name}
+                    key={s.name}
+                    selected={false}
+                  >
+                    {s.name}
+                  </option>
+                );
+              })}
+            </select>
             <hr />
             <h4 className={styles.subheading_text}>
               Schema/Table &nbsp; &nbsp;
@@ -344,6 +383,7 @@ type PropsFromState = {
   allSchemas: Table[];
   schemaList: string[];
   readOnlyMode: boolean;
+  dataSourcesList: DataSource[],
 };
 
 const mapStateToProps: MapStateToProps<PropsFromState> = state => {
@@ -351,6 +391,7 @@ const mapStateToProps: MapStateToProps<PropsFromState> = state => {
     allSchemas: state.tables.allSchemas,
     schemaList: state.tables.schemaList,
     readOnlyMode: state.main.readOnlyMode,
+    dataSourcesList: getDataSources(state),
   };
 };
 

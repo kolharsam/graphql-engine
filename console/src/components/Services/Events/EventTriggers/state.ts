@@ -24,6 +24,7 @@ import {
 
 export type LocalEventTriggerState = {
   name: string;
+  source: string;
   table: QualifiedTable;
   operations: Record<EventTriggerOperation, boolean>;
   operationColumns: ETOperationColumn[];
@@ -55,6 +56,7 @@ const defaultState: LocalEventTriggerState = {
     timeout_sec: 60,
   },
   headers: [defaultHeader],
+  source: ''
 };
 
 export const parseServerETDefinition = (
@@ -75,6 +77,7 @@ export const parseServerETDefinition = (
 
   return {
     name: eventTrigger.name,
+    source: '', // todo
     table: etTableDef,
     operations: parseEventTriggerOperations(etDef),
     operationColumns: table
@@ -102,6 +105,12 @@ export const useEventTrigger = (initState?: LocalEventTriggerState) => {
           ...s,
           name,
         }));
+      },
+      source: (source: string) => {
+        setState(s => ({
+          ...s,
+          source,
+        }))
       },
       table: (tableName?: string, schemaName?: string) => {
         setState(s => {
