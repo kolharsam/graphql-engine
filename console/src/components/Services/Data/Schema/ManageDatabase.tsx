@@ -99,7 +99,7 @@ const ManageDatabase: React.FC<ManageDatabaseInjectedProps> = ({
 }) => {
   const onRemove = (name: string, driver: Driver, cb: () => void) => {
     const confirmation = getConfirmation(
-      'Your action will remove this data source',
+      'Your action will remove the "${name}" data source',
       true,
       name
     );
@@ -107,7 +107,6 @@ const ManageDatabase: React.FC<ManageDatabaseInjectedProps> = ({
       (dispatch(removeDataSource({ driver, name })) as any).then(cb); // todo
       return;
     }
-    cb();
   };
 
   const onReload = (name: string, driver: Driver, cb: () => void) => {
