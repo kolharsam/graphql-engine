@@ -52,13 +52,24 @@ import {
 } from '../Common/TooltipMessages';
 import { RightContainer } from '../../../Common/Layout/RightContainer';
 
-const NotSupportedNote = ({ currentDataSource, unSupportedTypes }) => {
-  if (!currentDataSource || !unSupportedTypes.includes(currentDataSource)) {
+const NotSupportedNote = ({ currentDataSource, unSupportedSources }) => {
+  const supportedDataSources = {
+    mysql: 'MySQL',
+    pg: 'Postgres',
+    //... can keep adding more here
+  };
+  const dataSourceUnsupported = unSupportedSources.find(
+    source => source === currentDataSource
+  );
+  if (!currentDataSource || !dataSourceUnsupported) {
     return null;
   }
   return (
     <small>
-      <i>Note: This feature is currently not supported for MySQL</i>
+      <i>
+        Note: This feature is currently not supported for{' '}
+        {supportedDataSources[dataSourceUnsupported]}
+      </i>
     </small>
   );
 };
