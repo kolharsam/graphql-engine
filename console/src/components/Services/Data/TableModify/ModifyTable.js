@@ -52,6 +52,17 @@ import {
 } from '../Common/TooltipMessages';
 import { RightContainer } from '../../../Common/Layout/RightContainer';
 
+const NotSupportedNote = ({ currentDataSource, unSupportedTypes }) => {
+  if (!currentDataSource || !unSupportedTypes.includes(currentDataSource)) {
+    return null;
+  }
+  return (
+    <small>
+      <i>Note: This feature is currently not supported for MySQL</i>
+    </small>
+  );
+};
+
 class ModifyTable extends React.Component {
   componentDidMount() {
     const { dispatch } = this.props;
@@ -189,13 +200,19 @@ class ModifyTable extends React.Component {
 
       return (
         <React.Fragment>
-          <h4 className={styles.subheading_text}>
-            Computed fields
-            <Tooltip
-              message={'Add a function as a virtual field in the GraphQL API'}
+          <div className={styles.add_mar_bottom}>
+            <h4 className={styles.subheading_text_no_padd}>
+              Computed fields
+              <Tooltip
+                message={'Add a function as a virtual field in the GraphQL API'}
+              />
+              <KnowMoreLink href="https://hasura.io/docs/1.0/graphql/manual/schema/computed-fields.html" />
+            </h4>
+            <NotSupportedNote
+              currentDataSource={currentSource}
+              unSupportedTypes={['mysql']}
             />
-            <KnowMoreLink href="https://hasura.io/docs/1.0/graphql/manual/schema/computed-fields.html" />
-          </h4>
+          </div>
           <ComputedFieldsEditor
             table={table}
             currentSchema={currentSchema}
@@ -294,13 +311,25 @@ class ModifyTable extends React.Component {
                 setUniqueKeys={setUniqueKeys}
               />
               <hr />
-              <h4 className={styles.subheading_text}>Triggers</h4>
+              <div className={styles.add_mar_bottom}>
+                <h4 className={styles.subheading_text_no_padd}>Triggers</h4>
+                <NotSupportedNote
+                  currentDataSource={currentSource}
+                  unSupportedTypes={['mysql']}
+                />
+              </div>
               <TriggerEditorList tableSchema={table} dispatch={dispatch} />
               <hr />
-              <h4 className={styles.subheading_text}>
-                Check Constraints &nbsp; &nbsp;
-                <ToolTip message={checkConstraintsDescription} />
-              </h4>
+              <div className={styles.add_mar_bottom}>
+                <h4 className={styles.subheading_text_no_padd}>
+                  Check Constraints &nbsp; &nbsp;
+                  <ToolTip message={checkConstraintsDescription} />
+                </h4>
+                <NotSupportedNote
+                  currentDataSource={currentSource}
+                  unSupportedTypes={['mysql']}
+                />
+              </div>
               <CheckConstraints
                 constraints={table.check_constraints}
                 checkConstraintsModify={checkConstraintsModify}
