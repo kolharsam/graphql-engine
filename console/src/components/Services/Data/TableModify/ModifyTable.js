@@ -52,13 +52,19 @@ import {
 } from '../Common/TooltipMessages';
 import { RightContainer } from '../../../Common/Layout/RightContainer';
 
-const NotSupportedNote = ({ currentDataSource, unSupportedTypes }) => {
-  if (!currentDataSource || !unSupportedTypes.includes(currentDataSource)) {
+const NotSupportedNote = ({ currentDataSource, unSupportedSources }) => {
+  const dataSourceUnsupported = unSupportedSources.find(
+    source => source === currentDataSource
+  );
+  if (!currentDataSource || !dataSourceUnsupported) {
     return null;
   }
   return (
     <small>
-      <i>Note: This feature is currently not supported for MySQL</i>
+      <i>
+        Note: This feature is currently not supported for{' '}
+        {dataSourceUnsupported}
+      </i>
     </small>
   );
 };
@@ -210,7 +216,7 @@ class ModifyTable extends React.Component {
             </h4>
             <NotSupportedNote
               currentDataSource={currentDataSource}
-              unSupportedTypes={['mysql']}
+              unSupportedSources={['mysql']}
             />
           </div>
           <ComputedFieldsEditor
@@ -314,7 +320,7 @@ class ModifyTable extends React.Component {
                 <h4 className={styles.subheading_text_no_padd}>Triggers</h4>
                 <NotSupportedNote
                   currentDataSource={currentDataSource}
-                  unSupportedTypes={['mysql']}
+                  unSupportedSources={['mysql']}
                 />
               </div>
               <TriggerEditorList tableSchema={table} dispatch={dispatch} />
@@ -326,7 +332,7 @@ class ModifyTable extends React.Component {
                 </h4>
                 <NotSupportedNote
                   currentDataSource={currentDataSource}
-                  unSupportedTypes={['mysql']}
+                  unSupportedSources={['mysql']}
                 />
               </div>
               <CheckConstraints
