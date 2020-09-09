@@ -606,3 +606,29 @@ export const getCreateArrayRelationshipQuery = (
     using: {},
     source,
   });
+
+export const getAddRelationshipQuery = (
+  isObjRel: boolean,
+  table: QualifiedTable,
+  name: string,
+  remoteTable: QualifiedTable,
+  columnMapping: Record<string, string>,
+  source: string
+) => {
+  const args = {
+    source,
+    name,
+    table,
+    using: {
+      manual_configuration: {
+        remote_table: remoteTable,
+        column_mapping: columnMapping,
+      },
+    },
+  };
+  if (isObjRel) {
+    return getMetadataQuery('create_object_relationship', args);
+  }
+
+  return getMetadataQuery('create_array_relationship', args);
+};
