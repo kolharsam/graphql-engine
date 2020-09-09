@@ -99,13 +99,12 @@ const ManageDatabase: React.FC<ManageDatabaseInjectedProps> = ({
 }) => {
   const onRemove = (name: string, driver: Driver, cb: () => void) => {
     const confirmation = getConfirmation(
-      'Your action will remove the "${name}" data source',
+      `Your action will remove the "${name}" data source`,
       true,
       name
     );
     if (confirmation) {
       (dispatch(removeDataSource({ driver, name })) as any).then(cb); // todo
-      return;
     }
   };
 
