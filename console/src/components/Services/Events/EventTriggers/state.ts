@@ -26,7 +26,7 @@ export type LocalEventTriggerState = {
   webhook: URLConf;
   retryConf: RetryConf;
   headers: Header[];
-  dataSource: 'postgres' | 'mysql';
+  dataSource: string;
 };
 
 const defaultState: LocalEventTriggerState = {
@@ -53,7 +53,7 @@ const defaultState: LocalEventTriggerState = {
     tolerance_sec: null,
   },
   headers: [defaultHeader],
-  dataSource: 'postgres',
+  dataSource: '',
 };
 
 export const parseServerETDefinition = (
@@ -85,7 +85,7 @@ export const parseServerETDefinition = (
     webhook: parseServerWebhook(etConf.webhook, etConf.webhook_from_env),
     retryConf: etConf.retry_conf,
     headers: parseServerHeaders(eventTrigger.configuration.headers),
-    dataSource: 'postgres',
+    dataSource: '',
   };
 };
 
@@ -101,7 +101,7 @@ export const useEventTrigger = (initState?: LocalEventTriggerState) => {
           name,
         }));
       },
-      dataSource: (source: 'mysql' | 'postgres') => {
+      dataSource: (source: string) => {
         setState(s => ({
           ...s,
           dataSource: source,
