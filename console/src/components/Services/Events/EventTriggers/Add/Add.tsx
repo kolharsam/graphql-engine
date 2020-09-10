@@ -18,6 +18,7 @@ import * as tooltip from '../Common/Tooltips';
 import { EVENTS_SERVICE_HEADING } from '../../constants';
 import { mapDispatchToPropsEmpty } from '../../../../Common/utils/reactUtils';
 import { Table, Schema } from '../../../../../dataSources/types';
+import { getDataSources } from '../../../../../metadata/selector';
 
 interface Props extends InjectedProps {}
 
@@ -33,7 +34,14 @@ const Add: React.FC<Props> = props => {
     headers,
     dataSource,
   } = state;
-  const { dispatch, allSchemas, schemaList, readOnlyMode } = props;
+  const {
+    dispatch,
+    allSchemas,
+    schemaList,
+    readOnlyMode,
+    currentDataSource,
+    dataSources,
+  } = props;
 
   const selectedTableSchema = findTable(allSchemas, table);
 
@@ -74,7 +82,7 @@ const Add: React.FC<Props> = props => {
 
   const handleDataSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDSName = e.target.value;
-    setState.dataSource(selectedDSName as 'mysql' | 'postgres');
+    setState.dataSource(selectedDSName);
   };
 
   const handleTableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -164,18 +172,6 @@ const Add: React.FC<Props> = props => {
     <Headers headers={headers} setHeaders={setState.headers} />
   );
 
-  // TODO: this has to be from redux
-  const dataSourcesList = [
-    {
-      value: 'postgres',
-      name: 'Warehouse DB(postgres)',
-    },
-    {
-      value: 'mysql',
-      name: 'MySQL',
-    },
-  ];
-
   return (
     <div
       className={`${styles.addTablesBody} ${styles.clear_fix} ${styles.padd_left}`}
@@ -233,18 +229,15 @@ const Add: React.FC<Props> = props => {
               className={`${styles.selectTrigger} form-control`}
               value={dataSource}
             >
-              {dataSourcesList.map(s => {
-                return (
-                  <option
-                    value={s.value}
-                    key={s.value}
-                    selected={false}
-                    // TODO: selected must done w.r.t the datasource that's chosen
-                  >
-                    {s.name}
-                  </option>
-                );
-              })}
+              {dataSources.map((s: { name: string; driver: string }) => (
+                <option
+                  key={s.name}
+                  value={JSON.stringify([s.name, s.driver])}
+                  selected={s.name === currentDataSource}
+                >
+                  {s.name} ({s.driver})
+                </option>
+              ))}
             </select>
             <hr />
             <h4 className={styles.subheading_text}>
@@ -403,6 +396,8 @@ type PropsFromState = {
   allSchemas: Table[];
   schemaList: Schema[];
   readOnlyMode: boolean;
+  dataSources: any; // todo
+  currentDataSource: string;
 };
 
 const mapStateToProps: MapStateToProps<PropsFromState> = state => {
@@ -410,6 +405,8 @@ const mapStateToProps: MapStateToProps<PropsFromState> = state => {
     allSchemas: state.tables.allSchemas,
     schemaList: state.tables.schemaList,
     readOnlyMode: state.main.readOnlyMode,
+    dataSources: getDataSources(state),
+    currentDataSource: state.tables.currentDataSource,
   };
 };
 
