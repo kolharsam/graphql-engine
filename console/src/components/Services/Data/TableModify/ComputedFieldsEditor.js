@@ -276,6 +276,7 @@ const ComputedFieldsEditor = ({
               type="text"
               value={computedFieldName}
               onChange={handleNameChange}
+              data-test="computed-field-name-input"
               className={`form-control ${styles.wd50percent}`}
             />
           </div>
@@ -344,6 +345,7 @@ const ComputedFieldsEditor = ({
               placeholder={'default: first argument'}
               onChange={handleTableRowArgChange}
               className={`form-control ${styles.wd50percent}`}
+              data-test="computed-field-first-arg-input"
             />
           </div>
           <div className={`${styles.add_mar_top}`}>
@@ -355,6 +357,7 @@ const ComputedFieldsEditor = ({
               value={computedFieldComment}
               onChange={handleCommentChange}
               className={`form-control ${styles.wd50percent}`}
+              data-test="computed-field-comment-input"
             />
           </div>
         </div>
