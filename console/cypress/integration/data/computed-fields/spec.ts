@@ -1,4 +1,8 @@
-import { baseUrl, getElementFromAlias } from '../../../helpers/dataHelpers';
+import {
+  baseUrl,
+  getElementFromAlias,
+  getElementFromClassName,
+} from '../../../helpers/dataHelpers';
 
 const sqlStatements = {
   createTableSql: 'CREATE TABLE a_test_test_author (id serial PRIMARY KEY, first_name text, last_name text);',
@@ -76,6 +80,29 @@ export const openModifySection = () => {
   // click on computed field section
   // FIXME: probably should not be hard coding this
   cy.get(getElementFromAlias('modify-table-edit-computed-field-0')).click();
+  // type name
+  cy.get(getElementFromAlias('computed-field-name-input'))
+    .type('a_test_test_author_full_name', { force: true });
+  // type & select function name
+    cy.get(getElementFromClassName('function-name-select__control'))
+    .children('div')
+    .click({ multiple: true })
+    .find('input')
+    .focus()
+    .type('test_get_author_full_name', { force: true })
+    .get(getElementFromClassName('function-name-select__menu'))
+    .first()
+    .click();
+  // enter table row arg. (not necessarily required)
+  cy.get(getElementFromAlias('computed-field-first-arg-input'))
+    .type('a_test_test_author_row', { force: true });
+  // enter comment
+  cy.get(getElementFromAlias('computed-field-comment-input'))
+    .type('this is a test comment', { force: true });
+  // saving the computed field
+  cy.get(getElementFromAlias('modify-table-computed-field-0-save')).click();
+  // TODO. how do I ensure that the computed field has been saved/added
+  cy.wait(5000);
 };
 
 export const cleanUpSql = () => typeSQL(sqlStatements.cleanUpSql, true);

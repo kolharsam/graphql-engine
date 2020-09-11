@@ -29,13 +29,12 @@ import {
       it('Create test table', createTableAuthor);
       it('Run SQL for custom function', createCustomFunction);
       it('Insert entries into table', insertAuthorsIntoTable);
-      it('Go back to index route', backToIndexRoute);
       it('Search for table', searchForTable);
       it('Open Modify page and add computed field', openModifySection);
       //   The rest of the TODOs
       //   it('Switch to GraphiQL page', funcName);
       //   it('Check computed field results on GraphiQL', funcName);
-      it('Go back to index route', backToIndexRoute);
+      it('Go to index route', backToIndexRoute);
       it('Open Raw SQL page', openRawSQL);
       it('Test cleanup', cleanUpSql);
     });
