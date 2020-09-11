@@ -131,7 +131,10 @@ const ComputedFieldsEditor = ({
 
       return (
         <div>
-          <b>{origComputedFieldName}</b>&nbsp;-&nbsp;
+          <b data-test={`computed-field-${origComputedFieldName}`}>
+            {origComputedFieldName}
+          </b>
+          &nbsp;-&nbsp;
           <i>{origComputedFieldFunctionName}</i>
           <br />
           <span key={'comment'} className={styles.text_gray}>
