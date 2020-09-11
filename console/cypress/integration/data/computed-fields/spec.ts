@@ -1,15 +1,5 @@
 import { baseUrl, getElementFromAlias } from '../../../helpers/dataHelpers';
 
-export const openRawSQL = () => {
-  cy.get('a')
-    .contains('Data')
-    .click();
-  cy.wait(3000);
-  cy.get(getElementFromAlias('sql-link')).click();
-  cy.wait(3000);
-  cy.url().should('eq', `${baseUrl}/data/sql`);
-};
-
 const sqlStatements = {
   createTableSql: 'CREATE TABLE a_test_test_author (id serial PRIMARY KEY, first_name text, last_name text);',
   createCustomFuncSql: `CREATE OR REPLACE FUNCTION test_get_author_full_name(a_test_test_author_row a_test_test_author)
@@ -19,9 +9,17 @@ const sqlStatements = {
   LANGUAGE sql STABLE;`,
   insertData_a1: `INSERT INTO a_test_test_author(first_name, last_name) VALUES ('jk', 'rowling');`,
   insertData_a2: `INSERT INTO a_test_test_author(first_name, last_name) VALUES ('enid', 'blyton');`,
-  // TODO
-  // deleteTable
-  // deleteFunction
+  cleanUpSql: 'DROP TABLE a_test_test_author CASCADE;',
+};
+
+export const openRawSQL = () => {
+  cy.get('a')
+    .contains('Data')
+    .click();
+  cy.wait(3000);
+  cy.get(getElementFromAlias('sql-link')).click();
+  cy.wait(3000);
+  cy.url().should('eq', `${baseUrl}/data/sql`);
 };
 
 const clearText = () => {
@@ -69,4 +67,15 @@ export const backToIndexRoute = () => {
 export const searchForTable = () => {
   cy.get(getElementFromAlias('search-tables')).type('author');
   cy.get(getElementFromAlias('table-links')).should('contain', 'a_test_test_author');
+  cy.get(getElementFromAlias('a_test_test_author')).click();
 };
+
+export const openModifySection = () => {
+  // open modify section
+  cy.get(getElementFromAlias('table-modify')).click();
+  // click on computed field section
+  // FIXME: probably should not be hard coding this
+  cy.get(getElementFromAlias('modify-table-edit-computed-field-0')).click();
+};
+
+export const cleanUpSql = () => typeSQL(sqlStatements.cleanUpSql, true);

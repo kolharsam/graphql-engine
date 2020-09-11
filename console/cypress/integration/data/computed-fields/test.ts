@@ -4,7 +4,9 @@ import {
     createCustomFunction,
     backToIndexRoute,
     insertAuthorsIntoTable,
-    searchForTable
+    searchForTable,
+    cleanUpSql,
+    openModifySection,
   } from './spec';
   import { testMode } from '../../../helpers/common';
   import { setMetaData } from '../../validators/validators';
@@ -19,7 +21,7 @@ import {
     });
   };
   
-  // TODO: add computed field with session arguments once that is added
+  // TODO: add computed field with session arguments once that is merged on master
   // TODO: write tests for Table Computed fields as well. Currently only added for scalar computed fields
   export const runComputedFieldTests = () => {
     describe('Computed Fields', () => {
@@ -29,11 +31,13 @@ import {
       it('Insert entries into table', insertAuthorsIntoTable);
       it('Go back to index route', backToIndexRoute);
       it('Search for table', searchForTable);
+      it('Open Modify page and add computed field', openModifySection);
       //   The rest of the TODOs
-      //   it('Open Modify page of author table', funcName);
-      //   it('Add computed field', funcName);
       //   it('Switch to GraphiQL page', funcName);
       //   it('Check computed field results on GraphiQL', funcName);
+      it('Go back to index route', backToIndexRoute);
+      it('Open Raw SQL page', openRawSQL);
+      it('Test cleanup', cleanUpSql);
     });
   };
   
