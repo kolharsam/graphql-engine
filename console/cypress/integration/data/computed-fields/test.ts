@@ -7,6 +7,7 @@ import {
     searchForTable,
     cleanUpSql,
     openModifySection,
+    routeToGraphiql,
   } from './spec';
   import { testMode } from '../../../helpers/common';
   import { setMetaData } from '../../validators/validators';
@@ -31,10 +32,10 @@ import {
       it('Insert entries into table', insertAuthorsIntoTable);
       it('Search for table', searchForTable);
       it('Open Modify page and add computed field', openModifySection);
-      //   The rest of the TODOs
-      //   it('Switch to GraphiQL page', funcName);
+      it('Route to GraphiQL page', routeToGraphiql);
+      //   TODOs
       //   it('Check computed field results on GraphiQL', funcName);
-      it('Go to index route', backToIndexRoute);
+      it('Go to /data route', backToIndexRoute);
       it('Open Raw SQL page', openRawSQL);
       it('Test cleanup', cleanUpSql);
     });

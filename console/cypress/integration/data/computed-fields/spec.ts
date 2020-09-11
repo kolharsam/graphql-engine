@@ -105,4 +105,9 @@ export const openModifySection = () => {
   cy.wait(5000);
 };
 
+export const routeToGraphiql = () => {
+  cy.visit('/');
+  cy.wait(7000);
+};
+
 export const cleanUpSql = () => typeSQL(sqlStatements.cleanUpSql, true);
