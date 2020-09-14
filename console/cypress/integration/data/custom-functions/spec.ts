@@ -1,7 +1,6 @@
 import {
     baseUrl,
     getElementFromAlias,
-    // getElementFromClassName,
   } from '../../../helpers/dataHelpers';
   
   const statements = {
