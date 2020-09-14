@@ -11,8 +11,8 @@ const statements = {
   SELECT a_test_test_author_row.first_name || ' ' || a_test_test_author_row.last_name
   $function$
   LANGUAGE sql STABLE;`,
-  insertData_a1: `INSERT INTO a_test_test_author(first_name, last_name) VALUES ('jk', 'rowling');`,
-  insertData_a2: `INSERT INTO a_test_test_author(first_name, last_name) VALUES ('enid', 'blyton');`,
+  insertData_a1: `INSERT INTO a_test_test_author(first_name, last_name) VALUES ('enid', 'blyton');`,
+  insertData_a2: `INSERT INTO a_test_test_author(first_name, last_name) VALUES ('agatha', 'christie');`,
   cleanUpSql: 'DROP TABLE a_test_test_author CASCADE;',
   graphql: {
     query: `{
@@ -132,8 +132,8 @@ export const verifyComputedFieldsResult = () => {
   cy.get('.execute-button').click();
   // verify if full_name is present
   cy.get('.cm-property').contains('full_name');
-  cy.get('.cm-string').contains('jk rowling');
-  // TODO?: verify enid blyton also
+  cy.get('.cm-string').contains('enid blyton');
+  // TODO?: verify agatha christie also
   cy.wait(2000);
 };
 
