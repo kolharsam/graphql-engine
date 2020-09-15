@@ -1,144 +1,229 @@
-import {
-    baseUrl,
-    getElementFromAlias,
-    // getElementFromClassName,
-  } from '../../../helpers/dataHelpers';
+import { baseUrl, getElementFromAlias } from '../../../helpers/dataHelpers';
 
-  const statements = {
-    createTableSql: 'CREATE TABLE a_test_test_article (id serial PRIMARY KEY, title text, content text);',
-    createCustomFuncSql: `CREATE FUNCTION a_test_test_search_articles(search text)
-RETURNS SETOF a_test_test_article AS $function$
-SELECT *
-FROM a_test_test_article
-WHERE
-title ilike ('%' || search || '%')
-OR content ilike ('%' || search || '%')
-$function$ LANGUAGE sql STABLE;`,
-    insertData_a1: `INSERT INTO a_test_test_article(title, content) VALUES ('hasura is awesome', 'I mean duh?!');`,
-    insertData_a2: `INSERT INTO a_test_test_article(title, content) VALUES ('cloud lauched', 'hasura <3 the cloud');`,
-    deleteFunction: 'DROP FUNCTION a_test_test_search_articles(search text);',
-    cleanUpSql: 'DROP TABLE a_test_test_article CASCADE;',
-    graphql: {
-      query: `{
-        a_test_test_search_articles
-          (args: {{} search: "hasura" }) {
-            id
-            title
-            content
-        `
-    },
-  };
-
-  export const openRawSQL = () => {
-    cy.get('a')
-      .contains('Data')
-      .click();
-    cy.wait(3000);
-    cy.get(getElementFromAlias('sql-link')).click();
-    cy.wait(3000);
-    cy.url()
-      .should('eq', `${baseUrl}/data/sql`);
-  };
-
-  const clearText = () => {
-    cy.get('textarea')
-      .type('{selectall}', { force: true });
-    cy.get('textarea')
-      .trigger('keydown', {
-        keyCode: 46,
-        which: 46,
-        force: true,
-      });
-    cy.wait(2000);
-  };
-
-  // helper to type into the SQL textarea on rawsql page
-  const typeStatement = (
-    statement: string,
-    shouldClearText = false,
-    waitTimeUponType = 2000,
-    endWaitTime = 5000,
-  ) => {
-    if (shouldClearText) {
-      clearText();
-    }
-    cy.get('textarea').type(statement, { force: true });
-    cy.wait(waitTimeUponType);
-    cy.get(getElementFromAlias('run-sql')).click();
-    // FIXME: maybe necessary for CLI mode
-    // cy.get(getElementFromAlias('raw-sql-statement-timeout')).should('be.disabled');
-    cy.wait(endWaitTime);
-  };
-
-  export const createTableArticle = () =>
-    typeStatement(statements.createTableSql);
-
-  export const createCustomFunction = () =>
-    typeStatement(statements.createCustomFuncSql, true);
-
-  export const insertAuthorsIntoTable = () => {
-    typeStatement(statements.insertData_a1, true);
-    typeStatement(statements.insertData_a2, true);
-    clearText();
-  };
-
-  export const trackCustomFn = () => {
-    // Route to index route
-    cy.visit('/data/schema/public');
-    cy.wait(7000);
-    cy.url().should('eq', `${baseUrl}/data/schema/public`);
-    // Track Table
-    cy.get(getElementFromAlias('add-track-table-a_test_test_article'))
-      .click();
-
-    // re-route
-    cy.visit('/data/schema/public');
-    cy.wait(7000);
-    cy.url().should('eq', `${baseUrl}/data/schema/public`);
-
-    // Track Function
-    cy.get(getElementFromAlias('add-track-function-a_test_test_search_articles'))
-      .click();
-    cy.wait(5000);
-  };
-
-  export const routeToGraphiql = () => {
-    cy.visit('/api-explorer');
-    cy.wait(7000);
-    cy.url().should('eq', `${baseUrl}/api-explorer`);
-  };
-
-  export const verifyCustomFnResult = () => {
-    // Type the query
-    cy.get('textarea')
-    .first()
-    .type(
-      `{enter}{uparrow}${statements.graphql.query}`,
-      { force: true }
-    );
-    cy.wait(2000);
-    cy.get('.execute-button').click();
-    // verify if article is present
-
-    // article 1
-    cy.get('.cm-property').contains('title');
-    cy.get('.cm-string').contains('hasura is awesome');
-    // article 2
-    cy.get('.cm-property').contains('content');
-    cy.get('.cm-string').contains('hasura <3 the cloud');
-
-    cy.wait(2000);
-  };
-
-  export const cleanUpSql = () => {
-    typeStatement(statements.deleteFunction, true);
-    typeStatement(statements.cleanUpSql, true);
-    clearText();
-    cy.wait(2000);
+const statements = {
+  createMutationActionText: `type Mutation {
+    login (username: String!, password: String!): LoginResponse
+  }`,
+  createMutationCustomType: `type LoginResponse {
+    accessToken: String!
   }
+  `,
+  createMutationHandler: 'https://hasura-actions-demo.glitch.me/login',
+  createMutationGQLQuery: `mutation {
+    login (username: "jondoe", password: "mysecretpassword") {
+      accessToken
+    `,
+  createQueryActionText: `type Query {
+    addNumbers (numbers: [Int]): AddResult
+  }`,
+  createQueryActionCustomType: `type AddResult {
+    sum: Int
+  }`,
+  createQueryHandler: 'https://hasura-actions-demo.glitch.me/addNumbers',
+  createQueryGQLQuery: `query {
+    addNumbers(numbers: [1, 2, 3, 4]) {
+      sum
+    `,
+  changeHandlerText: 'http://host.docker.internal:3000',
+};
 
-  export const routeToSQLPage = () => {
-    cy.visit('/data/sql')
-    cy.wait(7000);
-    cy.url().should('eq', `${baseUrl}/data/sql`);
-  };
+const clearActionDef = () => {
+  cy.get('textarea').first().type('{selectall}', { force: true });
+  cy.get('textarea').first().trigger('keydown', {
+    keyCode: 46,
+    which: 46,
+    force: true,
+  });
+  cy.wait(2000);
+};
+
+const clearActionTypes = () => {
+  cy.get('textarea').eq(1).type('{selectall}', { force: true });
+  cy.get('textarea').eq(1).trigger('keydown', {
+    keyCode: 46,
+    which: 46,
+    force: true,
+  });
+  cy.wait(2000);
+};
+
+const typeIntoActionDef = (content: string) => {
+  cy.get('textarea').first().type(content, { force: true });
+  cy.wait(2000);
+};
+
+const typeIntoActionTypes = (content: string) => {
+  cy.get('textarea').eq(1).type(content, { force: true });
+  cy.wait(2000);
+};
+
+const clearHandler = () => {
+  cy.get(getElementFromAlias('action-create-handler-input')).type(
+    '{selectall}',
+    { force: true }
+  );
+  cy.get(getElementFromAlias('action-create-handler-input')).trigger(
+    'keydown',
+    {
+      keyCode: 46,
+      which: 46,
+      force: true,
+    }
+  );
+  cy.wait(2000);
+};
+
+const typeIntoHandler = (content: string) => {
+  cy.get(getElementFromAlias('action-create-handler-input')).type(content, {
+    force: true,
+  });
+  cy.wait(2000);
+};
+
+const clickOnCreateAction = () => {
+  cy.get(getElementFromAlias('create-action-btn')).click();
+  cy.wait(5000);
+};
+
+export const routeToGraphiql = () => {
+  cy.visit('/api-explorer');
+  cy.wait(7000);
+  cy.url().should('eq', `${baseUrl}/api-explorer`);
+};
+
+export const createMutationAction = () => {
+  // Click on create
+  cy.get(getElementFromAlias('data-create-actions')).click();
+  cy.wait(7000);
+  // Clear default text on
+  clearActionDef();
+  // type statement
+  typeIntoActionDef(statements.createMutationActionText);
+  // clear defaults on action types
+  clearActionTypes();
+  // type the action type text
+  typeIntoActionTypes(statements.createMutationCustomType);
+  // clear handler
+  clearHandler();
+  // type into handler
+  typeIntoHandler(statements.createMutationHandler);
+  // click to create action
+  clickOnCreateAction();
+};
+
+export const verifyMutation = () => {
+  routeToGraphiql();
+  // Type the query
+  cy.get('textarea')
+    .first()
+    .type(`{enter}{uparrow}${statements.createMutationGQLQuery}`, {
+      force: true,
+    });
+  cy.wait(2000);
+  cy.get('.execute-button').click();
+  cy.wait(20000);
+  cy.get('.cm-property').contains('login');
+  cy.get('.cm-property').contains('accessToken');
+  cy.get('.cm-string').contains('Ew8jkGCNDGAo7p35RV72e0Lk3RGJoJKB');
+
+  cy.wait(2000);
+};
+
+export const modifyMutationAction = () => {
+  cy.visit('/actions/manage/login/modify');
+  cy.wait(7000);
+  cy.url().should('eq', `${baseUrl}/actions/manage/login/modify`);
+
+  clearHandler();
+  typeIntoHandler(statements.changeHandlerText);
+
+  cy.get(getElementFromAlias('save-modify-action-changes ')).click();
+  cy.wait(5000);
+
+  // TODO?: Relationships & codegen part?
+
+  // permissions part
+  cy.get(getElementFromAlias('actions-permissions')).click();
+  cy.wait(2000);
+
+  cy.get(getElementFromAlias('role-textbox')).type('hakuna_matata');
+  cy.wait(1000);
+
+  cy.get(getElementFromAlias('hakuna_matata-Permission')).click();
+  cy.wait(1000);
+  cy.get(getElementFromAlias('save-permissions-for-action')).click();
+
+  cy.get(getElementFromAlias('actions-modify')).click();
+
+  cy.wait(3000);
+};
+
+export const routeToIndex = () => {
+  cy.visit('/actions/manage/actions');
+  cy.wait(7000);
+  cy.url().should('eq', `${baseUrl}/actions/manage/actions`);
+};
+
+export const createQueryAction = () => {
+  // Click on create
+  cy.get(getElementFromAlias('data-create-actions')).click();
+  cy.wait(7000);
+  // Clear default text on
+  clearActionDef();
+  // type statement
+  typeIntoActionDef(statements.createQueryActionText);
+  // clear defaults on action types
+  clearActionTypes();
+  // type the action type text
+  typeIntoActionTypes(statements.createQueryActionCustomType);
+  // clear handler
+  clearHandler();
+  // type into handler
+  typeIntoHandler(statements.createQueryHandler);
+  // click to create action
+  clickOnCreateAction();
+};
+
+export const verifyQuery = () => {
+  routeToGraphiql();
+  cy.get('textarea')
+    .first()
+    .type(`{enter}{uparrow}${statements.createQueryGQLQuery}`, { force: true });
+  cy.wait(2000);
+  cy.get('.execute-button').click();
+  cy.wait(20000);
+  cy.get('.cm-property').contains('addNumbers');
+  cy.get('.cm-property').contains('sum');
+  cy.get('.cm-number').contains('10');
+
+  cy.wait(2000);
+};
+
+export const modifyQueryAction = () => {
+  cy.visit('/actions/manage/addNumbers/modify');
+  cy.wait(7000);
+  cy.url().should('eq', `${baseUrl}/actions/manage/addNumbers/modify`);
+
+  clearHandler();
+  typeIntoHandler(statements.changeHandlerText);
+
+  cy.get(getElementFromAlias('save-modify-action-changes ')).click();
+  cy.wait(5000);
+
+  // TODO?: Relationships & codegen part?
+
+  // permissions part
+  cy.get(getElementFromAlias('actions-permissions')).click();
+  cy.wait(2000);
+
+  cy.get(getElementFromAlias('role-textbox')).type('MANAGER');
+  cy.wait(1000);
+
+  cy.get(getElementFromAlias('MANAGER-Permission')).click();
+  cy.wait(1000);
+  cy.get(getElementFromAlias('save-permissions-for-action')).click();
+
+  cy.get(getElementFromAlias('actions-modify')).click();
+
+  cy.wait(3000);
+};
