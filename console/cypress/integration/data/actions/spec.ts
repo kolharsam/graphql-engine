@@ -1,4 +1,5 @@
 import { baseUrl, getElementFromAlias } from '../../../helpers/dataHelpers';
+import { setPromptValue } from '../../../helpers/common';
 
 const statements = {
   createMutationActionText: `type Mutation {
@@ -121,7 +122,8 @@ export const verifyMutation = () => {
     });
   cy.wait(2000);
   cy.get('.execute-button').click();
-  cy.wait(20000);
+  // FIXME: NOT GOOD!
+  cy.wait(30000);
   cy.get('.cm-property').contains('login');
   cy.get('.cm-property').contains('accessToken');
   cy.get('.cm-string').contains('Ew8jkGCNDGAo7p35RV72e0Lk3RGJoJKB');
@@ -158,6 +160,15 @@ export const modifyMutationAction = () => {
   cy.wait(3000);
 };
 
+const deleteAction = (promptValue: string) => {
+  setPromptValue(promptValue);
+  cy.get(getElementFromAlias('delete-modify-action-changes')).click();
+  cy.window().its('prompt').should('be.called');
+  cy.wait(7000);
+};
+
+export const deleteMutationAction = () => deleteAction('login');
+
 export const routeToIndex = () => {
   cy.visit('/actions/manage/actions');
   cy.wait(7000);
@@ -191,7 +202,7 @@ export const verifyQuery = () => {
     .type(`{enter}{uparrow}${statements.createQueryGQLQuery}`, { force: true });
   cy.wait(2000);
   cy.get('.execute-button').click();
-  cy.wait(20000);
+  cy.wait(30000);
   cy.get('.cm-property').contains('addNumbers');
   cy.get('.cm-property').contains('sum');
   cy.get('.cm-number').contains('10');
@@ -227,3 +238,5 @@ export const modifyQueryAction = () => {
 
   cy.wait(3000);
 };
+
+export const deleteQueryAction = () => deleteAction('addNumbers');
