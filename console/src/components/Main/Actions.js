@@ -63,6 +63,7 @@ export const fetchPostgresVersion = (dispatch, getState) => {
     'SELECT version()',
     getState().tables.currentDataSource
   );
+
   const options = {
     method: 'POST',
     credentials: globalCookiePolicy,
