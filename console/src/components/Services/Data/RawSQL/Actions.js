@@ -42,7 +42,6 @@ const executeSQL = (isMigration, migrationName, statementTimeout) => (
   const { migrationMode, readOnlyMode } = getState().main;
 
   const isStatementTimeout = statementTimeout && !isMigration;
-
   const migrateUrl = returnMigrateUrl(migrationMode);
 
   let url = Endpoints.query;
@@ -88,6 +87,7 @@ const executeSQL = (isMigration, migrationName, statementTimeout) => (
 
   let requestBody = {
     type: 'bulk',
+    source,
     args: schemaChangesUp,
     source,
   };

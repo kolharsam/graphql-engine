@@ -112,10 +112,12 @@ const addExistingFunction = name => {
     const migrationName = 'add_existing_function ' + currentSchema + '_' + name;
     const upQuery = {
       type: 'bulk',
+      source: currentDataSource,
       args: [requestBodyUp],
     };
     const downQuery = {
       type: 'bulk',
+      source: currentDataSource,
       args: [requestBodyDown],
     };
 
@@ -181,10 +183,12 @@ const addAllUntrackedTablesSql = tableList => {
     const migrationName = 'add_all_existing_table_or_view_' + currentSchema;
     const upQuery = {
       type: 'bulk',
+      source: currentDataSource,
       args: bulkQueryUp,
     };
     const downQuery = {
       type: 'bulk',
+      source: currentDataSource,
       args: bulkQueryDown,
     };
 
