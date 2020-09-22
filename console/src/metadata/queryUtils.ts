@@ -507,13 +507,6 @@ export const getRemoteSchemaIntrospectionQuery = (
   },
 });
 
-export const getBulkQuery = (args: any[]) => {
-  return {
-    type: 'bulk',
-    args,
-  };
-};
-
 export const addExistingTableOrView = (
   tableName: string,
   schemaName: string,

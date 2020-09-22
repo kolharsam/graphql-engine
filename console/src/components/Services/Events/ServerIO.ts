@@ -61,14 +61,13 @@ import {
   getDropScheduledTriggerQuery,
   getCreateScheduledEventQuery,
   getRedeliverDataEventQuery,
-  getBulkQuery,
 } from '../../../metadata/queryUtils';
 
 export const fetchTriggers = (
   kind: Nullable<TriggerKind>
 ): Thunk<Promise<void>> => (dispatch, getState) => {
   dispatch({ type: LOADING_TRIGGERS });
-
+  const { currentDataSource } = getState().tables;
   const bulkQueryArgs = [];
   if (kind) {
     bulkQueryArgs.push(
@@ -77,13 +76,17 @@ export const fetchTriggers = (
   } else {
     bulkQueryArgs.push(fetchEventTriggersQuery, fetchScheduledTriggersQuery);
   }
-
+  const query = {
+    type: 'bulk',
+    source: currentDataSource,
+    args: bulkQueryArgs,
+  }
   return dispatch(
     requestAction(Endpoints.query, {
       method: 'POST',
       credentials: globalCookiePolicy,
       headers: dataHeaders(getState),
-      body: JSON.stringify(getBulkQuery(bulkQueryArgs)),
+      body: JSON.stringify(query),
     })
   ).then(
     (data: (ScheduledTrigger[] | EventTrigger[])[]) => {
