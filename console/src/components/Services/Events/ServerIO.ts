@@ -80,7 +80,7 @@ export const fetchTriggers = (
     type: 'bulk',
     source: currentDataSource,
     args: bulkQueryArgs,
-  }
+  };
   return dispatch(
     requestAction(Endpoints.query, {
       method: 'POST',
