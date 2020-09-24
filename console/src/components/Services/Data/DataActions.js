@@ -271,7 +271,8 @@ const fetchAdditionalColumnsInfo = () => (dispatch, getState) => {
   );
 };
 
-const updateSchemaInfo = options => dispatch => {
+const updateSchemaInfo = options => (dispatch, getState) => {
+  if (!getState().tables.currentDataSource) return;
   return dispatch(loadSchema(options)).then(() => {
     dispatch(fetchAdditionalColumnsInfo());
     dispatch(setUntrackedRelations());
@@ -288,6 +289,8 @@ const fetchDataInit = () => (dispatch, getState) => {
 
   const source = getState().tables.currentDataSource;
   const query = getRunSqlQuery(dataSource.schemaListSql, source);
+
+  if (!getState().tables.currentDataSource) return;
 
   const options = {
     credentials: globalCookiePolicy,
@@ -322,6 +325,7 @@ const fetchFunctionInit = (schema = null) => (dispatch, getState) => {
   const url = Endpoints.query;
   const fnSchema = schema || getState().tables.currentSchema;
   const source = getState().tables.currentDataSource;
+  if (!source) return;
   const body = {
     type: 'bulk',
     source,
