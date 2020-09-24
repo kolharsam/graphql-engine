@@ -44,9 +44,7 @@ const DataPageContainer = ({
       type: UPDATE_CURRENT_DATA_SOURCE,
       source: newName,
     });
-    
     setLoadingSchemas(true);
-
     dispatch(fetchDataInit()).then(() => {
       setLoadingSchemas(false);
     });
