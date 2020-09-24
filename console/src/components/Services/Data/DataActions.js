@@ -298,11 +298,15 @@ const fetchDataInit = () => (dispatch, getState) => {
 
   return dispatch(requestAction(url, options)).then(
     data => {
+      const schemaList = data.result.reduce((acc, schema) => {
+        if (schema[0] === 'schema_name') {
+          return acc;
+        }
+        return [schema[0], ...acc];
+      }, []);
       dispatch({
         type: FETCH_SCHEMA_LIST,
-        schemaList: data.result
-          .map(schema => ({ schema_name: schema[0] }))
-          .slice(1),
+        schemaList,
       });
       dispatch(updateSchemaInfo());
     },
@@ -362,11 +366,8 @@ const updateCurrentSchema = (
   redirect = true,
   schemaList = []
 ) => dispatch => {
-  if (
-    schemaList.length &&
-    !schemaList.find(s => s.schema_name === schemaName)
-  ) {
-    schemaName = schemaList[0].schema_name;
+  if (schemaList.length && !schemaList.find(s => s === schemaName)) {
+    schemaName = schemaList[0];
   }
 
   if (redirect) {
@@ -395,11 +396,15 @@ const fetchSchemaList = () => (dispatch, getState) => {
   };
   return dispatch(requestAction(url, options)).then(
     data => {
+      const schemaList = data.result.reduce((acc, schema) => {
+        if (schema[0] === 'schema_name') {
+          return acc;
+        }
+        return [schema[0], ...acc];
+      }, []);
       dispatch({
         type: FETCH_SCHEMA_LIST,
-        schemaList: data.result
-          .map(schema => ({ schema_name: schema[0] }))
-          .slice(1),
+        schemaList,
       });
       return data;
     },
@@ -415,8 +420,8 @@ export const getSchemaList = (sourceType, sourceName) => (
   getState
 ) => {
   const url = Endpoints.query;
-  const query = services[sourceType].schemaList;
-  query.source = sourceName;
+  const sql = services[sourceType].schemaListSql;
+  const query = getRunSqlQuery(sql, sourceName);
   const options = {
     credentials: globalCookiePolicy,
     method: 'POST',

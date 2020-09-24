@@ -47,7 +47,7 @@ const DataPageContainer = ({
     setLoadingSchemas(true);
     dispatch(fetchSchemaList()).then(data => {
       if (data.length) {
-        dispatch(updateCurrentSchema(data[0].schema_name, true, data));
+        dispatch(updateCurrentSchema(data[0], true, data));
       } else {
         dispatch(updateCurrentSchema('', true, []));
       }
@@ -79,8 +79,8 @@ const DataPageContainer = ({
 
   const getSchemaOptions = () => {
     return schemaList.map(s => (
-      <option key={s.schema_name} value={s.schema_name}>
-        {s.schema_name}
+      <option key={s} value={s}>
+        {s}
       </option>
     ));
   };
