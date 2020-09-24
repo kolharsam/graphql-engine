@@ -13,7 +13,7 @@ import {
   fetchDataInit,
 } from './DataActions';
 import { CLI_CONSOLE_MODE } from '../../../constants';
-import { getSchemaBaseRoute } from '../../Common/utils/routesUtils';
+// import { getSchemaBaseRoute } from '../../Common/utils/routesUtils';
 import styles from '../../Common/TableCommon/Table.scss';
 import { useDataSource } from '../../../dataSources';
 import { getDataSources } from '../../../metadata/selector';
