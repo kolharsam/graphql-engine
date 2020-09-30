@@ -29,7 +29,9 @@ const DataPageContainer = ({
 }) => {
   const { setDriver } = useDataSource();
   const [loadingSchemas, setLoadingSchemas] = useState(false);
-
+  const currentDataSourceDetails = dataSources.find(
+    s => s.name === currentDataSource
+  );
   const onDatabaseChange = e => {
     const value = e.target.value;
     let newName;
@@ -102,7 +104,10 @@ const DataPageContainer = ({
               <select
                 onChange={onDatabaseChange}
                 className={styles.changeSchema + ' form-control'}
-                defaultValue={dataSources.find(s => s.name === currentDataSource)}
+                value={JSON.stringify([
+                  currentDataSourceDetails.name,
+                  currentDataSourceDetails.driver,
+                ])}
               >
                 {dataSources.map(s => (
                   <option
