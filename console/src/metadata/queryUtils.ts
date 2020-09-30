@@ -381,10 +381,13 @@ export const resetMetadataQuery = {
 
 export const generateCreateEventTriggerQuery = (
   state: LocalEventTriggerState,
+  source: string,
   replace = false
 ) => ({
-  type: 'create_event_trigger',
+  // This is directly being done as -> triggers are not supported for mysql
+  type: 'pg_create_event_trigger',
   args: {
+    source,
     name: state.name.trim(),
     table: state.table,
     webhook:
@@ -415,19 +418,24 @@ export const generateCreateEventTriggerQuery = (
   },
 });
 
-export const getDropEventTriggerQuery = (name: string) => ({
-  type: 'delete_event_trigger',
+export const getDropEventTriggerQuery = (name: string, source: string) => ({
+  // Not supported for MySQL
+  type: 'pg_delete_event_trigger',
   args: {
+    source,
     name: name.trim(),
   },
 });
 
 export const generateCreateScheduledTriggerQuery = (
   state: LocalScheduledTriggerState,
+  source: string,
   replace = false
 ) => ({
-  type: 'create_cron_trigger',
+  // Not supported for MySQL
+  type: 'pg_create_cron_trigger',
   args: {
+    source,
     name: state.name.trim(),
     webhook: state.webhook,
     schedule: state.schedule,
@@ -446,8 +454,9 @@ export const generateCreateScheduledTriggerQuery = (
 });
 
 export const generateUpdateScheduledTriggerQuery = (
-  state: LocalScheduledTriggerState
-) => generateCreateScheduledTriggerQuery(state, true);
+  state: LocalScheduledTriggerState,
+  source: string
+) => generateCreateScheduledTriggerQuery(state, source, true);
 
 export const getDropScheduledTriggerQuery = (name: string) => ({
   type: 'delete_cron_trigger',
@@ -506,13 +515,6 @@ export const getRemoteSchemaIntrospectionQuery = (
     name: remoteSchemaName,
   },
 });
-
-export const getBulkQuery = (args: any[]) => {
-  return {
-    type: 'bulk',
-    args,
-  };
-};
 
 export const addExistingTableOrView = (
   tableName: string,

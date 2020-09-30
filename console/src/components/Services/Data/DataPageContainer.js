@@ -102,12 +102,12 @@ const DataPageContainer = ({
               <select
                 onChange={onDatabaseChange}
                 className={styles.changeSchema + ' form-control'}
+                defaultValue={dataSources.find(s => s.name === currentDataSource)}
               >
                 {dataSources.map(s => (
                   <option
                     key={s.name}
                     value={JSON.stringify([s.name, s.driver])}
-                    selected={s.name === currentDataSource}
                   >
                     {s.name} ({s.driver})
                   </option>

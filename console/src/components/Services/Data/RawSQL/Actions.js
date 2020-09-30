@@ -41,12 +41,16 @@ const executeSQL = (isMigration, migrationName, statementTimeout) => (
   const { isTableTrackChecked, isCascadeChecked, sql } = getState().rawSQL;
   const { migrationMode, readOnlyMode } = getState().main;
   const isStatementTimeout = statementTimeout && !isMigration;
-
+  const { currentDataSource } = getState().tables;
   const migrateUrl = returnMigrateUrl(migrationMode);
 
   let url = Endpoints.query;
   const source = getState().tables.currentDataSource;
   const schemaChangesUp = [];
+
+  schemaChangesUp.push(
+    getRunSqlQuery(sql, source, isCascadeChecked, readOnlyMode)
+  );
 
   if (isStatementTimeout) {
     schemaChangesUp.push(
@@ -59,10 +63,6 @@ const executeSQL = (isMigration, migrationName, statementTimeout) => (
     );
   }
 
-  schemaChangesUp.push(
-    getRunSqlQuery(sql, source, isCascadeChecked, readOnlyMode)
-  );
-
   if (isTableTrackChecked) {
     const objects = parseCreateSQL(sql);
 
@@ -71,6 +71,8 @@ const executeSQL = (isMigration, migrationName, statementTimeout) => (
         type: '',
         args: {},
       };
+
+      console.log('HERE', { type: object.type });
 
       if (object.type === 'function') {
         trackQuery.type = 'track_function';
@@ -87,6 +89,7 @@ const executeSQL = (isMigration, migrationName, statementTimeout) => (
 
   let requestBody = {
     type: 'bulk',
+    source: currentDataSource,
     args: schemaChangesUp,
   };
   // check if its a migration and send to hasuractl migrate

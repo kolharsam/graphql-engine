@@ -103,26 +103,17 @@ export const getEnumOptionsQuery = (
 });
 
 export const fetchEventTriggersQuery = {
-  type: 'select',
+  type: 'run_sql',
   args: {
-    table: {
-      name: 'event_triggers',
-      schema: 'hdb_catalog',
-    },
-    columns: ['*'],
-    order_by: [makeOrderBy('name', 'asc')],
+    sql: 'SELECT metadata FROM "hdb_catalog"."hdb_metadata";',
   },
 };
 
 export const fetchScheduledTriggersQuery = {
-  type: 'select',
+  type: 'run_sql',
   args: {
-    table: {
-      name: 'hdb_cron_triggers',
-      schema: 'hdb_catalog',
-    },
-    columns: ['*'],
-    order_by: [makeOrderBy('name', 'asc')],
+    sql:
+      'SELECT * FROM "hdb_catalog"."hdb_cron_triggers" ORDER BY name ASC NULLS LAST;',
   },
 };
 

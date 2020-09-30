@@ -61,46 +61,68 @@ import {
   getDropScheduledTriggerQuery,
   getCreateScheduledEventQuery,
   getRedeliverDataEventQuery,
-  getBulkQuery,
 } from '../../../metadata/queryUtils';
 
 export const fetchTriggers = (
   kind: Nullable<TriggerKind>
 ): Thunk<Promise<void>> => (dispatch, getState) => {
   dispatch({ type: LOADING_TRIGGERS });
-
+  const { currentDataSource } = getState().tables;
   const bulkQueryArgs = [];
   if (kind) {
     bulkQueryArgs.push(
       kind === 'cron' ? fetchScheduledTriggersQuery : fetchEventTriggersQuery
     );
   } else {
-    bulkQueryArgs.push(fetchEventTriggersQuery, fetchScheduledTriggersQuery);
+    bulkQueryArgs.push(fetchScheduledTriggersQuery);
   }
+
+  const bulkQuery = {
+    type: 'bulk',
+    source: 'default',
+    args: bulkQueryArgs,
+  };
+
+  // TODO: instead of making the query, you can also use the data present in the metadata state
 
   return dispatch(
     requestAction(Endpoints.query, {
       method: 'POST',
       credentials: globalCookiePolicy,
       headers: dataHeaders(getState),
-      body: JSON.stringify(getBulkQuery(bulkQueryArgs)),
+      body: JSON.stringify(bulkQuery),
     })
   ).then(
-    (data: (ScheduledTrigger[] | EventTrigger[])[]) => {
+    (data: (ScheduledTrigger[] | EventTrigger[])[] | any) => {
+      const eventTriggerResult = JSON.parse(data[0]?.result[1][0] ?? []);
+      const scheduledTriggerResult = data[1]?.result[1][0] ?? []; // -- todo: to try this out too
+      // FIXME: this may be removed the
+      let eventTriggerList = [];
+      if (eventTriggerResult && eventTriggerResult.sources) {
+        const currentDataSourceEventTrigger: any = eventTriggerResult.sources.find(
+          (elem: any) => elem.name === currentDataSource
+        );
+        if (currentDataSourceEventTrigger) {
+          eventTriggerList =
+            currentDataSourceEventTrigger.tables[0].event_triggers;
+        }
+      }
       if (kind) {
         if (kind === 'cron') {
-          dispatch(setScheduledTriggers(data[0] as ScheduledTrigger[]));
+          dispatch(setScheduledTriggers([] as ScheduledTrigger[]));
         } else {
-          dispatch(setEventTriggers(data[0] as EventTrigger[]));
+          dispatch(setEventTriggers(eventTriggerList as EventTrigger[]));
         }
-      } else {
-        dispatch(
-          setTriggers({
-            event: data[0] as EventTrigger[],
-            scheduled: data[1] as ScheduledTrigger[],
-          })
-        );
+
+        return Promise.resolve();
       }
+      
+      dispatch(
+        setTriggers({
+          event: eventTriggerList as EventTrigger[],
+          scheduled: scheduledTriggerResult as ScheduledTrigger[],
+        })
+      );
       return Promise.resolve();
     },
     (error: any) => {
@@ -115,6 +137,7 @@ export const addScheduledTrigger = (
   successCb?: () => void,
   errorCb?: () => void
 ): Thunk => (dispatch, getState) => {
+  const { currentDataSource } = getState().tables;
   const validationError = validateAddState(state);
 
   const errorMsg = 'Creating scheduled trigger failed';
@@ -125,7 +148,7 @@ export const addScheduledTrigger = (
     return dispatch(showErrorNotification(errorMsg, validationError));
   }
 
-  const upQuery = generateCreateScheduledTriggerQuery(state);
+  const upQuery = generateCreateScheduledTriggerQuery(state, currentDataSource);
   const downQuery = getDropScheduledTriggerQuery(state.name);
 
   const migrationName = `create_scheduled_trigger_${state.name}`;
@@ -173,6 +196,7 @@ export const saveScheduledTrigger = (
   successCb?: () => void,
   errorCb?: () => void
 ): Thunk => (dispatch, getState) => {
+  const { currentDataSource } = getState().tables;
   const validationError = validateAddState(state);
 
   const errorMsg = 'Updating scheduled trigger failed';
@@ -198,19 +222,24 @@ export const saveScheduledTrigger = (
     }
   }
 
-  const replaceQueryUp = generateUpdateScheduledTriggerQuery(state);
+  const replaceQueryUp = generateUpdateScheduledTriggerQuery(
+    state,
+    currentDataSource
+  );
   const replaceQueryDown = generateUpdateScheduledTriggerQuery(
-    parseServerScheduledTrigger(existingTrigger)
+    parseServerScheduledTrigger(existingTrigger),
+    currentDataSource
   );
 
   const upRenameQueries = [
-    generateCreateScheduledTriggerQuery(state),
+    generateCreateScheduledTriggerQuery(state, currentDataSource),
     getDropScheduledTriggerQuery(existingTrigger.name),
   ];
   const downRenameQueries = [
     getDropScheduledTriggerQuery(state.name),
     generateCreateScheduledTriggerQuery(
-      parseServerScheduledTrigger(existingTrigger)
+      parseServerScheduledTrigger(existingTrigger),
+      currentDataSource
     ),
   ];
 
@@ -265,6 +294,7 @@ export const deleteScheduledTrigger = (
   successCb?: () => void,
   errorCb?: () => void
 ): Thunk => (dispatch, getState) => {
+  const { currentDataSource } = getState().tables;
   const isOk = getConfirmation(
     `This will delete the cron trigger permanently and delete all the associated events.`,
     true,
@@ -279,7 +309,8 @@ export const deleteScheduledTrigger = (
 
   const upQuery = getDropScheduledTriggerQuery(trigger.name);
   const downQuery = generateCreateScheduledTriggerQuery(
-    parseServerScheduledTrigger(trigger)
+    parseServerScheduledTrigger(trigger),
+    currentDataSource
   );
 
   const migrationName = `delete_scheduled_trigger_${trigger.name}`;
@@ -322,6 +353,7 @@ export const createEventTrigger = (
 ): Thunk => {
   return (dispatch, getState) => {
     const validationError = validateETState(state);
+    const { currentDataSource } = getState().tables;
     if (validationError) {
       dispatch(
         showErrorNotification('Creating event trigger failed', validationError)
@@ -330,8 +362,8 @@ export const createEventTrigger = (
 
     const migrationName = `create_event_trigger_${state.name.trim()}`;
 
-    const upQuery = generateCreateEventTriggerQuery(state);
-    const downQuery = getDropEventTriggerQuery(state.name);
+    const upQuery = generateCreateEventTriggerQuery(state, currentDataSource);
+    const downQuery = getDropEventTriggerQuery(state.name, currentDataSource);
 
     const requestMsg = 'Creating event trigger...';
     const successMsg = 'Event Trigger Created';
@@ -375,8 +407,10 @@ export const modifyEventTrigger = (
   successCb?: () => void,
   errorCb?: () => void
 ): Thunk => (dispatch, getState) => {
+  const { currentDataSource } = getState().tables;
   const downQuery = generateCreateEventTriggerQuery(
     parseServerETDefinition(trigger, table),
+    currentDataSource,
     true
   );
 
@@ -384,6 +418,7 @@ export const modifyEventTrigger = (
 
   const upQuery = generateCreateEventTriggerQuery(
     parseServerETDefinition(trigger, table),
+    currentDataSource,
     true
   );
 
@@ -468,6 +503,7 @@ export const deleteEventTrigger = (
   successCb?: () => void,
   errorCb?: () => void
 ): Thunk => (dispatch, getState) => {
+  const { currentDataSource } = getState().tables;
   const isOk = getConfirmation(
     `This will permanently delete the event trigger and the associated metadata`,
     true,
@@ -477,9 +513,10 @@ export const deleteEventTrigger = (
     return undefined;
   }
 
-  const upQuery = getDropEventTriggerQuery(trigger.name);
+  const upQuery = getDropEventTriggerQuery(trigger.name, currentDataSource);
   const downQuery = generateCreateEventTriggerQuery(
-    parseServerETDefinition(trigger)
+    parseServerETDefinition(trigger),
+    currentDataSource
   );
 
   const migrationName = `delete_et_${trigger.name}`;
