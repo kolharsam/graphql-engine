@@ -5,7 +5,7 @@ import { addState } from '../state';
 import { push } from 'react-router-redux';
 
 import { generateHeaderSyms } from '../../../Common/Layout/ReusableHeader/HeaderReducer';
-import { makeRequest } from '../Actions';
+import { makeRequest, SET_REMOTE_SCHEMAS } from '../Actions';
 // import { UPDATE_MIGRATION_STATUS_ERROR } from '../../../Main/Actions';
 import { appPrefix } from '../constants';
 
@@ -161,20 +161,6 @@ const addRemoteSchema = () => {
       },
     };
 
-    const upQueryArgs = [];
-    upQueryArgs.push(payload);
-    const downQueryArgs = [];
-    downQueryArgs.push(downPayload);
-    const upQuery = {
-      type: 'bulk',
-      args: upQueryArgs,
-    };
-
-    const downQuery = {
-      type: 'bulk',
-      args: downQueryArgs,
-    };
-
     const requestMsg = 'Adding remote schema...';
     const successMsg = 'Remote schema added successfully';
     const errorMsg = 'Adding remote schema failed';
@@ -184,6 +170,10 @@ const addRemoteSchema = () => {
         dispatch({ type: RESET }),
         dispatch(exportMetadata()).then(() => {
           dispatch(push(`${prefixUrl}/manage/${resolveObj.name}/details`));
+          dispatch({
+            type: SET_REMOTE_SCHEMAS,
+            data: getState().metadata.metadataObject.remote_schemas,
+          });
         }),
         dispatch({ type: getHeaderEvents.RESET_HEADER, data: data }),
       ]);
@@ -191,14 +181,13 @@ const addRemoteSchema = () => {
     const customOnError = err => {
       console.error('Failed to create remote schema' + JSON.stringify(err));
       dispatch({ type: ADD_REMOTE_SCHEMA_FAIL, data: err });
-      // dispatch({ type: UPDATE_MIGRATION_STATUS_ERROR, data: err });
-      // alert(JSON.stringify(err));
     };
     dispatch({ type: ADDING_REMOTE_SCHEMA });
+
     return dispatch(
       makeRequest(
-        upQuery.args,
-        downQuery.args,
+        [payload],
+        [downPayload],
         migrationName,
         customOnSuccess,
         customOnError,
