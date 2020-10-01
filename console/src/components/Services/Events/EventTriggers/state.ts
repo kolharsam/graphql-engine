@@ -16,7 +16,11 @@ import {
 import { parseServerHeaders } from '../../../Common/Headers/utils';
 import { Table } from '../../../../dataSources/types';
 import { generateTableDef } from '../../../../dataSources';
-import { QualifiedTable } from '../../../../metadata/types';
+import {
+  QualifiedTable,
+  HasuraMetadataV2,
+  HasuraMetadataV3,
+} from '../../../../metadata/types';
 
 export type LocalEventTriggerState = {
   name: string;
@@ -63,7 +67,7 @@ export const parseServerETDefinition = (
   }
 
   const etConf = eventTrigger.configuration;
-  const etDef = etConf.definition;
+  const etDef = etConf?.definition ?? {};
 
   const etTableDef = generateTableDef(
     eventTrigger.table_name,
@@ -80,9 +84,12 @@ export const parseServerETDefinition = (
           table.columns
         )
       : [],
-    webhook: parseServerWebhook(etConf.webhook, etConf.webhook_from_env),
-    retryConf: etConf.retry_conf,
-    headers: parseServerHeaders(eventTrigger.configuration.headers),
+    webhook: parseServerWebhook(
+      etConf?.webhook ?? '',
+      etConf?.webhook_from_env ?? ''
+    ),
+    retryConf: etConf?.retry_conf ?? {},
+    headers: parseServerHeaders(eventTrigger.configuration?.headers),
   };
 };
 
@@ -158,17 +165,38 @@ export const useEventTrigger = (initState?: LocalEventTriggerState) => {
 
 export const useEventTriggerModify = (
   eventTrigger: EventTrigger,
-  allTables: Table[]
+  allTables: Table[],
+  metadataObject?: HasuraMetadataV2 | HasuraMetadataV3 | null
 ) => {
-  const table = findETTable(eventTrigger, allTables);
+  let modifiedEventTriggerObj = eventTrigger;
+  if (metadataObject) {
+    const tablesFromMetadata = (metadataObject as HasuraMetadataV3).sources.map(
+      tab => tab.tables
+    );
+    const reducedMetadataTables = tablesFromMetadata.reduce(
+      (acc, val) => acc.concat(val),
+      []
+    );
+    const currentEventTriggerTab = reducedMetadataTables.find(tab =>
+      tab.event_triggers?.find(evt => evt.name === eventTrigger.name)
+    );
+    if (currentEventTriggerTab) {
+      modifiedEventTriggerObj = {
+        ...modifiedEventTriggerObj,
+        table_name: currentEventTriggerTab.table.name,
+        schema_name: currentEventTriggerTab.table.schema,
+      };
+    }
+  }
+  const table = findETTable(modifiedEventTriggerObj, allTables);
   const { state, setState } = useEventTrigger(
-    parseServerETDefinition(eventTrigger, table)
+    parseServerETDefinition(modifiedEventTriggerObj, table)
   );
 
   React.useEffect(() => {
     if (allTables.length) {
-      const etTable = findETTable(eventTrigger, allTables);
-      setState.bulk(parseServerETDefinition(eventTrigger, etTable));
+      const etTable = findETTable(modifiedEventTriggerObj, allTables);
+      setState.bulk(parseServerETDefinition(modifiedEventTriggerObj, etTable));
     }
   }, [allTables]);
   return {

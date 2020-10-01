@@ -21,13 +21,27 @@ import { modifyEventTrigger, deleteEventTrigger } from '../../ServerIO';
 
 import { NotFoundError } from '../../../../Error/PageNotFound';
 import { Table } from '../../../../../dataSources/types';
+import {
+  HasuraMetadataV2,
+  HasuraMetadataV3,
+} from '../../../../../metadata/types';
 
 interface Props extends InjectedProps {}
 
 const Modify: React.FC<Props> = props => {
-  const { currentTrigger, allSchemas, readOnlyMode, dispatch } = props;
-
-  const { state, setState } = useEventTriggerModify(currentTrigger, allSchemas);
+  const {
+    currentTrigger,
+    allSchemas,
+    readOnlyMode,
+    dispatch,
+    metadataObject,
+  } = props;
+  console.log({ currentTrigger, allSchemas });
+  const { state, setState } = useEventTriggerModify(
+    currentTrigger,
+    allSchemas,
+    metadataObject
+  );
 
   React.useEffect(() => {
     if (currentTrigger) {
@@ -128,6 +142,7 @@ type PropsFromState = {
   currentTrigger: EventTrigger;
   allSchemas: Table[];
   readOnlyMode: boolean;
+  metadataObject: HasuraMetadataV2 | HasuraMetadataV3 | null;
 };
 
 const mapStateToProps: MapStateToProps<PropsFromState, RouterTriggerProps> = (
@@ -136,8 +151,23 @@ const mapStateToProps: MapStateToProps<PropsFromState, RouterTriggerProps> = (
 ) => {
   const triggerList = state.events.triggers.event;
   const modifyTriggerName = ownProps.params.triggerName;
+  const metadataObject = state.metadata.metadataObject;
+  const currentDataSource = state.tables.currentDataSource;
+  let currentTrigger: any = triggerList.find(
+    tr => tr.name === modifyTriggerName
+  );
 
-  const currentTrigger = triggerList.find(tr => tr.name === modifyTriggerName);
+  if (!currentTrigger) {
+    // TODO: search within the metadata object
+    const currentSourceTriggers = (metadataObject as HasuraMetadataV3).sources
+      .find(meta => meta.name === currentDataSource)
+      ?.tables.map(tab => tab.event_triggers);
+
+    currentSourceTriggers?.find(evtTr => {
+      // FIXME: I don't know what I should be doing here
+      currentTrigger = evtTr?.find(evt => evt.name === modifyTriggerName);
+    });
+  }
 
   if (!currentTrigger) {
     // throw a 404 exception
@@ -148,6 +178,7 @@ const mapStateToProps: MapStateToProps<PropsFromState, RouterTriggerProps> = (
     currentTrigger,
     allSchemas: state.tables.allSchemas,
     readOnlyMode: state.main.readOnlyMode,
+    metadataObject: state.metadata.metadataObject,
   };
 };
 
