@@ -8,7 +8,7 @@ import {
 } from './types';
 import { filterInconsistentMetadataObjects } from '../components/Services/Settings/utils';
 import { parseCustomTypes } from '../shared/utils/hasuraCustomTypeUtils';
-import { currentDriver } from '../dataSources';
+// import { currentDriver } from '../dataSources';
 
 const isMetadataV3 = (
   x: HasuraMetadataV2 | HasuraMetadataV3 | null
@@ -16,17 +16,25 @@ const isMetadataV3 = (
   return x?.version === 3;
 };
 
-export const getDataSourceMatadata = (state: ReduxState) => {
+export const getDataSourceMetadata = (state: ReduxState) => {
   if (isMetadataV3(state.metadata.metadataObject)) {
     const currentDataSource = state.tables.currentDataSource;
     if (!currentDataSource) return null;
     return state.metadata.metadataObject.sources.find(
-      source =>
-        source.name === currentDataSource &&
-        (source.kind || 'postgres') === currentDriver
+      source => source.name === currentDataSource
+      // NOTE: Commented this since, kind is not being mentioned on the metadata object atm
+      // &&
+      // (source.kind || 'postgres') === currentDriver
     );
   }
   return state.metadata.metadataObject;
+};
+
+export const getRemoteSchemasFromMetadata = (state: ReduxState) => {
+  if (isMetadataV3(state.metadata.metadataObject)) {
+    return state.metadata.metadataObject?.remote_schemas ?? [];
+  }
+  return state.metadata.metadataObject?.remote_schemas ?? [];
 };
 
 export const getInitDataSource = (state: ReduxState) => {
@@ -53,13 +61,13 @@ const getInconsistentObjects = (state: ReduxState) => {
   return state.metadata.inconsistentObjects;
 };
 
-const getTables = createSelector(getDataSourceMatadata, source => {
+const getTables = createSelector(getDataSourceMetadata, source => {
   console.log({ source });
   return source?.tables || [];
 });
 
 const getActions = createSelector(
-  getDataSourceMatadata,
+  getDataSourceMetadata,
   source => source?.actions || []
 );
 
@@ -98,13 +106,8 @@ export const rolesSelector = createSelector(
   }
 );
 
-const getRemoteSchemas = createSelector(
-  getDataSourceMatadata,
-  source => source?.remote_schemas || []
-);
-
 export const getRemoteSchemasSelector = createSelector(
-  [getRemoteSchemas, getInconsistentObjects],
+  [getRemoteSchemasFromMetadata, getInconsistentObjects],
   (schemas, inconsistentObjects) => {
     return filterInconsistentMetadataObjects(
       schemas,
@@ -115,7 +118,7 @@ export const getRemoteSchemasSelector = createSelector(
 );
 
 export const remoteSchemasNamesSelector = createSelector(
-  getRemoteSchemas,
+  getRemoteSchemasFromMetadata,
   schemas => schemas?.map(schema => schema.name)
 );
 
@@ -146,7 +149,7 @@ export const getTablesInfoSelector = createSelector(
 );
 
 const getFunctions = createSelector(
-  getDataSourceMatadata,
+  getDataSourceMetadata,
   source =>
     source?.functions?.map(f => ({
       ...f.function,
@@ -193,7 +196,7 @@ export const getFunctionConfiguration = createSelector(
 );
 
 export const actionsSelector = createSelector(
-  [getDataSourceMatadata, getInconsistentObjects],
+  [getDataSourceMetadata, getInconsistentObjects],
   (source, objects) => {
     const actions =
       source?.actions?.map(action => ({
@@ -210,7 +213,7 @@ export const actionsSelector = createSelector(
 );
 
 export const customTypesSelector = createSelector(
-  getDataSourceMatadata,
+  getDataSourceMetadata,
   source => {
     if (!source) return [];
 
@@ -219,7 +222,7 @@ export const customTypesSelector = createSelector(
 );
 
 export const getRemoteSchemaSelector = createSelector(
-  getRemoteSchemas,
+  getRemoteSchemasFromMetadata,
   schemas => (name: string) => {
     return schemas.find(schema => schema.name === name);
   }

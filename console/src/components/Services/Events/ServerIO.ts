@@ -116,7 +116,7 @@ export const fetchTriggers = (
 
         return Promise.resolve();
       }
-      
+
       dispatch(
         setTriggers({
           event: eventTriggerList as EventTrigger[],
