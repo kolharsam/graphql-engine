@@ -36,7 +36,7 @@ const filterItem = dispatch => {
 const leftNavMapStateToProps = state => {
   return {
     ...state,
-    dataList: state.metadata.metadataObject.remote_schemas,
+    dataList: state.metadata.metadataObject?.remote_schemas ?? [],
     isError: state.remoteSchemas.listData.isError,
     isRequesting: state.remoteSchemas.listData.isRequesting,
     filtered: [...state.remoteSchemas.listData.filtered],
