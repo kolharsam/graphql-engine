@@ -89,7 +89,6 @@ const executeSQL = (isMigration, migrationName, statementTimeout) => (
     type: 'bulk',
     source,
     args: schemaChangesUp,
-    source,
   };
   // check if its a migration and send to hasuractl migrate
   if (isMigration) {
