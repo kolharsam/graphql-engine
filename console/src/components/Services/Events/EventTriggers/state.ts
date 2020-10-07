@@ -74,7 +74,7 @@ export const parseServerETDefinition = (
 
   return {
     name: eventTrigger.name,
-    source: source ?? 'default',
+    source: source ?? '',
     table: etTableDef,
     operations: parseEventTriggerOperations(etDef),
     operationColumns: table
