@@ -92,11 +92,6 @@ const Add: React.FC<Props> = props => {
 
   const handleDataSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSourceName = e.target.value;
-    // NOTE: I'm not sure if we should be doing this?
-    dispatch({
-      type: UPDATE_CURRENT_DATA_SOURCE,
-      source: selectedSourceName,
-    });
     dispatch(fetchSchemaList()).then((data: any) => {
       const schemas = data.result;
       if (schemas.length) {
