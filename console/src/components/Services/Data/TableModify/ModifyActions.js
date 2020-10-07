@@ -320,7 +320,6 @@ export const setCustomRootFields = successCb => (dispatch, getState) => {
     dispatch({ type: UPDATE_MIGRATION_STATUS_ERROR, data: err });
   };
 
-  // TODO: this call is to be made on v1/metadata
   makeMigrationCall(
     dispatch,
     getState,
