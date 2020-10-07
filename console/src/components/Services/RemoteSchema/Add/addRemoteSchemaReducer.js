@@ -186,10 +186,6 @@ const addRemoteSchema = () => {
         dispatch({ type: RESET }),
         dispatch(exportMetadata()).then(() => {
           dispatch(push(`${prefixUrl}/manage/${resolveObj.name}/details`));
-          dispatch({
-            type: SET_REMOTE_SCHEMAS,
-            data: getState().metadata.metadataObject.remote_schemas,
-          });
         }),
         dispatch({ type: getHeaderEvents.RESET_HEADER, data: data }),
       ]);
