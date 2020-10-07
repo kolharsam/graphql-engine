@@ -16,15 +16,10 @@ import {
 import { parseServerHeaders } from '../../../Common/Headers/utils';
 import { Table } from '../../../../dataSources/types';
 import { generateTableDef } from '../../../../dataSources';
-import {
-  QualifiedTable,
-  HasuraMetadataV2,
-  HasuraMetadataV3,
-} from '../../../../metadata/types';
+import { QualifiedTable } from '../../../../metadata/types';
 
 export type LocalEventTriggerState = {
   name: string;
-  source: string;
   table: QualifiedTable;
   operations: Record<EventTriggerOperation, boolean>;
   operationColumns: ETOperationColumn[];
@@ -56,7 +51,6 @@ const defaultState: LocalEventTriggerState = {
     timeout_sec: 60,
   },
   headers: [defaultHeader],
-  source: 'default',
 };
 
 export const parseServerETDefinition = (
@@ -68,7 +62,7 @@ export const parseServerETDefinition = (
   }
 
   const etConf = eventTrigger.configuration;
-  const etDef = etConf?.definition ?? {};
+  const etDef = etConf.definition;
 
   const etTableDef = generateTableDef(
     eventTrigger.table_name,
@@ -77,7 +71,6 @@ export const parseServerETDefinition = (
 
   return {
     name: eventTrigger.name,
-    source: '', // todo
     table: etTableDef,
     operations: parseEventTriggerOperations(etDef),
     operationColumns: table
@@ -86,12 +79,9 @@ export const parseServerETDefinition = (
           table.columns
         )
       : [],
-    webhook: parseServerWebhook(
-      etConf?.webhook ?? '',
-      etConf?.webhook_from_env ?? ''
-    ),
-    retryConf: etConf?.retry_conf ?? {},
-    headers: parseServerHeaders(eventTrigger.configuration?.headers),
+    webhook: parseServerWebhook(etConf.webhook, etConf.webhook_from_env),
+    retryConf: etConf.retry_conf,
+    headers: parseServerHeaders(eventTrigger.configuration.headers),
   };
 };
 
@@ -104,12 +94,6 @@ export const useEventTrigger = (initState?: LocalEventTriggerState) => {
         setState(s => ({
           ...s,
           name,
-        }));
-      },
-      source: (source: string) => {
-        setState(s => ({
-          ...s,
-          source,
         }));
       },
       table: (tableName?: string, schemaName?: string) => {
@@ -173,38 +157,17 @@ export const useEventTrigger = (initState?: LocalEventTriggerState) => {
 
 export const useEventTriggerModify = (
   eventTrigger: EventTrigger,
-  allTables: Table[],
-  metadataObject?: HasuraMetadataV2 | HasuraMetadataV3 | null
+  allTables: Table[]
 ) => {
-  let modifiedEventTriggerObj = eventTrigger;
-  if (metadataObject) {
-    const tablesFromMetadata = (metadataObject as HasuraMetadataV3).sources.map(
-      tab => tab.tables
-    );
-    const reducedMetadataTables = tablesFromMetadata.reduce(
-      (acc, val) => acc.concat(val),
-      []
-    );
-    const currentEventTriggerTab = reducedMetadataTables.find(tab =>
-      tab.event_triggers?.find(evt => evt.name === eventTrigger.name)
-    );
-    if (currentEventTriggerTab) {
-      modifiedEventTriggerObj = {
-        ...modifiedEventTriggerObj,
-        table_name: currentEventTriggerTab.table.name,
-        schema_name: currentEventTriggerTab.table.schema,
-      };
-    }
-  }
-  const table = findETTable(modifiedEventTriggerObj, allTables);
+  const table = findETTable(eventTrigger, allTables);
   const { state, setState } = useEventTrigger(
-    parseServerETDefinition(modifiedEventTriggerObj, table)
+    parseServerETDefinition(eventTrigger, table)
   );
 
   React.useEffect(() => {
     if (allTables.length) {
-      const etTable = findETTable(modifiedEventTriggerObj, allTables);
-      setState.bulk(parseServerETDefinition(modifiedEventTriggerObj, etTable));
+      const etTable = findETTable(eventTrigger, allTables);
+      setState.bulk(parseServerETDefinition(eventTrigger, etTable));
     }
   }, [allTables]);
   return {

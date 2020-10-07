@@ -20,24 +20,13 @@ import { mapDispatchToPropsEmpty } from '../../../../Common/utils/reactUtils';
 import { modifyEventTrigger, deleteEventTrigger } from '../../ServerIO';
 
 import { NotFoundError } from '../../../../Error/PageNotFound';
-import { HasuraMetadataV3 } from '../../../../../metadata/types';
 import { getEventTriggers } from '../../../../../metadata/selector';
 
 interface Props extends InjectedProps {}
 
 const Modify: React.FC<Props> = props => {
-  const {
-    currentTrigger,
-    allSchemas,
-    readOnlyMode,
-    dispatch,
-    metadataObject,
-  } = props;
-  const { state, setState } = useEventTriggerModify(
-    currentTrigger,
-    allSchemas,
-    metadataObject
-  );
+  const { currentTrigger, allSchemas, readOnlyMode, dispatch } = props;
+  const { state, setState } = useEventTriggerModify(currentTrigger, allSchemas);
 
   React.useEffect(() => {
     if (currentTrigger) {
@@ -137,23 +126,7 @@ const Modify: React.FC<Props> = props => {
 const mapStateToProps = (state: ReduxState, ownProps: RouterTriggerProps) => {
   const triggerList = getEventTriggers(state);
   const modifyTriggerName = ownProps.params.triggerName;
-  const metadataObject = state.metadata.metadataObject;
-  const currentDataSource = state.tables.currentDataSource;
-  let currentTrigger: any = triggerList.find(
-    tr => tr.name === modifyTriggerName
-  );
-
-  if (!currentTrigger) {
-    // TODO: search within the metadata object
-    const currentSourceTriggers = (metadataObject as HasuraMetadataV3).sources
-      .find(meta => meta.name === currentDataSource)
-      ?.tables.map(tab => tab.event_triggers);
-
-    currentSourceTriggers?.find(evtTr => {
-      // FIXME: I don't know what I should be doing here
-      currentTrigger = evtTr?.find(evt => evt.name === modifyTriggerName);
-    });
-  }
+  const currentTrigger = triggerList.find(tr => tr.name === modifyTriggerName);
 
   if (!currentTrigger) {
     // throw a 404 exception
@@ -164,7 +137,6 @@ const mapStateToProps = (state: ReduxState, ownProps: RouterTriggerProps) => {
     currentTrigger,
     allSchemas: state.tables.allSchemas,
     readOnlyMode: state.main.readOnlyMode,
-    metadataObject: state.metadata.metadataObject,
   };
 };
 
