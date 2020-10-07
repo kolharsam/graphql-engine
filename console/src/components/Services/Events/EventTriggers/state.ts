@@ -56,7 +56,7 @@ const defaultState: LocalEventTriggerState = {
     timeout_sec: 60,
   },
   headers: [defaultHeader],
-  source: ''
+  source: 'default',
 };
 
 export const parseServerETDefinition = (
@@ -110,7 +110,7 @@ export const useEventTrigger = (initState?: LocalEventTriggerState) => {
         setState(s => ({
           ...s,
           source,
-        }))
+        }));
       },
       table: (tableName?: string, schemaName?: string) => {
         setState(s => {

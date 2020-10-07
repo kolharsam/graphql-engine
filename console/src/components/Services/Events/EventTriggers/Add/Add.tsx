@@ -34,7 +34,13 @@ const Add: React.FC<Props> = props => {
     retryConf,
     headers,
   } = state;
-  const { dispatch, allSchemas, schemaList, readOnlyMode, dataSourcesList } = props;
+  const {
+    dispatch,
+    allSchemas,
+    schemaList,
+    readOnlyMode,
+    dataSourcesList,
+  } = props;
 
   const selectedTableSchema = findTable(allSchemas, table);
 
@@ -220,14 +226,11 @@ const Add: React.FC<Props> = props => {
               onChange={handleDataSourceChange}
               data-test="select-datasource-event-trigger"
               className={`${styles.selectTrigger} form-control`}
+              // value={} todo
             >
               {dataSourcesList.map(s => {
                 return (
-                  <option
-                    value={s.name}
-                    key={s.name}
-                    selected={false}
-                  >
+                  <option value={s.name} key={s.name}>
                     {s.name}
                   </option>
                 );
@@ -383,7 +386,7 @@ type PropsFromState = {
   allSchemas: Table[];
   schemaList: string[];
   readOnlyMode: boolean;
-  dataSourcesList: DataSource[],
+  dataSourcesList: DataSource[];
 };
 
 const mapStateToProps: MapStateToProps<PropsFromState> = state => {
