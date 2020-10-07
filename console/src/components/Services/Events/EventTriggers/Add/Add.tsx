@@ -10,7 +10,12 @@ import DropdownButton from '../../../../Common/DropdownButton/DropdownButton';
 import Headers from '../../../../Common/Headers/Headers';
 import CollapsibleToggle from '../../../../Common/CollapsibleToggle/CollapsibleToggle';
 import Button from '../../../../Common/Button/Button';
-import { updateSchemaInfo } from '../../../Data/DataActions';
+import {
+  updateSchemaInfo,
+  fetchSchemaList,
+  updateCurrentSchema,
+  UPDATE_CURRENT_DATA_SOURCE,
+} from '../../../Data/DataActions';
 import { createEventTrigger } from '../../ServerIO';
 import Operations from '../Common/Operations';
 import RetryConfEditor from '../../Common/Components/RetryConfEditor';
@@ -33,6 +38,7 @@ const Add: React.FC<Props> = props => {
     webhook,
     retryConf,
     headers,
+    source,
   } = state;
   const {
     dispatch,
@@ -40,6 +46,7 @@ const Add: React.FC<Props> = props => {
     schemaList,
     readOnlyMode,
     dataSourcesList,
+    currentDataSource,
   } = props;
 
   const selectedTableSchema = findTable(allSchemas, table);
@@ -62,6 +69,10 @@ const Add: React.FC<Props> = props => {
     }
   }, [table.name, allSchemas]);
 
+  React.useEffect(() => {
+    setState.source(currentDataSource);
+  }, []);
+
   const createBtnText = 'Create Event Trigger';
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -81,7 +92,20 @@ const Add: React.FC<Props> = props => {
 
   const handleDataSourceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSourceName = e.target.value;
-    setState.table(undefined, selectedSourceName);
+    // NOTE: I'm not sure if we should be doing this?
+    dispatch({
+      type: UPDATE_CURRENT_DATA_SOURCE,
+      source: selectedSourceName,
+    });
+    dispatch(fetchSchemaList()).then((data: any) => {
+      const schemas = data.result;
+      if (schemas.length) {
+        dispatch(updateCurrentSchema(schemas[1][0], false, data));
+      } else {
+        dispatch(updateCurrentSchema('', false, []));
+      }
+    });
+    setState.source(selectedSourceName);
   };
 
   const handleTableChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -226,7 +250,7 @@ const Add: React.FC<Props> = props => {
               onChange={handleDataSourceChange}
               data-test="select-datasource-event-trigger"
               className={`${styles.selectTrigger} form-control`}
-              // value={} todo
+              value={source}
             >
               {dataSourcesList.map(s => {
                 return (
@@ -387,6 +411,7 @@ type PropsFromState = {
   schemaList: string[];
   readOnlyMode: boolean;
   dataSourcesList: DataSource[];
+  currentDataSource: string;
 };
 
 const mapStateToProps: MapStateToProps<PropsFromState> = state => {
@@ -395,6 +420,7 @@ const mapStateToProps: MapStateToProps<PropsFromState> = state => {
     schemaList: state.tables.schemaList,
     readOnlyMode: state.main.readOnlyMode,
     dataSourcesList: getDataSources(state),
+    currentDataSource: state.tables.currentDataSource,
   };
 };
 

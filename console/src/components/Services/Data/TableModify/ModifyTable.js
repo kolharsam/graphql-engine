@@ -52,13 +52,13 @@ import {
 } from '../Common/TooltipMessages';
 import { RightContainer } from '../../../Common/Layout/RightContainer';
 
-const NotSupportedNote = ({ currentDataSource, unSupportedSources }) => {
+const NotSupportedNote = ({ currentDataSource, unSupportedTypes }) => {
   const supportedDataSources = {
     mysql: 'MySQL',
     pg: 'Postgres',
     //... can keep adding more here
   };
-  const dataSourceUnsupported = unSupportedSources.find(
+  const dataSourceUnsupported = unSupportedTypes.find(
     source => source === currentDataSource
   );
   if (!currentDataSource || !dataSourceUnsupported) {

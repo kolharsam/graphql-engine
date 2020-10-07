@@ -385,14 +385,14 @@ export const modifyEventTrigger = (
   const currentSource = getState().tables.currentDataSource;
 
   const downQuery = generateCreateEventTriggerQuery(
-    parseServerETDefinition(trigger, table),
+    parseServerETDefinition(trigger, table, currentSource),
     currentSource,
     true
   );
 
   // TODO optimise redeclaration of queries
   const upQuery = generateCreateEventTriggerQuery(
-    parseServerETDefinition(trigger, table),
+    parseServerETDefinition(trigger, table, currentSource),
     currentSource,
     true
   );
@@ -491,7 +491,7 @@ export const deleteEventTrigger = (
 
   const upQuery = getDropEventTriggerQuery(trigger.name, source);
   const downQuery = generateCreateEventTriggerQuery(
-    parseServerETDefinition(trigger),
+    parseServerETDefinition(trigger, undefined, source),
     source
   );
 

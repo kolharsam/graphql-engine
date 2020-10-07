@@ -25,8 +25,18 @@ import { getEventTriggers } from '../../../../../metadata/selector';
 interface Props extends InjectedProps {}
 
 const Modify: React.FC<Props> = props => {
-  const { currentTrigger, allSchemas, readOnlyMode, dispatch } = props;
-  const { state, setState } = useEventTriggerModify(currentTrigger, allSchemas);
+  const {
+    currentTrigger,
+    allSchemas,
+    readOnlyMode,
+    dispatch,
+    currentDataSource,
+  } = props;
+  const { state, setState } = useEventTriggerModify(
+    currentTrigger,
+    allSchemas,
+    currentDataSource
+  );
 
   React.useEffect(() => {
     if (currentTrigger) {
@@ -137,6 +147,7 @@ const mapStateToProps = (state: ReduxState, ownProps: RouterTriggerProps) => {
     currentTrigger,
     allSchemas: state.tables.allSchemas,
     readOnlyMode: state.main.readOnlyMode,
+    currentDataSource: state.tables.currentDataSource,
   };
 };
 
