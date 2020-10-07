@@ -122,7 +122,6 @@ const commonDataTypes = [
 
 const createSQLRegex = /create\s*((?:|or\s*replace)\s*view|\s*(table|function|view))\s*(?:\s*if*\s*not\s*exists\s*)?(((\`?\w+\`?)\.(\`?\w+\`?))|(\`?\w+\`?))/; // eslint-disable-line
 
-// Change this to the format to what is present on the postgres side
 export const mysql: DataSourcesAPI = {
   getFunctionSchema: () => {
     return '';
@@ -139,9 +138,7 @@ export const mysql: DataSourcesAPI = {
   findFunction: () => {
     return undefined;
   },
-  deleteFunctionSql: () => {
-    throw new Error('not supported');
-  },
+  deleteFunctionSql: () => undefined,
   getGroupedTableComputedFields: () => {
     return { scalar: [], table: [] };
   },

@@ -257,16 +257,9 @@ const fetchAdditionalColumnsInfo = () => (dispatch, getState) => {
   return dispatch(requestAction(Endpoints.query, options)).then(
     data => {
       if (data.result) {
-        const makeResult = data.result.slice(1).map(arr => ({
-          column_name: arr[0],
-          table_name: arr[1],
-          is_generated: arr[2],
-          is_identity: arr[3],
-          identity_generation: arr[4] === 'NULL' ? null : arr[4],
-        }));
         dispatch({
           type: SET_ADDITIONAL_COLUMNS_INFO,
-          data: dataSource.parseColumnsInfoResult(makeResult),
+          data: dataSource.parseColumnsInfoResult(data.result),
         });
       }
     },

@@ -49,7 +49,7 @@ export interface DataSourcesAPI {
   arrayToPostgresArray(arr: any[]): string;
   schemaListSql: string;
   getAdditionalColumnsInfoQuerySql?: (currentSchema: string) => string;
-  parseColumnsInfoResult: (data: any) => ColumnsInfoResult;
+  parseColumnsInfoResult: (data: string[][]) => ColumnsInfoResult;
   columnDataTypes: {
     INTEGER: string;
     SERIAL: string;
@@ -279,7 +279,7 @@ export interface DataSourcesAPI {
   deleteFunctionSql: (
     schemaName: string,
     functionState: FunctionState
-  ) => string;
+  ) => string | undefined;
 }
 
 export let currentDriver: Driver = 'postgres';

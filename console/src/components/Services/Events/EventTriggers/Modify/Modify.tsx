@@ -33,7 +33,6 @@ const Modify: React.FC<Props> = props => {
     dispatch,
     metadataObject,
   } = props;
-  console.log({ currentTrigger, allSchemas });
   const { state, setState } = useEventTriggerModify(
     currentTrigger,
     allSchemas,
