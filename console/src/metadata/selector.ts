@@ -31,7 +31,7 @@ export const getDataSourceMetadata = (state: ReduxState) => {
   return state.metadata.metadataObject;
 };
 
-export const getRemoteSchemasFromMetadata = (state: ReduxState) => {
+export const getRemoteSchemas = (state: ReduxState) => {
   if (isMetadataV3(state.metadata.metadataObject)) {
     return state.metadata.metadataObject?.remote_schemas ?? [];
   }
@@ -109,7 +109,7 @@ export const rolesSelector = createSelector(
 );
 
 export const getRemoteSchemasSelector = createSelector(
-  [getRemoteSchemasFromMetadata, getInconsistentObjects],
+  [getRemoteSchemas, getInconsistentObjects],
   (schemas, inconsistentObjects) => {
     return filterInconsistentMetadataObjects(
       schemas,
@@ -120,7 +120,7 @@ export const getRemoteSchemasSelector = createSelector(
 );
 
 export const remoteSchemasNamesSelector = createSelector(
-  getRemoteSchemasFromMetadata,
+  getRemoteSchemas,
   schemas => schemas?.map(schema => schema.name)
 );
 
@@ -224,7 +224,7 @@ export const customTypesSelector = createSelector(
 );
 
 export const getRemoteSchemaSelector = createSelector(
-  getRemoteSchemasFromMetadata,
+  getRemoteSchemas,
   schemas => (name: string) => {
     return schemas.find(schema => schema.name === name);
   }

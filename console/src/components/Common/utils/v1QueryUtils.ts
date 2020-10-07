@@ -102,14 +102,6 @@ export const getEnumOptionsQuery = (
   },
 });
 
-export const fetchCronTriggersQuery = {
-  type: 'run_sql',
-  args: {
-    sql:
-      'SELECT * FROM "hdb_catalog"."hdb_cron_triggers" ORDER BY name ASC NULLS LAST;',
-  },
-};
-
 export type SelectColumn = string | { name: string; columns: SelectColumn[] };
 
 export const getSelectQuery = (

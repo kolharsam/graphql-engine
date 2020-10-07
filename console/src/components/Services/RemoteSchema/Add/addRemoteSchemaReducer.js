@@ -5,7 +5,7 @@ import { addState } from '../state';
 import { push } from 'react-router-redux';
 
 import { generateHeaderSyms } from '../../../Common/Layout/ReusableHeader/HeaderReducer';
-import { makeRequest, SET_REMOTE_SCHEMAS } from '../Actions';
+import { makeRequest } from '../Actions';
 // import { UPDATE_MIGRATION_STATUS_ERROR } from '../../../Main/Actions';
 import { appPrefix } from '../constants';
 
