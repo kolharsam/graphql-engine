@@ -202,8 +202,8 @@ const addRemoteSchema = () => {
 
     return dispatch(
       makeRequest(
-        [upQuery],
-        [downQuery],
+        upQuery.args,
+        downQuery.args,
         migrationName,
         customOnSuccess,
         customOnError,
