@@ -126,28 +126,6 @@ const executeSQL = (isMigration, migrationName, statementTimeout) => (
     getRunSqlQuery(sql, source, isCascadeChecked, readOnlyMode)
   );
 
-  if (isTableTrackChecked) {
-    const objects = parseCreateSQL(sql);
-
-    objects.forEach(object => {
-      const trackQuery = {
-        type: '',
-        args: {},
-      };
-
-      if (object.type === 'function') {
-        trackQuery.type = 'track_function';
-      } else {
-        trackQuery.type = 'add_existing_table_or_view';
-      }
-
-      trackQuery.args.name = object.name;
-      trackQuery.args.schema = object.schema;
-
-      schemaChangesUp.push(trackQuery);
-    });
-  }
-
   let requestBody = {
     type: 'bulk',
     source,
