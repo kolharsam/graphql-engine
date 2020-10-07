@@ -138,7 +138,7 @@ export const mysql: DataSourcesAPI = {
   findFunction: () => {
     return undefined;
   },
-  deleteFunctionSql: () => undefined,
+  deleteFunctionSql: undefined,
   getGroupedTableComputedFields: () => {
     return { scalar: [], table: [] };
   },

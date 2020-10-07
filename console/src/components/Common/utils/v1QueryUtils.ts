@@ -102,7 +102,7 @@ export const getEnumOptionsQuery = (
   },
 });
 
-export const fetchScheduledTriggersQuery = {
+export const fetchCronTriggersQuery = {
   type: 'run_sql',
   args: {
     sql:

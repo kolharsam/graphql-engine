@@ -276,10 +276,10 @@ export interface DataSourcesAPI {
   }) => string;
   getFKRelations: (options: { schemas: string[]; tables: Table[] }) => string;
   getReferenceOption: (opt: string) => string;
-  deleteFunctionSql: (
+  deleteFunctionSql?: (
     schemaName: string,
     functionState: FunctionState
-  ) => string | undefined;
+  ) => string;
 }
 
 export let currentDriver: Driver = 'postgres';
