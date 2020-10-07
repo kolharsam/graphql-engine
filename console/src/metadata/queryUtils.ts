@@ -84,6 +84,7 @@ export type MetadataQueryType =
   | 'drop_update_permission'
   | 'drop_delete_permission'
   | 'drop_insert_permission'
+  | 'create_event_trigger'
   | 'set_custom_types'
   | 'create_action'
   | 'set_table_custom_fields'
@@ -104,7 +105,9 @@ export type MetadataQueryType =
   | 'drop_relationship'
   | 'create_array_relationship'
   | 'create_object_relationship'
-  | 'create_array_relationship';
+  | 'create_array_relationship'
+  | 'create_cron_trigger'
+  | 'create_scheduled_event';
 
 export type MetadataQueries = Record<Driver, Record<MetadataQueryType, string>>;
 
@@ -386,11 +389,8 @@ export const generateCreateEventTriggerQuery = (
   state: LocalEventTriggerState,
   source: string,
   replace = false
-) => ({
-  // This is directly being done as -> triggers are not supported for mysql
-  type: 'pg_create_event_trigger',
-  args: {
-    source,
+) =>
+  getMetadataQuery('create_event_trigger', source, {
     name: state.name.trim(),
     table: state.table,
     webhook:
@@ -418,8 +418,7 @@ export const generateCreateEventTriggerQuery = (
     retry_conf: state.retryConf,
     headers: transformHeaders(state.headers),
     replace,
-  },
-});
+  });
 
 export const getDropEventTriggerQuery = (name: string, source: string) => ({
   // Not supported for MySQL
@@ -434,11 +433,8 @@ export const generateCreateScheduledTriggerQuery = (
   state: LocalScheduledTriggerState,
   source: string,
   replace = false
-) => ({
-  // Not supported for MySQL
-  type: 'pg_create_cron_trigger',
-  args: {
-    source,
+) =>
+  getMetadataQuery('create_cron_trigger', source, {
     name: state.name.trim(),
     webhook: state.webhook,
     schedule: state.schedule,
@@ -448,30 +444,33 @@ export const generateCreateScheduledTriggerQuery = (
       num_retries: state.retryConf.num_retries,
       retry_interval_seconds: state.retryConf.interval_sec,
       timeout_seconds: state.retryConf.timeout_sec,
-      tolerance_seconds: state.retryConf.tolerance_sec,
     },
     comment: state.comment,
     include_in_metadata: state.includeInMetadata,
     replace,
-  },
-});
+  });
 
 export const generateUpdateScheduledTriggerQuery = (
   state: LocalScheduledTriggerState,
   source: string
 ) => generateCreateScheduledTriggerQuery(state, source, true);
 
-export const getDropScheduledTriggerQuery = (name: string) => ({
+export const getDropScheduledTriggerQuery = (name: string, source: string) => ({
   type: 'delete_cron_trigger',
   args: {
+    source,
     name: name.trim(),
   },
 });
 
-export const getCreateScheduledEventQuery = (state: LocalAdhocEventState) => {
+export const getCreateScheduledEventQuery = (
+  state: LocalAdhocEventState,
+  source: string
+) => {
   return {
     type: 'create_scheduled_event',
     args: {
+      source,
       webhook: state.webhook,
       schedule_at: state.time.toISOString(),
       headers: transformHeaders(state.headers),
@@ -479,7 +478,6 @@ export const getCreateScheduledEventQuery = (state: LocalAdhocEventState) => {
         num_retries: state.retryConf.num_retries,
         retry_interval_seconds: state.retryConf.interval_sec,
         timeout_seconds: state.retryConf.timeout_sec,
-        tolerance_seconds: state.retryConf.tolerance_sec,
       },
       payload: state.payload,
       comment: state.comment,

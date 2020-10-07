@@ -46,7 +46,7 @@ const DataPageContainer = ({
       type: UPDATE_CURRENT_DATA_SOURCE,
       source: newName,
     });
-    dispatch(push('/data/schema/'));
+    dispatch(push(`/data/${newName}/schema/`));
     setLoadingSchemas(true);
     dispatch(fetchDataInit()).then(() => {
       setLoadingSchemas(false);
@@ -87,7 +87,11 @@ const DataPageContainer = ({
     <ul>
       <li
         role="presentation"
-        className={currentLocation.includes('data/schema') ? styles.active : ''}
+        className={
+          currentLocation.match(/(\/)?data\/\D+\/schema?(\w+)/)
+            ? styles.active
+            : ''
+        }
       >
         <Link
           className={styles.linkBorder}

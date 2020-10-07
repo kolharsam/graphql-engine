@@ -53,7 +53,6 @@ const defaultState: LocalEventTriggerState = {
     num_retries: 0,
     interval_sec: 10,
     timeout_sec: 60,
-    tolerance_sec: null,
   },
   headers: [defaultHeader],
 };

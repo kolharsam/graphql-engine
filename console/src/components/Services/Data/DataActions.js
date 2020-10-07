@@ -477,7 +477,7 @@ const handleMigrationErrors = (title, errorMsg) => dispatch => {
   }
 };
 
-const makeApiCall = (
+const makeMigrationCall = (
   dispatch,
   getState,
   upQueries,
@@ -578,7 +578,7 @@ const makeApiCall = (
           action: {
             label: 'Continue',
             callback: () =>
-              makeApiCall(
+              makeMigrationCall(
                 dispatch,
                 getState,
                 cascadeUpQueries(upQueries, isPgCascade), // cascaded new up queries
@@ -618,27 +618,6 @@ const makeApiCall = (
     onSuccess,
     onError
   );
-};
-
-// todo: temp solution
-const makeMigrationCall = (dispatch, getState, upQueries, ...args) => {
-  const shouldmakeBulkQuery =
-    upQueries.every(query =>
-      ['run_sql', 'select', 'update', 'delete', 'insert'].includes(query.type)
-    ) ||
-    upQueries.every(
-      query =>
-        !['run_sql', 'select', 'update', 'delete', 'insert'].includes(
-          query.type
-        )
-    );
-  if (shouldmakeBulkQuery) {
-    makeApiCall(dispatch, getState, upQueries, ...args);
-    return;
-  }
-  upQueries.forEach(query => {
-    makeApiCall(dispatch, getState, [query], ...args);
-  });
 };
 
 const getBulkColumnInfoFetchQuery = (schema, source) => {

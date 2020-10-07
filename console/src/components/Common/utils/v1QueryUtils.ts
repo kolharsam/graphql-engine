@@ -102,13 +102,6 @@ export const getEnumOptionsQuery = (
   },
 });
 
-export const fetchEventTriggersQuery = {
-  type: 'run_sql',
-  args: {
-    sql: 'SELECT metadata FROM "hdb_catalog"."hdb_metadata";',
-  },
-};
-
 export const fetchScheduledTriggersQuery = {
   type: 'run_sql',
   args: {

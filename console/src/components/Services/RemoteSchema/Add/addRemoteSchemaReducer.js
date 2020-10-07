@@ -158,6 +158,25 @@ const addRemoteSchema = () => {
       },
     };
 
+    const upQueryArgs = [];
+    upQueryArgs.push(payload);
+    const downQueryArgs = [];
+    downQueryArgs.push(downPayload);
+
+    const source = getState().tables.currentDataSource;
+
+    const upQuery = {
+      type: 'bulk',
+      source,
+      args: upQueryArgs,
+    };
+
+    const downQuery = {
+      type: 'bulk',
+      source,
+      args: downQueryArgs,
+    };
+
     const requestMsg = 'Adding remote schema...';
     const successMsg = 'Remote schema added successfully';
     const errorMsg = 'Adding remote schema failed';
@@ -183,8 +202,8 @@ const addRemoteSchema = () => {
 
     return dispatch(
       makeRequest(
-        [payload],
-        [downPayload],
+        [upQuery],
+        [downQuery],
         migrationName,
         customOnSuccess,
         customOnError,
@@ -232,12 +251,15 @@ const deleteRemoteSchema = () => {
     upQueryArgs.push(payload);
     const downQueryArgs = [];
     downQueryArgs.push(downPayload);
+    const source = getState().tables.currentDataSource;
     const upQuery = {
       type: 'bulk',
+      source,
       args: upQueryArgs,
     };
     const downQuery = {
       type: 'bulk',
+      source,
       args: downQueryArgs,
     };
     const requestMsg = 'Deleting remote schema...';
@@ -362,12 +384,16 @@ const modifyRemoteSchema = () => {
     downQueryArgs.push(createRemoteSchemaDown);
     // End of down
 
+    const source = getState().tables.currentDataSource;
+
     const upQuery = {
       type: 'bulk',
+      source,
       args: upQueryArgs,
     };
     const downQuery = {
       type: 'bulk',
+      source,
       args: downQueryArgs,
     };
 

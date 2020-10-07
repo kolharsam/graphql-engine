@@ -8,7 +8,8 @@ import {
 } from './types';
 import { filterInconsistentMetadataObjects } from '../components/Services/Settings/utils';
 import { parseCustomTypes } from '../shared/utils/hasuraCustomTypeUtils';
-// import { currentDriver } from '../dataSources';
+import { Driver } from '../dataSources';
+import { EventTrigger } from '../components/Services/Events/types';
 
 const isMetadataV3 = (
   x: HasuraMetadataV2 | HasuraMetadataV3 | null
@@ -37,7 +38,9 @@ export const getRemoteSchemasFromMetadata = (state: ReduxState) => {
   return state.metadata.metadataObject?.remote_schemas ?? [];
 };
 
-export const getInitDataSource = (state: ReduxState) => {
+export const getInitDataSource = (
+  state: ReduxState
+): { source: string; driver: Driver } => {
   if (isMetadataV3(state.metadata.metadataObject)) {
     const dataSources = state.metadata.metadataObject.sources;
     // .filter(
@@ -62,7 +65,6 @@ const getInconsistentObjects = (state: ReduxState) => {
 };
 
 const getTables = createSelector(getDataSourceMetadata, source => {
-  console.log({ source });
   return source?.tables || [];
 });
 
@@ -228,6 +230,31 @@ export const getRemoteSchemaSelector = createSelector(
   }
 );
 
+export const getEventTriggers = createSelector(
+  getDataSourceMetadata,
+  source => {
+    if (!source) return [];
+
+    return source.tables.reduce((acc, t) => {
+      const triggers: EventTrigger[] =
+        t.event_triggers?.map(trigger => ({
+          table_name: t.table.name,
+          schema_name: t.table.schema,
+          name: trigger.name,
+          comment: '',
+          configuration: {
+            definition: trigger.definition as any, // todo
+            headers: trigger.headers || [],
+            retry_conf: trigger.retry_conf,
+            webhook: trigger.webhook || '',
+            webhook_from_env: trigger.webhook_from_env,
+          },
+        })) || [];
+      return [...triggers, ...acc];
+    }, [] as EventTrigger[]);
+  }
+);
+
 export const getAllowedQueries = (state: ReduxState) =>
   state.metadata.allowedQueries || [];
 
@@ -241,8 +268,8 @@ export const getDataSources = createSelector(getMetadata, metadata => {
         url:
           source.configuration?.database_url || 'HASURA_GRAPHQL_DATABASE_URL',
         fromEnv: false, // todo
-        connection_pool_setting: source.configuration
-          ?.connection_pool_setting || {
+        connection_pool_settings: source.configuration
+          ?.connection_pool_settings || {
           retries: 1,
           idle_timeout: 180,
           max_connections: 50,
