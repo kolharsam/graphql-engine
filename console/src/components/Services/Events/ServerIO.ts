@@ -1,9 +1,5 @@
 import { push, replace } from 'react-router-redux';
-import {
-  getSelectQuery,
-  makeOrderBy,
-  getRunSqlQuery,
-} from '../../Common/utils/v1QueryUtils';
+import { getRunSqlQuery } from '../../Common/utils/v1QueryUtils';
 import { Thunk } from '../../../types';
 import { makeMigrationCall } from '../Data/DataActions';
 import requestAction from '../../../utils/requestAction';
@@ -617,20 +613,25 @@ export const getEventLogs = (
   errorCallback: (error: any) => void
 ): Thunk => dispatch => {
   const logTableDef = getLogsTableDef(eventKind);
+  const eventLogTable = `"hdb_catalog"."event_log"`;
+  const sql = `
+  SELECT
+	  original_table.*,
+	  event.*
+  FROM
+	"${logTableDef.schema}"."${logTableDef.name}" original_table
+  JOIN ${eventLogTable} event ON original_table.event_id = event.id
+  WHERE original_table.event_id = ${eventId}
+  ORDER BY original_table.created_at NULLS LAST DESC;
+  `;
 
-  const query = getSelectQuery(
-    'select',
-    logTableDef,
-    ['*'],
-    {
-      event_id: {
-        $eq: eventId,
-      },
+  const query = {
+    type: 'run_sql',
+    source: 'default',
+    args: {
+      sql,
     },
-    0,
-    null,
-    [makeOrderBy('created_at', 'desc')]
-  );
+  };
 
   dispatch(
     requestAction(
@@ -644,8 +645,18 @@ export const getEventLogs = (
       true,
       true
     )
-  ).then((data: InvocationLog[]) => {
-    successCallback(data);
+  ).then((data: { result: string[][] }) => {
+    const resultData = data.result[0][1];
+    const formattedData: InvocationLog = {
+      event_id: resultData[1],
+      id: resultData[0],
+      status: parseInt(resultData[2], 10),
+      created_at: resultData[5],
+      request: resultData[3],
+      response: resultData[4],
+    };
+    // FIXME: I'm not sure if this is the only thing that is required.
+    successCallback([formattedData]);
   }, errorCallback);
 };
 
