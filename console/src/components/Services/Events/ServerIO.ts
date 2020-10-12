@@ -1,5 +1,4 @@
 import { push, replace } from 'react-router-redux';
-import { getRunSqlQuery } from '../../Common/utils/v1QueryUtils';
 import { Thunk } from '../../../types';
 import { makeMigrationCall } from '../Data/DataActions';
 import requestAction from '../../../utils/requestAction';
@@ -12,16 +11,13 @@ import {
 } from '../../Common/utils/routesUtils';
 import { transformHeaders } from '../../Common/Headers/utils';
 import { getConfirmation, isValidURL } from '../../Common/utils/jsUtils';
-import { Nullable } from '../../Common/utils/tsUtils';
-import Endpoints, { globalCookiePolicy } from '../../../Endpoints';
+import Endpoints from '../../../Endpoints';
 import dataHeaders from '../Data/Common/Headers';
 import {
-  TriggerKind,
   ScheduledTrigger,
   EventTrigger,
   EventKind,
   InvocationLog,
-  LOADING_TRIGGERS,
 } from './types';
 import { setCurrentTrigger } from './reducer';
 import { LocalScheduledTriggerState } from './CronTriggers/state';
