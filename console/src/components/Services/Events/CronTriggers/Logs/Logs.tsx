@@ -18,6 +18,7 @@ type Props = {
 
 const InvocationLogs: React.FC<Props> = props => {
   const { dispatch, currentTrigger } = props;
+
   const triggerName = currentTrigger?.name ?? '';
 
   const renderRows: FilterRenderProp = (
@@ -36,6 +37,7 @@ const InvocationLogs: React.FC<Props> = props => {
       columns={['id', 'status', 'event_id', 'created_at']}
       identifier={triggerName}
       dispatch={dispatch}
+      toParseFormatReqRes
     />
   );
 
