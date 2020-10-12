@@ -13,6 +13,7 @@ import { LocalScheduledTriggerState } from '../components/Services/Events/CronTr
 import { LocalAdhocEventState } from '../components/Services/Events/AdhocEvents/Add/state';
 import { RemoteRelationshipPayload } from '../components/Services/Data/TableRelationships/RemoteRelationships/utils';
 import { Driver, currentDriver } from '../dataSources';
+import { ConsoleState } from '../telemetry/state';
 
 export const metadataQueryTypes = [
   'add_source',
@@ -73,6 +74,8 @@ export const metadataQueryTypes = [
   'set_custom_types',
   'dump_internal_state',
   'bulk',
+  'get_catalog_state',
+  'set_catalog_state',
 ];
 
 export type MetadataQueryType =
@@ -107,7 +110,11 @@ export type MetadataQueryType =
   | 'create_object_relationship'
   | 'create_array_relationship'
   | 'create_cron_trigger'
-  | 'create_scheduled_event';
+  | 'create_scheduled_event'
+  | 'get_catalog_state'
+  | 'set_catalog_state'
+  | 'create_remote_relationship'
+  | 'update_remote_relationship';
 
 export type MetadataQueries = Record<Driver, Record<MetadataQueryType, string>>;
 
@@ -199,7 +206,12 @@ export const getDropPermissionQuery = (
 export const generateSetCustomTypesQuery = (customTypes: CustomTypes) => {
   return {
     type: 'set_custom_types',
-    args: customTypes,
+    args: {
+      ...customTypes,
+      // testing stuff
+      objects: customTypes.objects?.map(o => ({ ...o, source: 'lalalal' })),
+      source: 'test_source',
+    },
   };
 };
 
@@ -433,8 +445,10 @@ export const generateCreateScheduledTriggerQuery = (
   state: LocalScheduledTriggerState,
   source: string,
   replace = false
-) =>
-  getMetadataQuery('create_cron_trigger', source, {
+) => ({
+  type: 'create_cron_trigger',
+  args: {
+    source,
     name: state.name.trim(),
     webhook: state.webhook,
     schedule: state.schedule,
@@ -448,7 +462,8 @@ export const generateCreateScheduledTriggerQuery = (
     comment: state.comment,
     include_in_metadata: state.includeInMetadata,
     replace,
-  });
+  },
+});
 
 export const generateUpdateScheduledTriggerQuery = (
   state: LocalScheduledTriggerState,
@@ -494,11 +509,14 @@ export const getRedeliverDataEventQuery = (eventId: string) => ({
 
 export const getSaveRemoteRelQuery = (
   args: RemoteRelationshipPayload,
-  isNew: boolean
-) => ({
-  type: `${isNew ? 'create' : 'update'}_remote_relationship`,
-  args,
-});
+  isNew: boolean,
+  source: string
+) =>
+  getMetadataQuery(
+    isNew ? 'create_remote_relationship' : 'update_remote_relationship',
+    source,
+    args
+  );
 
 export const getDropRemoteRelQuery = (name: string, table: QualifiedTable) => ({
   type: 'delete_remote_relationship',
@@ -623,4 +641,19 @@ export const getAddRelationshipQuery = (
   }
 
   return getMetadataQuery('create_array_relationship', source, args);
+};
+
+export const getSetConsoleStateQuery = (
+  state: ConsoleState['console_opts']
+) => ({
+  type: 'set_catalog_state',
+  args: {
+    type: 'console',
+    state,
+  },
+});
+
+export const getConsoleStateQuery = {
+  type: 'get_catalog_state',
+  args: {},
 };
