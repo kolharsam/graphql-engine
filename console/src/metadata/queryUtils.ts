@@ -649,7 +649,7 @@ export const getCreateSQLQueryFromSelectQuery = (
   JOIN ${eventLocTable} ${eventTypeTable} ON original_table.event_id = ${eventTypeTable}.id
   WHERE ${eventTypeTable}.trigger_name = '${triggerName}'
   ORDER BY original_table.created_at ASC NULLS LAST`;
-  
+
   if (queryType === 'count') {
     sql += ';';
   } else {

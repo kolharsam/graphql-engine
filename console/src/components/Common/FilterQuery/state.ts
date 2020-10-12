@@ -73,7 +73,7 @@ export const useFilterQuery = (
       table,
       relationships ?? [],
       undefined,
-      undefined,
+      undefined
     );
 
     const options = {
