@@ -634,8 +634,8 @@ export const getCreateSQLQueryFromSelectQuery = (
   triggerName: string,
   table: QualifiedTable,
   relationships: string[],
-  limit: number,
-  offset: number
+  limit?: number,
+  offset?: number
 ) => {
   let eventType = 'cron';
   if (relationships[0].includes('scheduled')) {
@@ -644,14 +644,17 @@ export const getCreateSQLQueryFromSelectQuery = (
   const eventLocTable = `"hdb_catalog"."hdb_${eventType}_events"`;
   const eventTypeTable = `${eventType}_table`;
 
-  // todo: still have to handle the count
-
-  const sql = `SELECT original_table.*, ${eventTypeTable}.*
+  let sql = `SELECT original_table.*, ${eventTypeTable}.*
   FROM ${table.schema}.${table.name} original_table
   JOIN ${eventLocTable} ${eventTypeTable} ON original_table.event_id = ${eventTypeTable}.id
   WHERE ${eventTypeTable}.trigger_name = '${triggerName}'
-  ORDER BY original_table.created_at ASC NULLS LAST
-  LIMIT ${limit} OFFSET ${offset};`;
+  ORDER BY original_table.created_at ASC NULLS LAST`;
+  
+  if (queryType === 'count') {
+    sql += ';';
+  } else {
+    sql += ` LIMIT ${limit ?? 10} OFFSET ${offset ?? 0};`;
+  }
 
   return {
     type: 'run_sql',

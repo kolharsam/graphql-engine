@@ -72,8 +72,8 @@ export const useFilterQuery = (
       where.$and[0].cron_event.trigger_name.$eq ?? '',
       table,
       relationships ?? [],
-      limitValue ?? 10,
-      offsetValue ?? 0
+      undefined,
+      undefined,
     );
 
     const options = {
