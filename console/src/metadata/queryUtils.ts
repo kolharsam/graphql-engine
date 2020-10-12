@@ -657,3 +657,47 @@ export const getConsoleStateQuery = {
   type: 'get_catalog_state',
   args: {},
 };
+
+export const getCreateSQLQueryFromSelectQuery = (
+  queryType: 'select' | 'count',
+  triggerName: string,
+  table: QualifiedTable,
+  relationships: string[],
+  limit: number,
+  offset: number
+) => {
+  let eventType = 'cron';
+  if (relationships[0].includes('scheduled')) {
+    eventType = 'scheduled';
+  }
+  const eventLocTable = `"hdb_catalog"."hdb_${eventType}_events"`;
+  const eventTypeTable = `${eventType}_table`;
+
+  // todo: still have to handle the count
+
+  const sql = `SELECT original_table.*, ${eventTypeTable}.*
+  FROM ${table.schema}.${table.name} original_table
+  JOIN ${eventLocTable} ${eventTypeTable} ON original_table.event_id = ${eventTypeTable}.id
+  WHERE ${eventTypeTable}.trigger_name = '${triggerName}'
+  ORDER BY original_table.created_at ASC NULLS LAST
+  LIMIT ${limit} OFFSET ${offset};`;
+
+  return {
+    type: 'run_sql',
+    source: 'default',
+    args: {
+      sql,
+    },
+  };
+};
+
+export const getInvocationLogsQuery = (
+  eventType: 'one_off' | 'cron',
+  eventID: string
+) => ({
+  type: 'get_event_invocations',
+  args: {
+    type: eventType,
+    event_id: eventID,
+  },
+});
