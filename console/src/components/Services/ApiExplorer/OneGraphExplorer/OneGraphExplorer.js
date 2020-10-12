@@ -22,6 +22,8 @@ import {
   showWarningNotification,
 } from '../../Common/Notification';
 import requestAction from '../../../../utils/requestAction';
+import { HASURA_COLLABORATOR_TOKEN } from '../../../../constants';
+import { getAdminSecret } from '../ApiRequest/utils';
 
 class OneGraphExplorer extends React.Component {
   state = {
@@ -100,12 +102,18 @@ class OneGraphExplorer extends React.Component {
       return;
     }
     const headers = JSON.parse(JSON.stringify(headers_));
+    // TODO: maybe we might need to filter out other auth based keys too
+    const filteredHeaders = headers.filter(key => key !== HASURA_COLLABORATOR_TOKEN);
+    let headersToSet = headers;
+    if (!getAdminSecret()) {
+      headersToSet = filteredHeaders;
+    }
     dispatch(setLoading(true));
     this.setState({ schema: null });
     dispatch(
       requestAction(endpoint, {
         method: 'POST',
-        headers: getHeadersAsJSON(headers || []),
+        headers: getHeadersAsJSON(headersToSet || []),
         body: JSON.stringify({
           query: getIntrospectionQuery(),
         }),
