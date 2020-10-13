@@ -12,8 +12,9 @@ import { LocalEventTriggerState } from '../components/Services/Events/EventTrigg
 import { LocalScheduledTriggerState } from '../components/Services/Events/CronTriggers/state';
 import { LocalAdhocEventState } from '../components/Services/Events/AdhocEvents/Add/state';
 import { RemoteRelationshipPayload } from '../components/Services/Data/TableRelationships/RemoteRelationships/utils';
-import { Driver, currentDriver } from '../dataSources';
+import { Driver, currentDriver, dataSource } from '../dataSources';
 import { ConsoleState } from '../telemetry/state';
+import { getRunSqlQuery } from '../components/Common/utils/v1QueryUtils';
 
 export const metadataQueryTypes = [
   'add_source',
@@ -629,7 +630,7 @@ export const getConsoleStateQuery = {
   args: {},
 };
 
-export const getCreateSQLQueryFromSelectQuery = (
+export const getLogSql = (
   queryType: 'select' | 'count',
   triggerName: string,
   table: QualifiedTable,
@@ -638,31 +639,37 @@ export const getCreateSQLQueryFromSelectQuery = (
   offset?: number
 ) => {
   let eventType = 'cron';
+  // FIXME: test and change for scheduled events
   if (relationships[0].includes('scheduled')) {
     eventType = 'scheduled';
   }
-  const eventLocTable = `"hdb_catalog"."hdb_${eventType}_events"`;
-  const eventTypeTable = `${eventType}_table`;
 
-  let sql = `SELECT original_table.*, ${eventTypeTable}.*
-  FROM ${table.schema}.${table.name} original_table
-  JOIN ${eventLocTable} ${eventTypeTable} ON original_table.event_id = ${eventTypeTable}.id
-  WHERE ${eventTypeTable}.trigger_name = '${triggerName}'
-  ORDER BY original_table.created_at ASC NULLS LAST`;
+  const relTable: QualifiedTable = {
+    schema: 'hdb_catalog',
+    name: `hdb_${eventType}_events`,
+  };
 
-  if (queryType === 'count') {
-    sql += ';';
-  } else {
-    sql += ` LIMIT ${limit ?? 10} OFFSET ${offset ?? 0};`;
+  if (!dataSource.getInvocationLogSql) {
+    return;
   }
 
-  return {
-    type: 'run_sql',
-    source: 'default',
-    args: {
-      sql,
-    },
-  };
+  const sql = dataSource.getInvocationLogSql(
+    'cron',
+    table,
+    relTable,
+    triggerName,
+    limit,
+    offset
+  );
+
+  // todo: wait for API / write new SQL for this.
+  // if (queryType === 'count') {
+  //   sql += ';';
+  // } else {
+  //   sql += ` LIMIT ${limit ?? 10} OFFSET ${offset ?? 0};`;
+  // }
+
+  return getRunSqlQuery(sql, 'default');
 };
 
 export const getInvocationLogsQuery = (

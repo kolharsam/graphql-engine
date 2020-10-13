@@ -16,7 +16,7 @@ import { Nullable } from '../utils/tsUtils';
 import { isNotDefined } from '../utils/jsUtils';
 import { parseFilter } from './utils';
 import { QualifiedTable } from '../../../metadata/types';
-import { getCreateSQLQueryFromSelectQuery } from '../../../metadata/queryUtils';
+import { getLogSql } from '../../../metadata/queryUtils';
 
 const defaultFilter = makeValueFilter('', null, '');
 const defaultSort = makeOrderBy('', 'asc');
@@ -58,7 +58,7 @@ export const useFilterQuery = (
     const offsetValue = isNotDefined(offset) ? state.offset : offset;
     const limitValue = isNotDefined(limit) ? state.limit : limit;
 
-    const query = getCreateSQLQueryFromSelectQuery(
+    const query = getLogSql(
       'select',
       where.$and[0].cron_event.trigger_name.$eq ?? '',
       table,
@@ -67,7 +67,7 @@ export const useFilterQuery = (
       offsetValue ?? 0
     );
 
-    const countQuery = getCreateSQLQueryFromSelectQuery(
+    const countQuery = getLogSql(
       'count',
       where.$and[0].cron_event.trigger_name.$eq ?? '',
       table,

@@ -1,6 +1,7 @@
 import { Table, FrequentlyUsedColumn } from '../../types';
 import { isColTypeString } from '.';
 import { FunctionState } from './types';
+import { QualifiedTable } from '../../../metadata/types';
 
 const sqlEscapeText = (rawText: string) => {
   let text = rawText;
@@ -1153,4 +1154,27 @@ export const deleteFunctionSql = (
   }
 
   return `DROP FUNCTION ${functionNameWithSchema}${functionArgString}`;
+};
+
+export const getInvocationLogSql = (
+  type: 'cron' | 'scheduled',
+  invocationTable: QualifiedTable,
+  relationshipTable: QualifiedTable,
+  triggerName?: string,
+  limit?: number,
+  offset?: number
+) => {
+  const eventRelTable = `${type}_table`;
+
+  // FIXME: this sql only works for cron triggers atm. need changes for one-off scheduled events
+  const sql = `SELECT original_table.*, ${eventRelTable}.*
+  FROM ${invocationTable.schema}.${invocationTable.name} original_table
+  JOIN "${relationshipTable.schema}"."${
+    relationshipTable.name
+  }" ${eventRelTable} ON original_table.event_id = ${eventRelTable}.id
+  WHERE ${eventRelTable}.trigger_name = '${triggerName}'
+  ORDER BY original_table.created_at ASC NULLS LAST
+  LIMIT ${limit ?? 10} OFFSET ${offset ?? 0};`;
+
+  return sql;
 };
