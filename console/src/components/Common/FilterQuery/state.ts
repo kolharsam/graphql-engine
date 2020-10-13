@@ -57,10 +57,18 @@ export const useFilterQuery = (
 
     const offsetValue = isNotDefined(offset) ? state.offset : offset;
     const limitValue = isNotDefined(limit) ? state.limit : limit;
+    let triggerName: string | undefined;
+
+    if (table.name.includes('scheduled')) {
+      triggerName = undefined;
+    } else if (table.name.includes('cron')) {
+      // FIXME: this is specifically for invocation logs atm.
+      triggerName = where.$and[0].cron_event.trigger_name.$eq ?? '';
+    }
 
     const query = getLogSql(
       'select',
-      where.$and[0].cron_event.trigger_name.$eq ?? '',
+      triggerName,
       table,
       relationships ?? [],
       limitValue ?? 10,
@@ -69,7 +77,7 @@ export const useFilterQuery = (
 
     const countQuery = getLogSql(
       'count',
-      where.$and[0].cron_event.trigger_name.$eq ?? '',
+      triggerName,
       table,
       relationships ?? [],
       undefined,

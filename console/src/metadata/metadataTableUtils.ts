@@ -4,15 +4,18 @@ import { getRunSqlQuery } from '../components/Common/utils/v1QueryUtils';
 
 export const getLogSql = (
   queryType: 'select' | 'count',
-  triggerName: string,
+  triggerName: string | undefined,
   table: QualifiedTable,
   relationships: string[],
   limit?: number,
   offset?: number
 ) => {
-  let eventType = 'cron';
+  let eventType: 'cron' | 'scheduled' = 'cron';
   // FIXME: test and change for scheduled events
-  if (relationships[0].includes('scheduled')) {
+  if (
+    relationships[0]?.includes('scheduled') ||
+    table.name.includes('scheduled')
+  ) {
     eventType = 'scheduled';
   }
 
@@ -26,7 +29,7 @@ export const getLogSql = (
   }
 
   const sql = dataSource.getInvocationLogSql(
-    'cron',
+    eventType,
     table,
     relTable,
     triggerName,
