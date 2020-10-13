@@ -220,4 +220,5 @@ WHERE
   getFKRelations,
   getReferenceOption: (option: string) => option,
   getInvocationLogSql: undefined,
+  getEventInvocationInfoByIDSql: undefined,
 };

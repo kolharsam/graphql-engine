@@ -49,6 +49,9 @@ import {
   getRedeliverDataEventQuery,
 } from '../../../metadata/queryUtils';
 import { exportMetadata } from '../../../metadata/actions';
+import { getRunSqlQuery } from '../../Common/utils/v1QueryUtils';
+import { QualifiedTable } from '../../../metadata/types';
+import { dataSource } from '../../../dataSources';
 
 export const addScheduledTrigger = (
   state: LocalScheduledTriggerState,
@@ -562,25 +565,20 @@ export const getEventLogs = (
   errorCallback: (error: any) => void
 ): Thunk => dispatch => {
   const logTableDef = getLogsTableDef(eventKind);
-  const eventLogTable = `"hdb_catalog"."event_log"`;
-  const sql = `
-  SELECT
-	  original_table.*,
-	  event.*
-  FROM
-	"${logTableDef.schema}"."${logTableDef.name}" original_table
-  JOIN ${eventLogTable} event ON original_table.event_id = event.id
-  WHERE original_table.event_id = ${eventId}
-  ORDER BY original_table.created_at NULLS LAST DESC;
-  `;
-
-  const query = {
-    type: 'run_sql',
-    source: 'default',
-    args: {
-      sql,
-    },
+  const eventLogTable: QualifiedTable = {
+    schema: 'hdb_catalog',
+    name: 'event_log',
   };
+  if (!dataSource.getEventInvocationInfoByIDSql) {
+    return;
+  }
+
+  const sql = dataSource.getEventInvocationInfoByIDSql(
+    logTableDef,
+    eventLogTable,
+    eventId
+  );
+  const query = getRunSqlQuery(sql, 'default');
 
   dispatch(
     requestAction(

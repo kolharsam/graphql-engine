@@ -1178,3 +1178,18 @@ export const getInvocationLogSql = (
 
   return sql;
 };
+
+export const getEventInvocationInfoByIDSql = (
+  logTableDef: QualifiedTable,
+  eventLogTable: QualifiedTable,
+  eventId: string
+) => `
+  SELECT
+    original_table.*,
+    event.*
+  FROM
+  "${logTableDef.schema}"."${logTableDef.name}" original_table
+  JOIN "${eventLogTable.schema}"."${eventLogTable.name}" event ON original_table.event_id = event.id
+  WHERE original_table.event_id = '${eventId}'
+  ORDER BY original_table.created_at NULLS LAST DESC;
+`;

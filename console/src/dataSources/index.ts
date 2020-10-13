@@ -289,6 +289,11 @@ export interface DataSourcesAPI {
     limit?: number,
     offset?: number
   ) => string;
+  getEventInvocationInfoByIDSql?: (
+    logTableDef: QualifiedTable,
+    eventLogTable: QualifiedTable,
+    eventId: string
+  ) => string;
 }
 
 export let currentDriver: Driver = 'postgres';

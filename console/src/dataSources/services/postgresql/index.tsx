@@ -45,6 +45,7 @@ import {
   getFKRelations,
   deleteFunctionSql,
   getInvocationLogSql,
+  getEventInvocationInfoByIDSql,
 } from './sqlUtils';
 
 export const isTable = (table: Table) => {
@@ -436,4 +437,5 @@ export const postgres: DataSourcesAPI = {
   getReferenceOption,
   deleteFunctionSql,
   getInvocationLogSql,
+  getEventInvocationInfoByIDSql,
 };
