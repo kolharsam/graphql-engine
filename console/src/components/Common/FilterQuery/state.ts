@@ -16,7 +16,7 @@ import { Nullable } from '../utils/tsUtils';
 import { isNotDefined } from '../utils/jsUtils';
 import { parseFilter } from './utils';
 import { QualifiedTable } from '../../../metadata/types';
-import { getLogSql } from '../../../metadata/queryUtils';
+import { getLogSql } from '../../../metadata/metadataTableUtils';
 
 const defaultFilter = makeValueFilter('', null, '');
 const defaultSort = makeOrderBy('', 'asc');
