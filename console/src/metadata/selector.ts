@@ -1,11 +1,6 @@
 import { createSelector } from 'reselect';
 import { ReduxState } from '../types';
-import {
-  TableEntry,
-  HasuraMetadataV2,
-  HasuraMetadataV3,
-  DataSource,
-} from './types';
+import { TableEntry, DataSource } from './types';
 import { filterInconsistentMetadataObjects } from '../components/Services/Settings/utils';
 import { parseCustomTypes } from '../shared/utils/hasuraCustomTypeUtils';
 import { Driver } from '../dataSources';
@@ -14,47 +9,33 @@ import {
   ScheduledTrigger,
 } from '../components/Services/Events/types';
 
-const isMetadataV3 = (
-  x: HasuraMetadataV2 | HasuraMetadataV3 | null
-): x is HasuraMetadataV3 => {
-  return x?.version === 3;
-};
-
 export const getDataSourceMetadata = (state: ReduxState) => {
-  if (isMetadataV3(state.metadata.metadataObject)) {
-    const currentDataSource = state.tables.currentDataSource;
-    if (!currentDataSource) return null;
-    return state.metadata.metadataObject.sources.find(
-      source => source.name === currentDataSource
-      // NOTE: Commented this since, kind is not being mentioned on the metadata object atm
-      // &&
-      // (source.kind || 'postgres') === currentDriver
-    );
-  }
-  return state.metadata.metadataObject;
+  const currentDataSource = state.tables.currentDataSource;
+  if (!currentDataSource) return null;
+  return state.metadata.metadataObject?.sources.find(
+    source => source.name === currentDataSource
+    // NOTE: Commented this since, kind is not being mentioned on the metadata object atm
+    // &&
+    // (source.kind || 'postgres') === currentDriver
+  );
 };
 
 export const getRemoteSchemas = (state: ReduxState) => {
-  if (isMetadataV3(state.metadata.metadataObject)) {
-    return state.metadata.metadataObject?.remote_schemas ?? [];
-  }
   return state.metadata.metadataObject?.remote_schemas ?? [];
 };
 
 export const getInitDataSource = (
   state: ReduxState
 ): { source: string; driver: Driver } => {
-  if (isMetadataV3(state.metadata.metadataObject)) {
-    const dataSources = state.metadata.metadataObject.sources;
-    // .filter(
-    //   source => source.name !== 'default'
-    // );
-    if (dataSources.length) {
-      return {
-        source: state.metadata.metadataObject.sources[0].name,
-        driver: state.metadata.metadataObject.sources[0].kind || 'postgres',
-      };
-    }
+  const dataSources = state.metadata.metadataObject?.sources || [];
+  // .filter(
+  //   source => source.name !== 'default'
+  // );
+  if (dataSources.length) {
+    return {
+      source: dataSources[0].name,
+      driver: dataSources[0].kind || 'postgres',
+    };
   }
   return { source: '', driver: 'postgres' };
 };
@@ -240,6 +221,7 @@ export const getEventTriggers = createSelector(
         t.event_triggers?.map(trigger => ({
           table_name: t.table.name,
           schema_name: t.table.schema,
+          source: source.name,
           name: trigger.name,
           comment: '',
           configuration: {
@@ -277,27 +259,29 @@ export const getAllowedQueries = (state: ReduxState) =>
   state.metadata.allowedQueries || [];
 
 export const getDataSources = createSelector(getMetadata, metadata => {
-  if (isMetadataV3(metadata)) {
-    console.log({ metadata });
-    const sources: DataSource[] = [];
-    metadata.sources.forEach(source => {
-      sources.push({
-        name: source.name,
-        url:
-          source.configuration?.database_url || 'HASURA_GRAPHQL_DATABASE_URL',
-        fromEnv: false, // todo
-        connection_pool_settings: source.configuration
-          ?.connection_pool_settings || {
-          retries: 1,
-          idle_timeout: 180,
-          max_connections: 50,
-        },
-        driver: source.kind || 'postgres',
-      });
+  const sources: DataSource[] = [];
+  metadata?.sources.forEach(source => {
+    sources.push({
+      name: source.name,
+      url: source.configuration?.database_url || 'HASURA_GRAPHQL_DATABASE_URL',
+      fromEnv: false, // todo
+      connection_pool_settings: source.configuration
+        ?.connection_pool_settings || {
+        retries: 1,
+        idle_timeout: 180,
+        max_connections: 50,
+      },
+      driver: source.kind || 'postgres',
     });
-    return sources;
-    // .filter(source => source.name !== 'default');
-  }
+  });
+  return sources;
+  // .filter(source => source.name !== 'default');
+});
 
-  return [];
+export const getTablesBySource = createSelector(getMetadata, metadata => {
+  const res: Record<string, { name: string; schema: string }[]> = {};
+  metadata?.sources.forEach(source => {
+    res[source.name] = source.tables.map(({ table }) => table);
+  });
+  return res;
 });

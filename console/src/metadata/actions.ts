@@ -1,7 +1,7 @@
 import { Thunk, ReduxState } from '../types';
 import requestAction from '../utils/requestAction';
 import Endpoints, { globalCookiePolicy } from '../Endpoints';
-import { HasuraMetadataV2 } from './types';
+import { HasuraMetadataV2, HasuraMetadataV3 } from './types';
 import {
   showSuccessNotification,
   showErrorNotification,
@@ -35,7 +35,7 @@ import { getDataSources } from './selector';
 
 export interface ExportMetadataSuccess {
   type: 'Metadata/EXPORT_METADATA_SUCCESS';
-  data: HasuraMetadataV2;
+  data: HasuraMetadataV3;
 }
 export interface ExportMetadataError {
   type: 'Metadata/EXPORT_METADATA_ERROR';
@@ -356,6 +356,7 @@ export const resetMetadata = (
     requestAction(Endpoints.metadata, options as RequestInit)
   ).then(
     () => {
+      dispatch(exportMetadata());
       if (successCb) {
         successCb();
       }
