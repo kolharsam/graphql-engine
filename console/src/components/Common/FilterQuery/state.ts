@@ -23,6 +23,18 @@ const defaultSort = makeOrderBy('', 'asc');
 
 const defaultState = makeFilterState([defaultFilter], [defaultSort], 10, 0);
 
+const makeDataObject = (keys: string[], val: string[]) => {
+  return keys.reduce((acc, currentKey, idx) => {
+    // FIXME: this might duplicate certain properties that were there in both the tables
+    if (acc[currentKey]) {
+      acc[`_${currentKey}`] = val[idx];
+      return acc;
+    }
+    acc[currentKey] = val[idx];
+    return acc;
+  }, {} as any);
+};
+
 export const useFilterQuery = (
   table: QualifiedTable,
   dispatch: Dispatch,
@@ -85,18 +97,10 @@ export const useFilterQuery = (
       requestAction(endpoints.query, options, undefined, undefined, true, true)
     ).then(
       (data: any) => {
+        const keys = data.result[0];
         const receivedData = data.result.slice(1);
         const formattedData =
-          receivedData.map((val: any) => ({
-            id: val[0],
-            event_id: val[1],
-            status: val[2],
-            created_at: val[5],
-            request: val[3],
-            response: val[4],
-            tries: val[10],
-            next_retry_at: val[12],
-          })) ?? [];
+          receivedData.map((val: any) => makeDataObject(keys, val)) ?? [];
 
         setRows(formattedData);
         setLoading(false);

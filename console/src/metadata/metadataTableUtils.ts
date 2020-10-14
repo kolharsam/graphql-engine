@@ -10,7 +10,7 @@ export const getLogSql = (
   limit?: number,
   offset?: number
 ) => {
-  let eventType = 'cron';
+  let eventType: 'cron' | 'scheduled' = 'cron';
   // FIXME: test and change for scheduled events
   if (relationships[0].includes('scheduled')) {
     eventType = 'scheduled';
@@ -21,12 +21,16 @@ export const getLogSql = (
     name: `hdb_${eventType}_events`,
   };
 
+  if (table.name === relTable.name) {
+    relTable.name = `hdb_${eventType}_event_invocation_logs`;
+  }
+
   if (!dataSource.getInvocationLogSql) {
     return;
   }
 
   const sql = dataSource.getInvocationLogSql(
-    'cron',
+    eventType,
     table,
     relTable,
     triggerName,

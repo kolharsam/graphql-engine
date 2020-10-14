@@ -1167,16 +1167,40 @@ export const getInvocationLogSql = (
   const eventRelTable = `${type}_table`;
 
   // FIXME: this sql only works for cron triggers atm. need changes for one-off scheduled events
-  const sql = `SELECT original_table.*, ${eventRelTable}.*
-  FROM ${invocationTable.schema}.${invocationTable.name} original_table
+  if (type === 'cron') {
+    // This is for invocation logs
+    return `SELECT original_table.*, ${eventRelTable}.*
+  FROM "${invocationTable.schema}"."${invocationTable.name}" original_table
   JOIN "${relationshipTable.schema}"."${
     relationshipTable.name
   }" ${eventRelTable} ON original_table.event_id = ${eventRelTable}.id
   WHERE ${eventRelTable}.trigger_name = '${triggerName}'
   ORDER BY original_table.created_at ASC NULLS LAST
   LIMIT ${limit ?? 10} OFFSET ${offset ?? 0};`;
+}
 
-  return sql;
+  // it's a scheduled table
+  if (invocationTable.name === 'hdb_scheduled_events') {
+    // this is for pending table
+    return `SELECT original_table.*, ${eventRelTable}.*
+    FROM "${invocationTable.schema}"."${invocationTable.name}" original_table
+    JOIN "${relationshipTable.schema}"."${
+      relationshipTable.name
+    }" ${eventRelTable} ON original_table.id = ${eventRelTable}.event_id
+    ORDER BY original_table.created_at DESC NULLS LAST
+    LIMIT ${limit ?? 10} OFFSET ${offset ?? 0};
+    `;
+  }
+
+  // this is for scheduled invocation logs
+  return `SELECT original_table.*, ${eventRelTable}.*
+  FROM "${invocationTable.schema}"."${invocationTable.name}" original_table
+  JOIN "${relationshipTable.schema}"."${
+    relationshipTable.name
+  }" ${eventRelTable} ON original_table.event_id = ${eventRelTable}.id
+  ORDER BY original_table.created_at DESC NULLS LAST
+  LIMIT ${limit ?? 10} OFFSET ${offset ?? 0};
+  `;
 };
 
 export const getEventInvocationInfoByIDSql = (
