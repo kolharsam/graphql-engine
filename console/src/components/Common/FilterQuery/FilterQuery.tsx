@@ -119,11 +119,7 @@ type PropsFromState = {
   triggerName?: string;
 };
 
-const mapStateToProps: MapStateToProps<
-  PropsFromState,
-  ExternalProps,
-  ReduxState
-> = (state, ownProps) => ({
+const mapStateToProps = (state: ReduxState, ownProps: ExternalProps) => ({
   triggerName: ownProps.params.triggerName,
   currentSource: state.tables.currentDataSource,
 });
