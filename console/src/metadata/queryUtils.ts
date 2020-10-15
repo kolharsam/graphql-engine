@@ -95,21 +95,13 @@ export const getMetadataQuery = (
   type: MetadataQueryType,
   source: string,
   args: MetadataQueryArgs,
-  options?: { version: number },
-  noPrefix?: boolean
+  options?: { version: number }
 ): {
   type: string;
   // source: string;
   args: MetadataQueryArgs;
   version?: number;
 } => {
-  if (noPrefix) {
-    return {
-      type,
-      args: { ...args, source },
-      ...options,
-    };
-  }
   const prefix = currentDriver === 'postgres' ? 'pg_' : 'mysq_';
   return {
     type: `${prefix}${type}`,
@@ -645,38 +637,43 @@ export type SupportedEvents = 'cron' | 'one_off';
 export const getEventInvocationsLogByID = (
   type: SupportedEvents,
   event_id: string
-) =>
-  getMetadataQuery(
-    'get_event_invocations',
-    'default',
-    {
-      type,
-      event_id,
-    },
-    undefined,
-    true
-  );
+) => ({
+  type: 'get_event_invocations',
+  args: {
+    type,
+    event_id,
+  },
+});
 
 export const getScheduledEvents = (
   type: SupportedEvents,
-  trigger_name?: string // TODO. to make this strictly required if type = 'cron'
-) =>
-  getMetadataQuery(
-    'get_scheduled_events',
-    'default',
-    {
+  trigger_name?: string
+) => {
+  if (type === 'one_off') {
+    return {
+      type: 'get_scheduled_events',
+      args: {
+        type: 'one_off',
+      },
+    };
+  }
+
+  return {
+    type: 'get_scheduled_events',
+    args: {
       type,
       trigger_name,
     },
-    undefined,
-    true
-  );
+  };
+};
 
-export const deleteScheduledEvent = (type: SupportedEvents, event_id: string) =>
-  getMetadataQuery(
-    'delete_scheduled_event',
-    'default',
-    { type, event_id },
-    undefined,
-    true
-  );
+export const deleteScheduledEvent = (
+  type: SupportedEvents,
+  event_id: string
+) => ({
+  type: 'delete_scheduled_event',
+  args: {
+    type,
+    event_id,
+  },
+});
