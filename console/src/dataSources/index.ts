@@ -281,17 +281,7 @@ export interface DataSourcesAPI {
     schemaName: string,
     functionState: FunctionState
   ) => string;
-  getInvocationLogSql?: (
-    // remove
-    type: 'cron' | 'scheduled',
-    invocationTable: QualifiedTable,
-    relationshipTable: QualifiedTable,
-    triggerName?: string,
-    limit?: number,
-    offset?: number
-  ) => string;
   getEventInvocationInfoByIDSql?: (
-    // remove
     logTableDef: QualifiedTable,
     eventLogTable: QualifiedTable,
     eventId: string
