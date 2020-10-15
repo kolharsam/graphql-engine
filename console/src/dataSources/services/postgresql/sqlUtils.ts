@@ -1172,12 +1172,12 @@ export const getInvocationLogSql = (
     return `SELECT original_table.*, ${eventRelTable}.*
   FROM "${invocationTable.schema}"."${invocationTable.name}" original_table
   JOIN "${relationshipTable.schema}"."${
-    relationshipTable.name
-  }" ${eventRelTable} ON original_table.event_id = ${eventRelTable}.id
+      relationshipTable.name
+    }" ${eventRelTable} ON original_table.event_id = ${eventRelTable}.id
   WHERE ${eventRelTable}.trigger_name = '${triggerName}'
   ORDER BY original_table.created_at ASC NULLS LAST
   LIMIT ${limit ?? 10} OFFSET ${offset ?? 0};`;
-}
+  }
 
   // it's a scheduled table
   if (invocationTable.name === 'hdb_scheduled_events') {
