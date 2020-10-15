@@ -1,5 +1,5 @@
 import React from 'react';
-import { connect, MapStateToProps, ConnectedProps } from 'react-redux';
+import { connect, ConnectedProps } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router';
 import { compose } from 'redux';
 
