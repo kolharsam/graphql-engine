@@ -17,7 +17,7 @@ import {
 interface Props extends EventsLogsInjectedProps {}
 
 const ProcessedEvents: React.FC<Props> = props => {
-  const { triggerName, readOnlyMode } = props;
+  const { triggerName, readOnlyMode, dispatch } = props;
 
   const renderRows: FilterRenderProp = (
     rows,
@@ -47,6 +47,7 @@ const ProcessedEvents: React.FC<Props> = props => {
       />
       <br />
       <FilterQuery
+        dispatch={dispatch}
         table={etEventsTable}
         render={renderRows}
         presets={{

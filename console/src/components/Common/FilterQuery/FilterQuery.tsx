@@ -1,23 +1,19 @@
 import React from 'react';
-import { connect, ConnectedProps } from 'react-redux';
-import { RouteComponentProps, withRouter } from 'react-router';
-import { compose } from 'redux';
 
 import { OrderBy } from '../utils/v1QueryUtils';
 import Where from './Where';
 import Sorts from './Sorts';
 import { useFilterQuery } from './state';
 import { Filter, FilterRenderProp } from './types';
-import { ReduxState } from '../../../types';
 import ReloadEnumValuesButton from '../../Services/Data/Common/Components/ReloadEnumValuesButton';
 import Button from '../Button/Button';
 import { Nullable } from '../utils/tsUtils';
 import styles from './FilterQuery.scss';
 import { BaseTable } from '../../../dataSources/types';
 import { generateTableDef } from '../../../dataSources';
-import { mapDispatchToPropsEmpty } from '../utils/reactUtils';
+import { Dispatch } from '../../../types';
 
-interface Props extends InjectedProps {
+interface Props {
   table: BaseTable;
   relationships: Nullable<string[]>; // TODO better
   render: FilterRenderProp;
@@ -25,6 +21,9 @@ interface Props extends InjectedProps {
     filters: Filter[];
     sorts: OrderBy[];
   };
+  dispatch: Dispatch;
+  triggerName?: string;
+  currentSource?: string;
 }
 
 /*
@@ -107,25 +106,4 @@ const FilterQuery: React.FC<Props> = props => {
   );
 };
 
-type ExternalProps = RouteComponentProps<
-  {
-    triggerName: string;
-  },
-  unknown
->;
-
-type PropsFromState = {
-  currentSource?: string;
-  triggerName?: string;
-};
-
-const mapStateToProps = (state: ReduxState, ownProps: ExternalProps) => ({
-  triggerName: ownProps.params.triggerName,
-  currentSource: state.tables.currentDataSource,
-});
-
-const connector = connect(mapStateToProps, mapDispatchToPropsEmpty);
-type InjectedProps = ConnectedProps<typeof connector>;
-
-const FilterQueryConnector = compose(withRouter, connector)(FilterQuery);
-export default FilterQueryConnector;
+export default FilterQuery;
