@@ -13,27 +13,13 @@ import {
 } from './types';
 
 import { Nullable } from '../utils/tsUtils';
-import { isNotDefined } from '../utils/jsUtils';
-import { parseFilter } from './utils';
 import { QualifiedTable } from '../../../metadata/types';
-import { getLogSql } from '../../../metadata/metadataTableUtils';
+import { getScheduledEvents } from '../../../metadata/queryUtils';
 
 const defaultFilter = makeValueFilter('', null, '');
 const defaultSort = makeOrderBy('', 'asc');
 
 const defaultState = makeFilterState([defaultFilter], [defaultSort], 10, 0);
-
-const makeDataObject = (keys: string[], val: string[]) => {
-  return keys.reduce((acc, currentKey, idx) => {
-    // FIXME: this might duplicate certain properties that were there in both the tables
-    if (acc[currentKey]) {
-      acc[`_${currentKey}`] = val[idx];
-      return acc;
-    }
-    acc[currentKey] = val[idx];
-    return acc;
-  }, {} as any);
-};
 
 export const useFilterQuery = (
   table: QualifiedTable,
@@ -42,7 +28,10 @@ export const useFilterQuery = (
     filters: Filter[];
     sorts: OrderBy[];
   },
-  relationships: Nullable<string[]>
+  relationships: Nullable<string[]>,
+  triggerName?: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  currentSource?: string
 ) => {
   const [state, setState] = React.useState(defaultState);
   const [rows, setRows] = React.useState<any[]>([]);
@@ -56,37 +45,47 @@ export const useFilterQuery = (
 
     const { offset, limit, sorts: newSorts } = runQueryOpts;
 
-    const where = {
-      $and: [...state.filters, ...presets.filters]
-        .filter(f => !!f.key && !!f.value)
-        .map(f => parseFilter(f)),
-    };
+    // const where = {
+    //   $and: [...state.filters, ...presets.filters]
+    //     .filter(f => !!f.key && !!f.value)
+    //     .map(f => parseFilter(f)),
+    // };
 
     // const orderBy = newSorts || [
     //   ...state.sorts.filter(f => !!f.column),
     //   ...presets.sorts,
     // ];
 
-    const offsetValue = isNotDefined(offset) ? state.offset : offset;
-    const limitValue = isNotDefined(limit) ? state.limit : limit;
+    // const offsetValue = isNotDefined(offset) ? state.offset : offset;
+    // const limitValue = isNotDefined(limit) ? state.limit : limit;
 
-    const query = getLogSql(
-      'select',
-      where.$and[0].cron_event.trigger_name.$eq ?? '',
-      table,
-      relationships ?? [],
-      limitValue ?? 10,
-      offsetValue ?? 0
-    );
+    // const query = getLogSql(
+    //   'select',
+    //   triggerName,
+    //   table,
+    //   relationships ?? [],
+    //   limitValue ?? 10,
+    //   offsetValue ?? 0
+    // );
 
-    const countQuery = getLogSql(
-      'count',
-      where.$and[0].cron_event.trigger_name.$eq ?? '',
-      table,
-      relationships ?? [],
-      undefined,
-      undefined
-    );
+    // const countQuery = getLogSql(
+    //   'count',
+    //   triggerName,
+    //   table,
+    //   relationships ?? [],
+    //   undefined,
+    //   undefined
+    // );
+
+    let query = {};
+
+    if (table.name.includes('scheduled')) {
+      // fixme: hack
+      query = getScheduledEvents('one_off');
+    } else if (table.name.includes('cron')) {
+      // check this
+      query = getScheduledEvents('cron', triggerName);
+    }
 
     const options = {
       method: 'POST',
@@ -94,15 +93,25 @@ export const useFilterQuery = (
     };
 
     dispatch(
-      requestAction(endpoints.query, options, undefined, undefined, true, true)
+      requestAction(
+        endpoints.metadata,
+        options,
+        undefined,
+        undefined,
+        true,
+        true
+      )
     ).then(
       (data: any) => {
-        const keys = data.result[0];
-        const receivedData = data.result.slice(1);
-        const formattedData =
-          receivedData.map((val: any) => makeDataObject(keys, val)) ?? [];
+        // const keys = data.result[0];
+        // const receivedData = data.result.slice(1);
+        // const formattedData =
+        //   receivedData.map((val: any) => makeDataObject(keys, val)) ?? [];
 
-        setRows(formattedData);
+        // setRows(formattedData);
+        console.log('HERE', { data });
+
+        setRows([]);
         setLoading(false);
         if (offset !== undefined) {
           setState(s => ({ ...s, offset }));
@@ -116,21 +125,20 @@ export const useFilterQuery = (
             sorts: newSorts,
           }));
         }
-        dispatch(
-          requestAction(
-            endpoints.query,
-            {
-              method: 'POST',
-              body: JSON.stringify(countQuery),
-            },
-            undefined,
-            undefined,
-            true,
-            true
-          )
-        ).then((countData: { count: number }) => {
-          setCount(countData.count);
-        });
+        setCount(data?.length);
+        // dispatch(
+        //   requestAction(
+        //     endpoints.query,
+        //     {
+        //       method: 'POST',
+        //       body: JSON.stringify(countQuery),
+        //     },
+        //     undefined,
+        //     undefined,
+        //     true,
+        //     true
+        //   )
+        // );
       },
       () => {
         setError(true);

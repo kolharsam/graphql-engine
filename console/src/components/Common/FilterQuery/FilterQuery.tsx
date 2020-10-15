@@ -1,27 +1,31 @@
 import React from 'react';
+import { connect, MapStateToProps, ConnectedProps } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router';
+import { compose } from 'redux';
+
 import { OrderBy } from '../utils/v1QueryUtils';
 import Where from './Where';
 import Sorts from './Sorts';
 import { useFilterQuery } from './state';
 import { Filter, FilterRenderProp } from './types';
-import { Dispatch } from '../../../types';
+import { ReduxState } from '../../../types';
 import ReloadEnumValuesButton from '../../Services/Data/Common/Components/ReloadEnumValuesButton';
 import Button from '../Button/Button';
 import { Nullable } from '../utils/tsUtils';
 import styles from './FilterQuery.scss';
 import { BaseTable } from '../../../dataSources/types';
 import { generateTableDef } from '../../../dataSources';
+import { mapDispatchToPropsEmpty } from '../utils/reactUtils';
 
-type Props = {
+interface Props extends InjectedProps {
   table: BaseTable;
   relationships: Nullable<string[]>; // TODO better
   render: FilterRenderProp;
-  dispatch: Dispatch;
   presets: {
     filters: Filter[];
     sorts: OrderBy[];
   };
-};
+}
 
 /*
  * Where clause and sorts builder
@@ -29,13 +33,23 @@ type Props = {
  */
 
 const FilterQuery: React.FC<Props> = props => {
-  const { table, dispatch, presets, render, relationships } = props;
+  const {
+    table,
+    dispatch,
+    presets,
+    render,
+    relationships,
+    triggerName,
+    currentSource,
+  } = props;
 
   const { rows, count, runQuery, state, setState } = useFilterQuery(
     generateTableDef(table.table_name, table.table_schema),
     dispatch,
     presets,
-    relationships
+    relationships,
+    triggerName,
+    currentSource
   );
 
   return (
@@ -93,4 +107,29 @@ const FilterQuery: React.FC<Props> = props => {
   );
 };
 
-export default FilterQuery;
+type ExternalProps = RouteComponentProps<
+  {
+    triggerName: string;
+  },
+  unknown
+>;
+
+type PropsFromState = {
+  currentSource?: string;
+  triggerName?: string;
+};
+
+const mapStateToProps: MapStateToProps<
+  PropsFromState,
+  ExternalProps,
+  ReduxState
+> = (state, ownProps) => ({
+  triggerName: ownProps.params.triggerName,
+  currentSource: state.tables.currentDataSource,
+});
+
+const connector = connect(mapStateToProps, mapDispatchToPropsEmpty);
+type InjectedProps = ConnectedProps<typeof connector>;
+
+const FilterQueryConnector = compose(withRouter, connector)(FilterQuery);
+export default FilterQueryConnector;
