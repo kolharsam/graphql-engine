@@ -31,7 +31,10 @@ export const useFilterQuery = (
   relationships: Nullable<string[]>,
   triggerName?: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  currentSource?: string
+  currentSource?: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  triggerType?: 'cron' | 'data' | 'one_off',
+  triggerOp?: 'processed' | 'pending' | 'invocation'
 ) => {
   const [state, setState] = React.useState(defaultState);
   const [rows, setRows] = React.useState<any[]>([]);
@@ -86,6 +89,18 @@ export const useFilterQuery = (
       // check this
       query = getScheduledEvents('cron', triggerName);
     }
+    if (triggerType && triggerType === 'data') {
+      // FIXME: temp. soln. until the API is added
+      return {
+        rows,
+        loading,
+        error,
+        runQuery,
+        state,
+        count,
+        undefined,
+      };
+    }
 
     const options = {
       method: 'POST',
@@ -103,15 +118,18 @@ export const useFilterQuery = (
       )
     ).then(
       (data: any) => {
-        // const keys = data.result[0];
-        // const receivedData = data.result.slice(1);
-        // const formattedData =
-        //   receivedData.map((val: any) => makeDataObject(keys, val)) ?? [];
-
-        // setRows(formattedData);
-        console.log('HERE', { data });
-
-        setRows([]);
+        let filteredData = data?.events ?? [];
+        if (triggerOp === 'pending') {
+          filteredData = data.events.filter(
+            (row: { status?: string }) => row?.status === 'scheduled'
+          );
+        } else if (triggerOp === 'processed' || triggerOp === 'invocation') {
+          // FIXME: temp solution
+          filteredData = data.events.filter(
+            (row: { status?: string }) => row?.status === 'delivered'
+          );
+        }
+        setRows(filteredData);
         setLoading(false);
         if (offset !== undefined) {
           setState(s => ({ ...s, offset }));
@@ -125,20 +143,7 @@ export const useFilterQuery = (
             sorts: newSorts,
           }));
         }
-        setCount(data?.length);
-        // dispatch(
-        //   requestAction(
-        //     endpoints.query,
-        //     {
-        //       method: 'POST',
-        //       body: JSON.stringify(countQuery),
-        //     },
-        //     undefined,
-        //     undefined,
-        //     true,
-        //     true
-        //   )
-        // );
+        setCount(filteredData.length);
       },
       () => {
         setError(true);
