@@ -79,33 +79,6 @@ const Container: React.FC<Props> = props => {
 
   const sidebarContent = (
     <ul>
-      <li role="presentation" className={styles.active}>
-        {/* @ts-ignore TODO */}
-        <Link
-          className={styles.linkBorder}
-          style={{
-            paddingRight: '20px',
-          }}
-          to="" // todo
-        >
-          Database:
-          <select
-            className="form-control"
-            style={{
-              width: '100%',
-              marginTop: 10,
-            }}
-            onChange={onDatabaseChange}
-            value={JSON.stringify([currentDataSource, currentDriver])}
-          >
-            {dataSources.map(s => (
-              <option key={s.name} value={JSON.stringify([s.name, s.driver])}>
-                {s.name} ({s.driver})
-              </option>
-            ))}
-          </select>
-        </Link>
-      </li>
       <li
         role="presentation"
         className={isDataEventsRoute(currentLocation) ? styles.active : ''}
