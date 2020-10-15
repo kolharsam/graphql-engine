@@ -23,7 +23,9 @@ interface Props {
   };
   dispatch: Dispatch;
   triggerName?: string;
-  currentSource?: string;
+  currentSource?: string; // mainly needed by data triggers
+  triggerOp?: 'processed' | 'invocation' | 'pending';
+  triggerType?: 'cron' | 'one_off' | 'data';
 }
 
 /*
@@ -40,6 +42,8 @@ const FilterQuery: React.FC<Props> = props => {
     relationships,
     triggerName,
     currentSource,
+    triggerOp,
+    triggerType,
   } = props;
 
   const { rows, count, runQuery, state, setState } = useFilterQuery(
@@ -48,7 +52,9 @@ const FilterQuery: React.FC<Props> = props => {
     presets,
     relationships,
     triggerName,
-    currentSource
+    currentSource,
+    triggerType,
+    triggerOp
   );
 
   return (
