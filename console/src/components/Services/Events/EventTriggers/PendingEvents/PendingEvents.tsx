@@ -59,6 +59,9 @@ const PendingEvents: React.FC<Props> = props => {
           sorts: [makeOrderBy('created_at', 'asc')],
         }}
         relationships={['logs']}
+        triggerName={triggerName}
+        triggerOp="pending"
+        triggerType="data"
       />
     </React.Fragment>
   );

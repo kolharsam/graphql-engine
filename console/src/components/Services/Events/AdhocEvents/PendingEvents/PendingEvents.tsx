@@ -73,6 +73,8 @@ const PendingEvents: React.FC<Props> = props => {
         sorts: [makeOrderBy('scheduled_time', 'asc')],
       }}
       relationships={['scheduled_event_logs']}
+      triggerOp="pending"
+      triggerType="one_off"
     />
   );
 };

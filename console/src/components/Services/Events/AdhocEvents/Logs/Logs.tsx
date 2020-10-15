@@ -42,6 +42,8 @@ const InvocationLogs: React.FC<Props> = props => {
         sorts: [makeOrderBy('created_at', 'desc')],
         filters: [],
       }}
+      triggerOp="invocation"
+      triggerType="one_off"
     />
   );
 };

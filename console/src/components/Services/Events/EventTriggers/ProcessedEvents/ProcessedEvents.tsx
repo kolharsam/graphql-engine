@@ -62,6 +62,9 @@ const ProcessedEvents: React.FC<Props> = props => {
           sorts: [makeOrderBy('created_at', 'desc')],
         }}
         relationships={['logs']}
+        triggerName={triggerName}
+        triggerType="data"
+        triggerOp="processed"
       />
     </React.Fragment>
   );

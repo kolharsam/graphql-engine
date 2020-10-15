@@ -44,6 +44,8 @@ const ProcessedEvents: React.FC<Props> = props => {
         sorts: [makeOrderBy('scheduled_time', 'desc')],
       }}
       relationships={['scheduled_event_logs']}
+      triggerType="data"
+      triggerOp="processed"
     />
   );
 };
