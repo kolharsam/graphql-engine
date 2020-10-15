@@ -47,7 +47,6 @@ const PendingEvents: React.FC<Props> = props => {
       <br />
       <FilterQuery
         table={etEventsTable}
-        dispatch={dispatch}
         render={renderRows}
         presets={{
           filters: [

@@ -35,7 +35,6 @@ const InvocationLogs: React.FC<Props> = props => {
   return (
     <FilterQuery
       table={stInvocationLogsTable}
-      dispatch={dispatch}
       render={renderRows}
       relationships={['scheduled_event']}
       presets={{

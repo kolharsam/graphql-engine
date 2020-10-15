@@ -282,6 +282,7 @@ export interface DataSourcesAPI {
     functionState: FunctionState
   ) => string;
   getInvocationLogSql?: (
+    // remove
     type: 'cron' | 'scheduled',
     invocationTable: QualifiedTable,
     relationshipTable: QualifiedTable,
@@ -290,6 +291,7 @@ export interface DataSourcesAPI {
     offset?: number
   ) => string;
   getEventInvocationInfoByIDSql?: (
+    // remove
     logTableDef: QualifiedTable,
     eventLogTable: QualifiedTable,
     eventId: string

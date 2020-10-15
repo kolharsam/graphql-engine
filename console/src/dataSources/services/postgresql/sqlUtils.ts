@@ -1166,7 +1166,6 @@ export const getInvocationLogSql = (
 ) => {
   const eventRelTable = `${type}_table`;
 
-  // FIXME: this sql only works for cron triggers atm. need changes for one-off scheduled events
   if (type === 'cron') {
     // This is for invocation logs
     return `SELECT original_table.*, ${eventRelTable}.*
