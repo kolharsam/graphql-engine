@@ -16,6 +16,8 @@ import { Nullable } from '../utils/tsUtils';
 import { QualifiedTable } from '../../../metadata/types';
 import { getScheduledEvents } from '../../../metadata/queryUtils';
 import { EventKind } from '../../Services/Events/types';
+import { isNotDefined } from '../utils/jsUtils';
+import { getDataTriggerLogsQuery } from '../../../metadata/metadataTableUtils';
 
 const defaultFilter = makeValueFilter('', null, '');
 const defaultSort = makeOrderBy('', 'asc');
@@ -31,12 +33,10 @@ export const useFilterQuery = (
     sorts: OrderBy[];
   },
   relationships: Nullable<string[]>,
+  triggerOp: TriggerOperation,
+  triggerType: EventKind,
   triggerName?: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  currentSource?: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  triggerType?: EventKind,
-  triggerOp?: TriggerOperation
+  currentSource?: string
 ) => {
   const [state, setState] = React.useState(defaultState);
   const [rows, setRows] = React.useState<any[]>([]);
@@ -61,10 +61,11 @@ export const useFilterQuery = (
     //   ...presets.sorts,
     // ];
 
-    // const offsetValue = isNotDefined(offset) ? state.offset : offset;
-    // const limitValue = isNotDefined(limit) ? state.limit : limit;
+    const offsetValue = isNotDefined(offset) ? state.offset : offset;
+    const limitValue = isNotDefined(limit) ? state.limit : limit;
 
     let query = {};
+    let endpoint = endpoints.metadata;
 
     if (table.name.includes('scheduled')) {
       // fixme: hack
@@ -73,17 +74,20 @@ export const useFilterQuery = (
       // check this
       query = getScheduledEvents('cron', triggerName);
     }
+
     if (triggerType && triggerType === 'data') {
-      // FIXME: temp. soln. until the API is added
-      return {
-        rows,
-        loading,
-        error,
-        runQuery,
-        state,
-        count,
-        undefined,
-      };
+      endpoint = endpoints.query;
+      if (triggerName) {
+        query = getDataTriggerLogsQuery(
+          triggerOp,
+          currentSource ?? 'default',
+          triggerName,
+          limitValue,
+          offsetValue
+        );
+      } else {
+        return; // fixme: this should just be an error
+      }
     }
 
     const options = {
@@ -92,28 +96,27 @@ export const useFilterQuery = (
     };
 
     dispatch(
-      requestAction(
-        endpoints.metadata,
-        options,
-        undefined,
-        undefined,
-        true,
-        true
-      )
+      requestAction(endpoint, options, undefined, undefined, true, true)
     ).then(
       (data: any) => {
-        let filteredData = data?.events ?? [];
-        if (triggerOp === 'pending') {
-          filteredData = data.events.filter(
-            (row: { status?: string }) => row?.status === 'scheduled'
-          );
-        } else if (triggerOp === 'processed' || triggerOp === 'invocation') {
-          // FIXME: temp solution
-          filteredData = data.events.filter(
-            (row: { status?: string }) => row?.status === 'delivered'
-          );
+        let filteredData = [];
+        if (triggerType === 'data') {
+          // console.log("HERE", {data});
+          setRows([]);
+        } else {
+          filteredData = data?.events ?? [];
+          if (triggerOp === 'pending') {
+            filteredData = data.events.filter(
+              (row: { status?: string }) => row?.status === 'scheduled'
+            );
+          } else if (triggerOp === 'processed' || triggerOp === 'invocation') {
+            // FIXME: temp solution
+            filteredData = data.events.filter(
+              (row: { status?: string }) => row?.status === 'delivered'
+            );
+          }
+          setRows(filteredData);
         }
-        setRows(filteredData);
         setLoading(false);
         if (offset !== undefined) {
           setState(s => ({ ...s, offset }));
