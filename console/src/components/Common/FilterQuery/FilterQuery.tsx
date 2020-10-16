@@ -23,10 +23,10 @@ interface Props {
     sorts: OrderBy[];
   };
   dispatch: Dispatch;
+  triggerOp: TriggerOperation;
+  triggerType: EventKind;
   triggerName?: string;
   currentSource?: string; // mainly needed by data triggers
-  triggerOp?: TriggerOperation;
-  triggerType?: EventKind;
 }
 
 /*
@@ -52,10 +52,10 @@ const FilterQuery: React.FC<Props> = props => {
     dispatch,
     presets,
     relationships,
-    triggerName,
-    currentSource,
+    triggerOp,
     triggerType,
-    triggerOp
+    triggerName,
+    currentSource
   );
 
   return (
