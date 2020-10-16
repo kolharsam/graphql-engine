@@ -17,7 +17,7 @@ import {
 interface Props extends EventsLogsInjectedProps {}
 
 const InvocationLogs: React.FC<Props> = props => {
-  const { dispatch, triggerName, readOnlyMode } = props;
+  const { dispatch, triggerName, readOnlyMode, currentSource } = props;
 
   const renderRows: FilterRenderProp = (
     rows,
@@ -71,6 +71,7 @@ const InvocationLogs: React.FC<Props> = props => {
         triggerName={triggerName}
         triggerOp="invocation"
         triggerType="data"
+        currentSource={currentSource}
       />
     </React.Fragment>
   );
