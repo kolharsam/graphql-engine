@@ -3,7 +3,7 @@ import React from 'react';
 import { OrderBy } from '../utils/v1QueryUtils';
 import Where from './Where';
 import Sorts from './Sorts';
-import { useFilterQuery } from './state';
+import { useFilterQuery, TriggerOperation } from './state';
 import { Filter, FilterRenderProp } from './types';
 import ReloadEnumValuesButton from '../../Services/Data/Common/Components/ReloadEnumValuesButton';
 import Button from '../Button/Button';
@@ -12,6 +12,7 @@ import styles from './FilterQuery.scss';
 import { BaseTable } from '../../../dataSources/types';
 import { generateTableDef } from '../../../dataSources';
 import { Dispatch } from '../../../types';
+import { EventKind } from '../../Services/Events/types';
 
 interface Props {
   table: BaseTable;
@@ -24,8 +25,8 @@ interface Props {
   dispatch: Dispatch;
   triggerName?: string;
   currentSource?: string; // mainly needed by data triggers
-  triggerOp?: 'processed' | 'invocation' | 'pending';
-  triggerType?: 'cron' | 'one_off' | 'data';
+  triggerOp?: TriggerOperation;
+  triggerType?: EventKind;
 }
 
 /*

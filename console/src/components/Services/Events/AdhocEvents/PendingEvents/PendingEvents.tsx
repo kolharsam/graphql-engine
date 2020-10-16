@@ -74,7 +74,7 @@ const PendingEvents: React.FC<Props> = props => {
       }}
       relationships={['scheduled_event_logs']}
       triggerOp="pending"
-      triggerType="one_off"
+      triggerType="scheduled"
     />
   );
 };

@@ -15,11 +15,13 @@ import {
 import { Nullable } from '../utils/tsUtils';
 import { QualifiedTable } from '../../../metadata/types';
 import { getScheduledEvents } from '../../../metadata/queryUtils';
+import { EventKind } from '../../Services/Events/types';
 
 const defaultFilter = makeValueFilter('', null, '');
 const defaultSort = makeOrderBy('', 'asc');
-
 const defaultState = makeFilterState([defaultFilter], [defaultSort], 10, 0);
+
+export type TriggerOperation = 'pending' | 'processed' | 'invocation';
 
 export const useFilterQuery = (
   table: QualifiedTable,
@@ -33,8 +35,8 @@ export const useFilterQuery = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   currentSource?: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  triggerType?: 'cron' | 'data' | 'one_off',
-  triggerOp?: 'processed' | 'pending' | 'invocation'
+  triggerType?: EventKind,
+  triggerOp?: TriggerOperation
 ) => {
   const [state, setState] = React.useState(defaultState);
   const [rows, setRows] = React.useState<any[]>([]);
@@ -61,24 +63,6 @@ export const useFilterQuery = (
 
     // const offsetValue = isNotDefined(offset) ? state.offset : offset;
     // const limitValue = isNotDefined(limit) ? state.limit : limit;
-
-    // const query = getLogSql(
-    //   'select',
-    //   triggerName,
-    //   table,
-    //   relationships ?? [],
-    //   limitValue ?? 10,
-    //   offsetValue ?? 0
-    // );
-
-    // const countQuery = getLogSql(
-    //   'count',
-    //   triggerName,
-    //   table,
-    //   relationships ?? [],
-    //   undefined,
-    //   undefined
-    // );
 
     let query = {};
 

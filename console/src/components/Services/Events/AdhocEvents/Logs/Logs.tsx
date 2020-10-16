@@ -43,7 +43,7 @@ const InvocationLogs: React.FC<Props> = props => {
         filters: [],
       }}
       triggerOp="invocation"
-      triggerType="one_off"
+      triggerType="scheduled"
     />
   );
 };
