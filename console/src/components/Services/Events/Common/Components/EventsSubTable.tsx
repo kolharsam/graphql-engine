@@ -5,7 +5,6 @@ import ReactTable from 'react-table';
 import styles from '../../Events.scss';
 import InvocationLogDetails from './InvocationLogDetails';
 import { Event } from '../../types';
-import { mapDispatchToPropsEmpty } from '../../../../Common/utils/reactUtils';
 import Endpoints from '../../../../../Endpoints';
 import {
   getEventInvocationsLogByID,
@@ -13,15 +12,11 @@ import {
 } from '../../../../../metadata/queryUtils';
 import requestAction from '../../../../../utils/requestAction';
 import { sanitiseRow } from '../../utils';
+import { Dispatch } from '../../../../../types';
 
 interface Props extends InjectedReduxProps {
   rows: any[];
-  rowsFormatted:
-    | {
-        request: any;
-        response: any;
-      }[]
-    | [];
+  rowsFormatted: any[];
   headings: {
     Header: string;
     accessor: string;
@@ -31,7 +26,10 @@ interface Props extends InjectedReduxProps {
   triggerType?: SupportedEvents;
 }
 
-type RenderSubTableProps = Omit<Props, 'makeAPICall'>;
+type RenderSubTableProps = Omit<
+  Props,
+  'makeAPICall' | 'triggerType' | 'invocationsData'
+>;
 
 const invocationColumns = ['status', 'id', 'created_at'];
 
@@ -103,54 +101,86 @@ const EventsSubTable: React.FC<Props> = ({
   triggerType,
   ...props
 }) => {
-  if (makeAPICall && triggerType) {
-    // make the api call and all the formatting here.
+  const [inv, setInvocations] = React.useState([]);
+  const [errInfo, setErrInfo] = React.useState(null);
+
+  React.useEffect(() => {
+    if (!triggerType || !props.event.id) {
+      return;
+    }
     const url = Endpoints.metadata;
     const payload = getEventInvocationsLogByID(triggerType, props.event.id);
     const query = {
       method: 'POST',
       body: JSON.stringify(payload),
     };
+    // FIXME: separate this from here
     props
-      .dispatch(requestAction(url, query))
+      .invocationsData(url, query)
       .then(data => {
-        if (data && data?.length) {
-          const logs = data.invocations;
-          const invocationRows = logs.map((r: any, i: number) => {
-            const newRow: Record<string, JSX.Element> = {};
-            // Insert cells corresponding to all rows
-            invocationColumns.forEach(col => {
-              newRow[col] = (
-                <div
-                  className={styles.tableCellCenterAlignedOverflow}
-                  key={`${col}-${col}-${i}`}
-                >
-                  {sanitiseRow(col, r)}
-                </div>
-              );
-            });
-            return newRow;
-          });
-          return (
-            <RenderEventSubTable
-              event={props.event}
-              rows={logs}
-              rowsFormatted={invocationRows}
-              headings={props.headings}
-              {...props}
-            />
-          );
+        if (data && data?.invocations) {
+          setInvocations(data.invocations);
+          return;
         }
-
-        return <div>No data available.</div>;
+        setInvocations([]);
       })
-      .catch(() => <div>No data available.</div>);
+      .catch(err => setErrInfo(err));
+  }, []);
+
+  if (!makeAPICall || !triggerType) {
+    return (
+      <RenderEventSubTable
+        event={props.event}
+        rowsFormatted={props.rowsFormatted}
+        headings={props.headings}
+        rows={props.rows}
+      />
+    );
   }
 
-  return <RenderEventSubTable {...props} />;
+  if (errInfo) {
+    return <div>No data available.</div>;
+  }
+
+  const invocationRows = inv.map((r: any, i: number) => {
+    const newRow: Record<string, JSX.Element> = {};
+    // Insert cells corresponding to all rows
+    invocationColumns.forEach(col => {
+      newRow[col] = (
+        <div
+          className={styles.tableCellCenterAlignedOverflow}
+          key={`${col}-${col}-${i}`}
+        >
+          {sanitiseRow(col, r)}
+        </div>
+      );
+    });
+    return newRow;
+  });
+
+  return (
+    <RenderEventSubTable
+      event={props.event}
+      rows={inv}
+      rowsFormatted={invocationRows}
+      headings={props.headings}
+    />
+  );
 };
 
-const connector = connect(null, mapDispatchToPropsEmpty);
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  invocationsData: (url: string, options: RequestInit) =>
+    dispatch(requestAction(url, options))
+      .then(data => ({
+        invocations: data.invocations,
+        error: null,
+      }))
+      .catch(err => ({
+        invocations: [],
+        error: err,
+      })),
+});
+const connector = connect(null, mapDispatchToProps);
 type InjectedReduxProps = ConnectedProps<typeof connector>;
 const connectedEventSubTable = connector(EventsSubTable);
 
