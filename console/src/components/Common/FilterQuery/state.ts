@@ -112,7 +112,8 @@ export const useFilterQuery = (
           } else if (triggerOp === 'processed' || triggerOp === 'invocation') {
             // FIXME: temp solution
             filteredData = data.events.filter(
-              (row: { status?: string }) => row?.status === 'delivered'
+              (row: { status?: string }) =>
+                row?.status === 'delivered' || row.status === 'error'
             );
           }
           setRows(filteredData);

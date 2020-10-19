@@ -23,7 +23,7 @@ const PendingEvents: React.FC<Props> = props => {
 
   const onCancelOneOffScheduledEvent = (
     id: string,
-    scheduledAt: string,
+    scheduledAt: string | Date | number,
     onSuccess: () => void
   ) => {
     const localeTime = convertDateTimeToLocale(scheduledAt);
