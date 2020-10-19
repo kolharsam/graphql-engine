@@ -104,6 +104,7 @@ const EventsSubTable: React.FC<Props> = ({
     if (!triggerType || !props.event.id) {
       return;
     }
+    // TODO: handle a "loading" state
     props
       .invocationsData(triggerType, props.event.id)
       .then(data => {
