@@ -101,13 +101,13 @@ export const useFilterQuery = (
       (data: any) => {
         let filteredData = [];
         if (triggerType === 'data') {
-          // console.log("HERE", {data});
           setRows([]);
         } else {
           filteredData = data?.events ?? [];
           if (triggerOp === 'pending') {
             filteredData = data.events.filter(
-              (row: { status?: string }) => row?.status === 'scheduled'
+              (row: { status?: string }) =>
+                row?.status === 'scheduled' || row.status === 'dead'
             );
           } else if (triggerOp === 'processed' || triggerOp === 'invocation') {
             // FIXME: temp solution
