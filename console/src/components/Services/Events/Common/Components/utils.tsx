@@ -3,6 +3,12 @@ import CheckIcon from '../../../../Common/Icons/Check';
 import CrossIcon from '../../../../Common/Icons/Cross';
 import ClockIcon from '../../../../Common/Icons/Clock';
 import Skull from '../../../../Common/Icons/Invalid';
+import {
+  SupportedEvents,
+  getEventInvocationsLogByID,
+} from '../../../../../metadata/queryUtils';
+import Endpoints from '../../../../../Endpoints';
+import requestAction from '../../../../../utils/requestAction';
 
 export const getEventStatusIcon = (status: string) => {
   switch (status) {
@@ -29,4 +35,18 @@ export const getEventDeliveryIcon = (delivered: boolean) => {
 
 export const getInvocationLogStatus = (status: number) => {
   return status < 300 ? <CheckIcon /> : <CrossIcon />;
+};
+
+export const getEventInvocationThunk = (
+  triggerType: SupportedEvents,
+  event_id: string
+) => {
+  const url = Endpoints.metadata;
+  const payload = getEventInvocationsLogByID(triggerType, event_id);
+  const query = {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  };
+
+  return requestAction(url, query);
 };

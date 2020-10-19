@@ -5,14 +5,10 @@ import ReactTable from 'react-table';
 import styles from '../../Events.scss';
 import InvocationLogDetails from './InvocationLogDetails';
 import { Event } from '../../types';
-import Endpoints from '../../../../../Endpoints';
-import {
-  getEventInvocationsLogByID,
-  SupportedEvents,
-} from '../../../../../metadata/queryUtils';
-import requestAction from '../../../../../utils/requestAction';
+import { SupportedEvents } from '../../../../../metadata/queryUtils';
 import { sanitiseRow } from '../../utils';
 import { Dispatch } from '../../../../../types';
+import { getEventInvocationThunk } from './utils';
 
 interface Props extends InjectedReduxProps {
   rows: any[];
@@ -108,21 +104,14 @@ const EventsSubTable: React.FC<Props> = ({
     if (!triggerType || !props.event.id) {
       return;
     }
-    const url = Endpoints.metadata;
-    const payload = getEventInvocationsLogByID(triggerType, props.event.id);
-    const query = {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    };
-    // FIXME: separate this from here
     props
-      .invocationsData(url, query)
+      .invocationsData(triggerType, props.event.id)
       .then(data => {
-        if (data && data?.invocations) {
+        if (data && data?.invocations && !data.error) {
           setInvocations(data.invocations);
           return;
         }
-        setInvocations([]);
+        setErrInfo(data.error);
       })
       .catch(err => setErrInfo(err));
   }, []);
@@ -139,7 +128,13 @@ const EventsSubTable: React.FC<Props> = ({
   }
 
   if (errInfo) {
-    return <div>No data available.</div>;
+    return (
+      <div>
+        <br />
+        Error occurred in fetching information about recent invocations.
+        <br />
+      </div>
+    );
   }
 
   const invocationRows = inv.map((r: any, i: number) => {
@@ -169,8 +164,8 @@ const EventsSubTable: React.FC<Props> = ({
 };
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  invocationsData: (url: string, options: RequestInit) =>
-    dispatch(requestAction(url, options))
+  invocationsData: (triggerType: SupportedEvents, event_id: string) =>
+    dispatch(getEventInvocationThunk(triggerType, event_id))
       .then(data => ({
         invocations: data.invocations,
         error: null,
