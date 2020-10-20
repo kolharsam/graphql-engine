@@ -26,12 +26,7 @@ import {
   ConnectedDatabaseManagePage,
 } from '.';
 
-import {
-  fetchDataInit,
-  fetchFunctionInit,
-  updateSchemaInfo,
-  fetchSchemaList,
-} from './DataActions';
+import { UPDATE_CURRENT_DATA_SOURCE } from './DataActions';
 import { exportMetadata } from '../../../metadata/actions';
 import ConnectedDataSourceContainer from './DataSourceContainer';
 
@@ -39,7 +34,7 @@ const makeDataRouter = (
   connect,
   store,
   composeOnEnterHooks,
-  requireSchema,
+  requireSource,
   migrationRedirects,
   consoleModeRedirects
 ) => {
@@ -134,47 +129,34 @@ const makeDataRouter = (
 };
 
 const dataRouterUtils = (connect, store, composeOnEnterHooks) => {
-  const requireSchema = (nextState, replaceState, cb) => {
-    store
-      .dispatch(exportMetadata())
-      .then(() => store.dispatch(fetchSchemaList()))
-      .then(() => {
-        const {
-          tables: { allSchemas, currentSchema: prevSchema },
-        } = store.getState();
+  const requireSource = (nextState, replaceState, cb) => {
+    store.dispatch(exportMetadata()).then(state => {
+      const sources = state.metadata.metadataObject?.sources;
+      const currentSource = state.tables.currentDataSource;
 
-        const currentSchema = nextState.params.schema;
-        if (
-          currentSchema &&
-          prevSchema === currentSchema &&
-          allSchemas.length
-        ) {
-          return cb();
-        }
-
-        Promise.all([
-          store.dispatch(fetchDataInit()),
-          store.dispatch(updateSchemaInfo()),
-          store.dispatch(fetchFunctionInit()),
-        ]).then(cb, () => {
-          // alert('Could not load schema.');
-          replaceState('/');
-          cb();
+      if (sources.length && !currentSource) {
+        store.dispatch({
+          type: UPDATE_CURRENT_DATA_SOURCE,
+          source: sources[0].name,
         });
-      });
+      } else if (!sources.length) {
+        replaceState('/data/manage');
+      }
+      return cb();
+    });
   };
 
   const migrationRedirects = (nextState, replaceState, cb) => {
     const state = store.getState();
     if (!state.main.migrationMode) {
-      replaceState('/data/schema');
+      replaceState('/data');
     }
     cb();
   };
 
   const consoleModeRedirects = (nextState, replaceState, cb) => {
     if (globals.consoleMode === SERVER_CONSOLE_MODE) {
-      replaceState('/data/schema');
+      replaceState('/data');
     }
     cb();
   };
@@ -184,11 +166,11 @@ const dataRouterUtils = (connect, store, composeOnEnterHooks) => {
       connect,
       store,
       composeOnEnterHooks,
-      requireSchema,
+      requireSource,
       migrationRedirects,
       consoleModeRedirects
     ),
-    requireSchema,
+    requireSource,
     migrationRedirects,
   };
 };

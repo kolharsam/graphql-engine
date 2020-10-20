@@ -54,6 +54,7 @@ import { exportMetadata } from '../../../metadata/actions';
 import { getRunSqlQuery } from '../../Common/utils/v1QueryUtils';
 import { QualifiedTable } from '../../../metadata/types';
 import { dataSource } from '../../../dataSources';
+import Migration from '../../../utils/migration/Migration';
 
 export const addScheduledTrigger = (
   state: LocalScheduledTriggerState,
@@ -70,9 +71,11 @@ export const addScheduledTrigger = (
     }
     return dispatch(showErrorNotification(errorMsg, validationError));
   }
-
-  const upQuery = generateCreateScheduledTriggerQuery(state, currentDataSource);
-  const downQuery = getDropScheduledTriggerQuery(state.name, currentDataSource);
+  const migration = new Migration();
+  migration.add(
+    generateCreateScheduledTriggerQuery(state, currentDataSource),
+    getDropScheduledTriggerQuery(state.name, currentDataSource)
+  );
 
   const migrationName = `create_scheduled_trigger_${state.name}`;
   const requestMsg = 'Creating scheduled trigger...';
@@ -101,8 +104,8 @@ export const addScheduledTrigger = (
   return makeMigrationCall(
     dispatch,
     getState,
-    [upQuery],
-    [downQuery],
+    migration.upMigration,
+    migration.downMigration,
     migrationName,
     customOnSuccess,
     customOnError,
@@ -144,27 +147,30 @@ export const saveScheduledTrigger = (
       return null;
     }
   }
-
-  const replaceQueryUp = generateUpdateScheduledTriggerQuery(
-    state,
-    currentDataSource
-  );
-  const replaceQueryDown = generateUpdateScheduledTriggerQuery(
-    parseServerScheduledTrigger(existingTrigger),
-    currentDataSource
-  );
-
-  const upRenameQueries = [
-    generateCreateScheduledTriggerQuery(state, currentDataSource),
-    getDropScheduledTriggerQuery(existingTrigger.name, currentDataSource),
-  ];
-  const downRenameQueries = [
-    getDropScheduledTriggerQuery(state.name, currentDataSource),
-    generateCreateScheduledTriggerQuery(
-      parseServerScheduledTrigger(existingTrigger),
-      currentDataSource
-    ),
-  ];
+  const migration = new Migration();
+  if (!isRenamed) {
+    migration.add(
+      generateUpdateScheduledTriggerQuery(state, currentDataSource),
+      generateUpdateScheduledTriggerQuery(
+        parseServerScheduledTrigger(existingTrigger),
+        currentDataSource
+      )
+    );
+  } else {
+    // drop existing
+    migration.add(
+      getDropScheduledTriggerQuery(existingTrigger.name, currentDataSource),
+      generateCreateScheduledTriggerQuery(
+        parseServerScheduledTrigger(existingTrigger),
+        currentDataSource
+      )
+    );
+    // create new
+    migration.add(
+      generateCreateScheduledTriggerQuery(state, currentDataSource),
+      getDropScheduledTriggerQuery(state.name, currentDataSource)
+    );
+  }
 
   const migrationName = `update_scheduled_trigger_${existingTrigger.name}_to_${state.name}`;
   const requestMsg = 'Updating scheduled trigger...';
@@ -200,8 +206,8 @@ export const saveScheduledTrigger = (
   return makeMigrationCall(
     dispatch,
     getState,
-    isRenamed ? upRenameQueries : [replaceQueryUp],
-    isRenamed ? downRenameQueries : [replaceQueryDown],
+    migration.upMigration,
+    migration.downMigration,
     migrationName,
     customOnSuccess,
     customOnError,
@@ -231,10 +237,13 @@ export const deleteScheduledTrigger = (
 
   const { currentDataSource } = getState().tables;
 
-  const upQuery = getDropScheduledTriggerQuery(trigger.name, currentDataSource);
-  const downQuery = generateCreateScheduledTriggerQuery(
-    parseServerScheduledTrigger(trigger),
-    currentDataSource
+  const migration = new Migration();
+  migration.add(
+    getDropScheduledTriggerQuery(trigger.name, currentDataSource),
+    generateCreateScheduledTriggerQuery(
+      parseServerScheduledTrigger(trigger),
+      currentDataSource
+    )
   );
 
   const migrationName = `delete_scheduled_trigger_${trigger.name}`;
@@ -258,8 +267,8 @@ export const deleteScheduledTrigger = (
   makeMigrationCall(
     dispatch,
     getState,
-    [upQuery],
-    [downQuery],
+    migration.upMigration,
+    migration.downMigration,
     migrationName,
     customOnSuccess,
     customOnError,
@@ -287,8 +296,11 @@ export const createEventTrigger = (
 
     const migrationName = `create_event_trigger_${state.name.trim()}`;
 
-    const upQuery = generateCreateEventTriggerQuery(state, currentSource);
-    const downQuery = getDropEventTriggerQuery(state.name, currentSource);
+    const migration = new Migration();
+    migration.add(
+      generateCreateEventTriggerQuery(state, currentSource),
+      getDropEventTriggerQuery(state.name, currentSource)
+    );
 
     const requestMsg = 'Creating event trigger...';
     const successMsg = 'Event Trigger Created';
@@ -311,8 +323,8 @@ export const createEventTrigger = (
     makeMigrationCall(
       dispatch,
       getState,
-      [upQuery],
-      [downQuery],
+      migration.upMigration,
+      migration.downMigration,
       migrationName,
       customOnSuccess,
       customOnError,
@@ -389,9 +401,10 @@ export const modifyEventTrigger = (
     default:
       break;
   }
+  const migration = new Migration();
+  migration.add(upQuery, downQuery);
 
   const migrationName = `set_et_${state.name.trim()}_${property}`;
-
   const requestMsg = 'Saving...';
   const successMsg = 'Saved';
 
@@ -411,8 +424,8 @@ export const modifyEventTrigger = (
   return makeMigrationCall(
     dispatch,
     getState,
-    [upQuery],
-    [downQuery],
+    migration.upMigration,
+    migration.downMigration,
     migrationName,
     customOnSuccess,
     customOnError,
@@ -439,10 +452,10 @@ export const deleteEventTrigger = (
     return undefined;
   }
 
-  const upQuery = getDropEventTriggerQuery(trigger.name, source);
-  const downQuery = generateCreateEventTriggerQuery(
-    parseServerETDefinition(trigger, undefined, source),
-    source
+  const migration = new Migration();
+  migration.add(
+    getDropEventTriggerQuery(trigger.name, source),
+    generateCreateEventTriggerQuery(parseServerETDefinition(trigger), source)
   );
 
   const migrationName = `delete_et_${trigger.name}`;
@@ -468,8 +481,8 @@ export const deleteEventTrigger = (
   return makeMigrationCall(
     dispatch,
     getState,
-    [upQuery],
-    [downQuery],
+    migration.upMigration,
+    migration.downMigration,
     migrationName,
     customOnSuccess,
     customOnError,

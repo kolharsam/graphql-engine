@@ -1,4 +1,3 @@
-import { Thunk, ReduxState } from '../types';
 import requestAction from '../utils/requestAction';
 import Endpoints, { globalCookiePolicy } from '../Endpoints';
 import { HasuraMetadataV2, HasuraMetadataV3 } from './types';
@@ -32,6 +31,7 @@ import {
 import { Driver } from '../dataSources';
 import { addSource, removeSource, reloadSource } from './sourcesUtils';
 import { getDataSources } from './selector';
+import { ReduxState, Thunk } from '../types';
 
 export interface ExportMetadataSuccess {
   type: 'Metadata/EXPORT_METADATA_SUCCESS';

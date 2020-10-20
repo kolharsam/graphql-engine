@@ -4,10 +4,11 @@ import ReactTable, {
   ComponentPropsGetter0,
 } from 'react-table';
 import 'react-table/react-table.css';
-import { FilterTableProps } from './types';
+import { FilterTableProps, GridHeadingProps } from './types';
 import { ordinalColSort } from '../../../Data/utils';
 import styles from '../../Events.scss';
 import EventsSubTable from './EventsSubTable';
+import ExpanderButton from './ExpanderButton';
 import { sanitiseRow } from '../../utils';
 import { makeOrderBy } from '../../../../Common/utils/v1QueryUtils';
 import { convertDateTimeToLocale } from '../../../../Common/utils/jsUtils';
@@ -17,7 +18,7 @@ import { SupportedEvents } from '../../../../../metadata/queryUtils';
 
 type CancelButtonProps = {
   id: string;
-  onClickHandler: () => void;
+  onClickHandler: (e: React.MouseEvent) => void;
 };
 
 const CancelEventButton: React.FC<CancelButtonProps> = ({
@@ -26,10 +27,14 @@ const CancelEventButton: React.FC<CancelButtonProps> = ({
 }) => (
   <Button
     key={id}
+    className={styles.add_mar_right_small}
     onClick={onClickHandler}
     color="white"
     size="xs"
     title="Cancel Event"
+    onMouseDown={e => {
+      e.preventDefault();
+    }}
   >
     <i className="fa fa-close" />
   </Button>
@@ -95,25 +100,6 @@ const EventsTable: React.FC<Props> = props => {
     }
   };
 
-  const gridHeadings = sortedColumns.map(column => {
-    if (column === 'actions') {
-      return { Header: '', accessor: column, width: 50 };
-    }
-    return {
-      Header: column,
-      accessor: column,
-    };
-  });
-
-  const invocationColumns = ['status', 'id', 'created_at'];
-
-  const invocationGridHeadings = invocationColumns.map(column => {
-    return {
-      Header: column,
-      accessor: column,
-    };
-  });
-
   const onCancelHandler = (
     id: string,
     scheduled_time: string | Date | number
@@ -122,6 +108,51 @@ const EventsTable: React.FC<Props> = props => {
       onCancelEvent(id, scheduled_time, runQuery);
     }
   };
+
+  const expanderActions: GridHeadingProps = {
+    expander: true,
+    Header: '',
+    accessor: 'expander',
+    Expander: ({ isExpanded, viewIndex }) => {
+      const row = rows[viewIndex];
+      return (
+        <>
+          {columns.includes('actions') && (
+            <CancelEventButton
+              id={row.id}
+              onClickHandler={event => {
+                onCancelHandler(row.id, row.scheduled_time);
+                event.stopPropagation();
+              }}
+            />
+          )}
+          <ExpanderButton isExpanded={isExpanded} />
+        </>
+      );
+    },
+  };
+
+  const gridHeadings = [expanderActions];
+
+  sortedColumns.forEach(column => {
+    if (column !== 'actions') {
+      gridHeadings.push({
+        Header: column,
+        accessor: column,
+      });
+    }
+  });
+
+  const invocationColumns = ['status', 'id', 'created_at'];
+
+  const invocationGridHeadings: GridHeadingProps[] = [expanderActions];
+
+  invocationColumns.forEach(column => {
+    invocationGridHeadings.push({
+      Header: column,
+      accessor: column,
+    });
+  });
 
   const rowsFormatted = rows.map(row => {
     const formattedRow = Object.keys(row).reduce((fr, col) => {
@@ -132,12 +163,6 @@ const EventsTable: React.FC<Props> = props => {
     }, {});
     return {
       ...formattedRow,
-      actions: columns.includes('actions') ? (
-        <CancelEventButton
-          id={row.id}
-          onClickHandler={() => onCancelHandler(row.id, row.scheduled_time)}
-        />
-      ) : undefined,
       delivered: getEventDeliveryIcon(row.delivered),
       status: getEventStatusIcon(row.status),
       scheduled_time: row.scheduled_time ? (
