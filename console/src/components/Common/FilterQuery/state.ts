@@ -145,9 +145,14 @@ export const useFilterQuery = (
           } else {
             setRows(formattedData);
           }
-        } else {
-          setRows(data?.events ?? []);
         }
+
+        if (triggerOp !== 'invocation' && triggerType !== 'data') {
+          setRows(data?.events ?? []);
+        } else {
+          setRows(data?.invocations ?? []);
+        }
+
         setLoading(false);
         if (offset !== undefined) {
           setState(s => ({ ...s, offset }));
