@@ -114,13 +114,17 @@ export const useFilterQuery = (
           resultsData.forEach((values: any[]) => {
             const dataObj: any = {};
             allKeys.forEach((key: string, idx: number) => {
-              // FIXME: there may be duplicate values here
+              // FIXME: there may be duplicate keys here
               dataObj[key] = values[idx];
             });
             formattedData.push(dataObj);
           });
 
-          setRows(formattedData ?? []);
+          if (limitValue && offsetValue) {
+            setRows(formattedData.slice(offsetValue, limitValue));
+          } else {
+            setRows(formattedData);
+          }
         } else {
           setRows(data?.events ?? []);
         }
