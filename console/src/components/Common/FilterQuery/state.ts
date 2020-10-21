@@ -14,7 +14,10 @@ import {
 
 import { Nullable } from '../utils/tsUtils';
 import { QualifiedTable } from '../../../metadata/types';
-import { getScheduledEvents } from '../../../metadata/queryUtils';
+import {
+  getScheduledEvents,
+  getEventInvocations,
+} from '../../../metadata/queryUtils';
 import { EventKind } from '../../Services/Events/types';
 import { isNotDefined } from '../utils/jsUtils';
 import { getDataTriggerLogsQuery } from '../../../metadata/metadataTableUtils';
@@ -68,20 +71,37 @@ export const useFilterQuery = (
     let endpoint = endpoints.metadata;
 
     if (triggerType === 'scheduled') {
-      query = getScheduledEvents(
-        'one_off',
-        limitValue ?? 10,
-        offsetValue ?? 0,
-        triggerOp
-      );
+      if (triggerOp !== 'invocation') {
+        query = getScheduledEvents(
+          'one_off',
+          limitValue ?? 10,
+          offsetValue ?? 0,
+          triggerOp
+        );
+      } else {
+        query = getEventInvocations(
+          'one_off',
+          limitValue ?? 10,
+          offsetValue ?? 0
+        );
+      }
     } else if (triggerType === 'cron') {
-      query = getScheduledEvents(
-        'cron',
-        limitValue ?? 10,
-        offsetValue ?? 0,
-        triggerOp,
-        triggerName
-      );
+      if (triggerOp !== 'invocation') {
+        query = getScheduledEvents(
+          'cron',
+          limitValue ?? 10,
+          offsetValue ?? 0,
+          triggerOp,
+          triggerName
+        );
+      } else {
+        query = getEventInvocations(
+          'cron',
+          limitValue ?? 10,
+          offsetValue ?? 0,
+          triggerName
+        );
+      }
     } else if (triggerType === 'data') {
       endpoint = endpoints.query;
       if (triggerName) {
