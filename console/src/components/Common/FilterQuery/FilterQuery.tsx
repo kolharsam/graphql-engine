@@ -58,8 +58,6 @@ const FilterQuery: React.FC<Props> = props => {
     currentSource
   );
 
-  console.log("HERE", {count})
-
   return (
     <div className={styles.add_mar_top}>
       {/* NOTE: temp. disabled until an API is ready for this purpose */}
