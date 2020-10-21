@@ -640,6 +640,7 @@ export const getConsoleStateQuery = {
 
 export type SupportedEvents = 'cron' | 'one_off';
 
+// FIXME: this does not work anymore, new API needs to support this too, to make it work
 export const getEventInvocationsLogByID = (
   type: SupportedEvents,
   event_id: string
@@ -651,12 +652,44 @@ export const getEventInvocationsLogByID = (
   },
 });
 
+export const getEventInvocations = (
+  type: SupportedEvents,
+  limit: number,
+  offset: number,
+  triggerName?: string // is required for cron
+) => {
+  const query = {
+    type: 'get_event_invocations',
+    args: {},
+  };
+
+  if (type === 'one_off') {
+    query.args = {
+      type,
+    };
+  } else {
+    query.args = {
+      type,
+      trigger_name: triggerName,
+    };
+  }
+
+  return {
+    ...query,
+    args: {
+      ...query.args,
+      limit,
+      offset,
+    },
+  };
+};
+
 export const getScheduledEvents = (
   type: SupportedEvents,
   limit: number,
   offset: number,
-  trigger_op: TriggerOperation,
-  trigger_name?: string // is required for cron triggers
+  triggerOp: Exclude<TriggerOperation, 'invocation'>,
+  triggerName?: string // is required for cron triggers
 ) => {
   const query = {
     type: 'get_scheduled_events',
@@ -672,11 +705,11 @@ export const getScheduledEvents = (
   } else {
     query.args = {
       type,
-      trigger_name,
+      trigger_name: triggerName,
     };
   }
 
-  if (trigger_op === 'pending') {
+  if (triggerOp === 'pending') {
     query.args = {
       ...query.args,
       status: statusPending,
