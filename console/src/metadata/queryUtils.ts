@@ -14,6 +14,7 @@ import { LocalAdhocEventState } from '../components/Services/Events/AdhocEvents/
 import { RemoteRelationshipPayload } from '../components/Services/Data/TableRelationships/RemoteRelationships/utils';
 import { Driver, currentDriver } from '../dataSources';
 import { ConsoleState } from '../telemetry/state';
+import { TriggerOperation } from '../components/Common/FilterQuery/state';
 
 export const metadataQueryTypes = [
   'add_source',
@@ -652,22 +653,47 @@ export const getEventInvocationsLogByID = (
 
 export const getScheduledEvents = (
   type: SupportedEvents,
-  trigger_name?: string
+  limit: number,
+  offset: number,
+  trigger_op: TriggerOperation,
+  trigger_name?: string // is required for cron triggers
 ) => {
+  const query = {
+    type: 'get_scheduled_events',
+    args: {},
+  };
+  const statusPending = ['scheduled'];
+  const statusProcessed = ['delivered', 'dead', 'error'];
+
   if (type === 'one_off') {
-    return {
-      type: 'get_scheduled_events',
-      args: {
-        type: 'one_off',
-      },
+    query.args = {
+      type,
+    };
+  } else {
+    query.args = {
+      type,
+      trigger_name,
+    };
+  }
+
+  if (trigger_op === 'pending') {
+    query.args = {
+      ...query.args,
+      status: statusPending,
+    };
+  } else {
+    query.args = {
+      ...query.args,
+      status: statusProcessed,
     };
   }
 
   return {
-    type: 'get_scheduled_events',
+    ...query,
     args: {
-      type,
-      trigger_name,
+      ...query.args,
+      limit,
+      offset,
     },
   };
 };
