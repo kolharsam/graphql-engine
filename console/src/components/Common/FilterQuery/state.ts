@@ -67,15 +67,22 @@ export const useFilterQuery = (
     let query = {};
     let endpoint = endpoints.metadata;
 
-    if (table.name.includes('scheduled')) {
-      // fixme: hack
-      query = getScheduledEvents('one_off');
-    } else if (table.name.includes('cron')) {
-      // check this
-      query = getScheduledEvents('cron', triggerName);
-    }
-
-    if (triggerType && triggerType === 'data') {
+    if (triggerType === 'scheduled') {
+      query = getScheduledEvents(
+        'one_off',
+        limitValue ?? 10,
+        offsetValue ?? 0,
+        triggerOp
+      );
+    } else if (triggerType === 'cron') {
+      query = getScheduledEvents(
+        'cron',
+        limitValue ?? 10,
+        offsetValue ?? 0,
+        triggerOp,
+        triggerName
+      );
+    } else if (triggerType === 'data') {
       endpoint = endpoints.query;
       if (triggerName) {
         query = getDataTriggerLogsQuery(
@@ -86,7 +93,7 @@ export const useFilterQuery = (
           offsetValue
         );
       } else {
-        return; // fixme: this should just be an error
+        return; // fixme: this should just be an error saying that there's no trigger name provided
       }
     }
 
@@ -99,24 +106,23 @@ export const useFilterQuery = (
       requestAction(endpoint, options, undefined, undefined, true, true)
     ).then(
       (data: any) => {
-        let filteredData = [];
         if (triggerType === 'data') {
-          setRows([]);
+          // formatting of the data
+          const allKeys = data.results[0];
+          const resultsData = data.results.slice(0);
+          const formattedData: any = [];
+          resultsData.forEach((values: any[]) => {
+            const dataObj: any = {};
+            allKeys.forEach((key: string, idx: number) => {
+              // FIXME: there may be duplicate values here
+              dataObj[key] = values[idx];
+            });
+            formattedData.push(dataObj);
+          });
+
+          setRows(formattedData ?? []);
         } else {
-          filteredData = data?.events ?? [];
-          if (triggerOp === 'pending') {
-            filteredData = data.events.filter(
-              (row: { status?: string }) =>
-                row?.status === 'scheduled' || row.status === 'dead'
-            );
-          } else if (triggerOp === 'processed' || triggerOp === 'invocation') {
-            // FIXME: temp solution
-            filteredData = data.events.filter(
-              (row: { status?: string }) =>
-                row?.status === 'delivered' || row.status === 'error'
-            );
-          }
-          setRows(filteredData);
+          setRows(data?.events ?? []);
         }
         setLoading(false);
         if (offset !== undefined) {
@@ -131,7 +137,8 @@ export const useFilterQuery = (
             sorts: newSorts,
           }));
         }
-        setCount(filteredData.length);
+        // FIXME: 10 is the default size and hence using it here
+        setCount(data?.count ?? 10);
       },
       () => {
         setError(true);
