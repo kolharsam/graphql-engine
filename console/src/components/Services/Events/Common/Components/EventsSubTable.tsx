@@ -5,10 +5,14 @@ import ReactTable from 'react-table';
 import styles from '../../Events.scss';
 import InvocationLogDetails from './InvocationLogDetails';
 import { Event } from '../../types';
-import { SupportedEvents } from '../../../../../metadata/queryUtils';
+import {
+  SupportedEvents,
+  getEventInvocationsLogByID,
+} from '../../../../../metadata/queryUtils';
 import { sanitiseRow } from '../../utils';
 import { Dispatch } from '../../../../../types';
-import { getEventInvocationThunk } from './utils';
+import requestAction from '../../../../../utils/requestAction';
+import Endpoints from '../../../../../Endpoints';
 
 interface Props extends InjectedReduxProps {
   rows: any[];
@@ -24,7 +28,7 @@ interface Props extends InjectedReduxProps {
 
 type RenderSubTableProps = Omit<
   Props,
-  'makeAPICall' | 'triggerType' | 'invocationsData'
+  'makeAPICall' | 'triggerType' | 'getEventInvocationData'
 >;
 
 const invocationColumns = ['status', 'id', 'created_at'];
@@ -105,8 +109,15 @@ const EventsSubTable: React.FC<Props> = ({
       return;
     }
     // TODO: handle a "loading" state
+    const url = Endpoints.metadata;
+    // FIXME: doesn't work in the current version
+    const payload = getEventInvocationsLogByID(triggerType, props.event.id);
+    const options = {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    };
     props
-      .invocationsData(triggerType, props.event.id)
+      .getEventInvocationData(url, options)
       .then(data => {
         if (data && data?.invocations && !data.error) {
           setInvocations(data.invocations);
@@ -165,19 +176,11 @@ const EventsSubTable: React.FC<Props> = ({
 };
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  invocationsData: (triggerType: SupportedEvents, event_id: string) =>
-    dispatch(getEventInvocationThunk(triggerType, event_id))
-      .then(data => ({
-        invocations: data.invocations,
-        error: null,
-      }))
-      .catch(err => ({
-        invocations: [],
-        error: err,
-      })),
+  getEventInvocationData: (url: string, options: RequestInit) =>
+    dispatch(requestAction(url, options)),
 });
 const connector = connect(null, mapDispatchToProps);
 type InjectedReduxProps = ConnectedProps<typeof connector>;
-const connectedEventSubTable = connector(EventsSubTable);
+const ConnectedEventSubTable = connector(EventsSubTable);
 
-export default connectedEventSubTable;
+export default ConnectedEventSubTable;
