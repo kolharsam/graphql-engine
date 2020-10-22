@@ -70,35 +70,44 @@ export const useFilterQuery = (
     let query = {};
     let endpoint = endpoints.metadata;
 
+    // FIXME: placing temp values until the API is fixed. the rest should be working fine.
     if (triggerType === 'scheduled') {
       if (triggerOp !== 'invocation') {
         query = getScheduledEvents(
           'one_off',
-          limitValue ?? 10,
-          offsetValue ?? 0,
+          10,
+          0,
+          // limitValue ?? 10,
+          // offsetValue ?? 0,
           triggerOp
         );
       } else {
         query = getEventInvocations(
           'one_off',
-          limitValue ?? 10,
-          offsetValue ?? 0
+          10,
+          0
+          // limitValue ?? 10,
+          // offsetValue ?? 0
         );
       }
     } else if (triggerType === 'cron') {
       if (triggerOp !== 'invocation') {
         query = getScheduledEvents(
           'cron',
-          limitValue ?? 10,
-          offsetValue ?? 0,
+          10,
+          0,
+          // limitValue ?? 10,
+          // offsetValue ?? 0,
           triggerOp,
           triggerName
         );
       } else {
         query = getEventInvocations(
           'cron',
-          limitValue ?? 10,
-          offsetValue ?? 0,
+          10,
+          0,
+          // limitValue ?? 10,
+          // offsetValue ?? 0,
           triggerName
         );
       }
