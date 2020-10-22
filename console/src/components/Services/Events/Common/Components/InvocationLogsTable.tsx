@@ -48,6 +48,8 @@ const InvocationLogsTable: React.FC<Props> = props => {
     Nullable<string>
   >(null);
   const [isRedelivering, setIsRedelivering] = React.useState(false);
+  const [pg, setCurrentPage] = React.useState(0);
+  const [pgSize, setPageSize] = React.useState(filterState.limit);
 
   const redeliverHandler = (eventId: string) => {
     setIsRedelivering(true);
@@ -105,16 +107,22 @@ const InvocationLogsTable: React.FC<Props> = props => {
 
   const changePage = (page: number) => {
     if (filterState.offset !== page * filterState.limit) {
+      const offset = page * pgSize;
+      setCurrentPage(page);
       runQuery({
-        offset: page * filterState.limit,
+        offset,
+        limit: offset + pgSize,
       });
     }
   };
 
   const changePageSize = (size: number) => {
     if (filterState.limit !== size) {
+      setPageSize(size);
+      setCurrentPage(0);
       runQuery({
         limit: size,
+        offset: 0, // NOTE: maybe removed later
       });
     }
   };
@@ -206,19 +214,42 @@ const InvocationLogsTable: React.FC<Props> = props => {
     },
   });
 
+  const getNumOfPages = (
+    currentLimit: number,
+    currentOffset: number,
+    currentPageSize: number,
+    currentCount: number | undefined
+  ) => {
+    const calcPgSize = currentLimit - currentOffset;
+    let numOfPages = 0;
+    if (currentCount) {
+      numOfPages = Math.ceil(currentCount / calcPgSize);
+    } else {
+      return currentPageSize;
+    }
+
+    return numOfPages;
+  };
+
   return (
     <ReactTable
       className="-highlight"
-      data={rowsFormatted}
+      data={rowsFormatted.slice(filterState.offset, filterState.limit)}
       columns={gridHeadings}
       minRows={0}
       resizable
-      defaultPageSize={rowsFormatted.length}
+      defaultPageSize={10}
       manual
       getTheadThProps={getTheadThProps}
       getResizerProps={getResizerProps}
       onPageChange={changePage}
-      pages={count ? Math.ceil(count / filterState.limit) : 1}
+      page={pg}
+      pages={getNumOfPages(
+        filterState.limit,
+        filterState.offset,
+        pgSize,
+        count
+      )}
       showPagination={count ? count > 10 : false}
       onPageSizeChange={changePageSize}
       SubComponent={logRow => {
