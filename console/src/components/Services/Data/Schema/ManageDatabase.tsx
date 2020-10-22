@@ -45,33 +45,35 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
 
   return (
     <div className={styles.db_list_item}>
-      <Button
-        size="xs"
-        color="white"
-        onClick={() => {
-          setReloading(true);
-          onReload(dataSource.name, dataSource.driver, () =>
-            setReloading(false)
-          );
-        }}
-      >
-        {reloading ? 'Reloading...' : 'Reload'}
-      </Button>
-      {dataSource.name !== 'default' && (
+      <div className={styles.db_item_actions}>
         <Button
-          className={styles.db_list_content}
           size="xs"
           color="white"
           onClick={() => {
-            setRemoving(true);
-            onRemove(dataSource.name, dataSource.driver, () =>
-              setRemoving(false)
+            setReloading(true);
+            onReload(dataSource.name, dataSource.driver, () =>
+              setReloading(false)
             );
           }}
         >
-          {removing ? 'Removing...' : 'Remove'}
+          {reloading ? 'Reloading...' : 'Reload'}
         </Button>
-      )}
+        {dataSource.name !== 'default' && (
+          <Button
+            className={styles.db_list_content}
+            size="xs"
+            color="white"
+            onClick={() => {
+              setRemoving(true);
+              onRemove(dataSource.name, dataSource.driver, () =>
+                setRemoving(false)
+              );
+            }}
+          >
+            {removing ? 'Removing...' : 'Remove'}
+          </Button>
+        )}
+      </div>
       <div className={styles.db_list_content}>
         <b>
           {dataSource.name} ({dataSource.driver})
