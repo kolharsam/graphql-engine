@@ -1,8 +1,7 @@
-import { ThunkDispatch } from 'redux-thunk';
 import React, { useState } from 'react';
 import Helmet from 'react-helmet';
-
 import { connect, ConnectedProps } from 'react-redux';
+
 import Button from '../../../Common/Button/Button';
 import styles from '../../../Common/Common.scss';
 import { ReduxState } from '../../../../types';
@@ -19,6 +18,7 @@ import { RightContainer } from '../../../Common/Layout/RightContainer';
 import { getDataSources } from '../../../../metadata/selector';
 import ToolTip from '../../../Common/Tooltip/Tooltip';
 import { getConfirmation } from '../../../Common/utils/jsUtils';
+import { mapDispatchToPropsEmpty } from '../../../Common/utils/reactUtils';
 
 const getUrl = (url: string | { from_env: string }) => {
   if (typeof url === 'string') {
@@ -115,7 +115,9 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
   );
 };
 
-const ManageDatabase: React.FC<ManageDatabaseInjectedProps> = ({
+interface ManageDatabaseProps extends InjectedProps {}
+
+const ManageDatabase: React.FC<ManageDatabaseProps> = ({
   dataSources,
   dispatch,
   ...props
@@ -227,14 +229,8 @@ const mapStateToProps = (state: ReduxState) => {
     currentSchema: state.tables.currentSchema,
   };
 };
-const manageConnector = connect(
-  mapStateToProps,
-  (dispatch: ThunkDispatch<ReduxState, unknown, any>) => ({
-    dispatch,
-  })
-);
 
-type ManageDatabaseInjectedProps = ConnectedProps<typeof manageConnector>;
-
-const ConnectedDatabaseManagePage = manageConnector(ManageDatabase);
+const connector = connect(mapStateToProps, mapDispatchToPropsEmpty);
+type InjectedProps = ConnectedProps<typeof connector>;
+const ConnectedDatabaseManagePage = connector(ManageDatabase);
 export default ConnectedDatabaseManagePage;
