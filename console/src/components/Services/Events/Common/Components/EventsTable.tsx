@@ -61,6 +61,9 @@ const EventsTable: React.FC<Props> = props => {
     triggerType,
   } = props;
 
+  const [pg, setCurrentPage] = React.useState(0);
+  const [pgSize, setPageSize] = React.useState(filterState.limit);
+
   if (rows.length === 0) {
     return <div className={styles.add_mar_top}>No data available</div>;
   }
@@ -86,16 +89,22 @@ const EventsTable: React.FC<Props> = props => {
 
   const changePage = (page: number) => {
     if (filterState.offset !== page * filterState.limit) {
+      const offset = page * pgSize;
+      setCurrentPage(page);
       runQuery({
-        offset: page * filterState.limit,
+        offset,
+        limit: offset + pgSize,
       });
     }
   };
 
   const changePageSize = (size: number) => {
     if (filterState.limit !== size) {
+      setPageSize(size);
+      setCurrentPage(0);
       runQuery({
         limit: size,
+        offset: 0, // NOTE: maybe removed later
       });
     }
   };
@@ -204,16 +213,39 @@ const EventsTable: React.FC<Props> = props => {
     },
   });
 
+  const getNumOfPages = (
+    currentLimit: number,
+    currentOffset: number,
+    currentPageSize: number,
+    currentCount: number | undefined
+  ) => {
+    const calcPgSize = currentLimit - currentOffset;
+    let numOfPages = 0;
+    if (currentCount) {
+      numOfPages = Math.ceil(currentCount / calcPgSize);
+    } else {
+      return currentPageSize;
+    }
+
+    return numOfPages;
+  };
+
   return (
     <ReactTable
       className="-highlight"
       data-test="events-table"
-      data={rowsFormatted}
+      data={rowsFormatted.slice(filterState.offset, filterState.limit)}
       columns={gridHeadings}
       resizable
       manual
       onPageChange={changePage}
-      pages={count ? Math.ceil(count / filterState.limit) : 1}
+      page={pg}
+      pages={getNumOfPages(
+        filterState.limit,
+        filterState.offset,
+        pgSize,
+        count
+      )}
       showPagination={count ? count > 10 : false}
       onPageSizeChange={changePageSize}
       sortable={false}
