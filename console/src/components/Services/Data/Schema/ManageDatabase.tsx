@@ -20,11 +20,20 @@ import { getDataSources } from '../../../../metadata/selector';
 import ToolTip from '../../../Common/Tooltip/Tooltip';
 import { getConfirmation } from '../../../Common/utils/jsUtils';
 
+const getUrl = (url: string | { from_env: string }) => {
+  if (typeof url === 'string') {
+    return url;
+  }
+
+  return url.from_env;
+};
+
 type DatabaseListItemProps = {
   dataSource: DataSource;
   onReload: (name: string, driver: Driver, cb: () => void) => void;
   onRemove: (name: string, driver: Driver, cb: () => void) => void;
 };
+
 const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
   onReload,
   onRemove,
@@ -68,7 +77,7 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
         -
         <span style={{ paddingLeft: 5 }}>
           {showUrl ? (
-            dataSource.url
+            getUrl(dataSource.url) ?? ''
           ) : (
             <ToolTip
               id="connection-string-show"
@@ -102,21 +111,22 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
   );
 };
 
-const crumbs = [
-  {
-    title: 'Data',
-    url: '/data',
-  },
-  {
-    title: 'Manage',
-    url: '#',
-  },
-];
-
 const ManageDatabase: React.FC<ManageDatabaseInjectedProps> = ({
   dataSources,
   dispatch,
+  ...props
 }) => {
+  const crumbs = [
+    {
+      title: 'Data',
+      url: `/data/${props.currentDataSource}/schema/${props.currentSchema}`,
+    },
+    {
+      title: 'Manage',
+      url: '#',
+    },
+  ];
+
   const onRemove = (name: string, driver: Driver, cb: () => void) => {
     const confirmation = getConfirmation(
       `Your action will remove the "${name}" data source`,
@@ -153,7 +163,7 @@ const ManageDatabase: React.FC<ManageDatabaseInjectedProps> = ({
                 retries: data.connection_pool_settings.retries,
               }),
             },
-            dbUrl: data.url,
+            dbUrl: getUrl(data.url),
           },
         },
         successCallback
@@ -209,6 +219,8 @@ const mapStateToProps = (state: ReduxState) => {
   return {
     schemaList: state.tables.schemaList,
     dataSources: getDataSources(state),
+    currentDataSource: state.tables.currentDataSource,
+    currentSchema: state.tables.currentSchema,
   };
 };
 const manageConnector = connect(
