@@ -1,28 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
 import Helmet from 'react-helmet';
 import { push } from 'react-router-redux';
+
 import CommonTabLayout from '../../../../Common/Layout/CommonTabLayout/CommonTabLayout';
-
-import { pageTitle, appPrefix } from './constants';
-
 import tabInfo from './tabInfo';
 import globals from '../../../../../Globals';
 import Button from '../../../../Common/Button/Button';
 import styles from './ModifyCustomFunction.scss';
-
-const prefixUrl = globals.urlPrefix + appPrefix;
-
 import TextAreaWithCopy from '../../../../Common/TextAreaWithCopy/TextAreaWithCopy';
-
 import {
   fetchCustomFunction,
   unTrackCustomFunction,
   updateSessVar,
   deleteFunction,
 } from '../customFunctionReducer';
-
 import { NotFoundError } from '../../../../Error/PageNotFound';
 import { getConfirmation } from '../../../../Common/utils/jsUtils';
 import {
@@ -31,6 +23,11 @@ import {
 } from '../../../../Common/utils/routesUtils';
 import SessionVarSection from './SessionVarSection';
 import RawSqlButton from '../../Common/Components/RawSqlButton';
+
+export const pageTitle = 'Custom Function';
+// TODO: change
+export const appPrefix = '/data';
+const prefixUrl = globals.urlPrefix + appPrefix;
 
 class ModifyCustomFunction extends React.Component {
   constructor() {

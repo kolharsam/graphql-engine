@@ -1,15 +1,11 @@
 import React from 'react';
-
 import Helmet from 'react-helmet';
-import CommonTabLayout from '../../../../Common/Layout/CommonTabLayout/CommonTabLayout';
 import { Link } from 'react-router';
 import { push } from 'react-router-redux';
 
-import { pageTitle, appPrefix } from '../Modify/constants';
-
+import CommonTabLayout from '../../../../Common/Layout/CommonTabLayout/CommonTabLayout';
 import tabInfo from '../Modify/tabInfo';
 import globals from '../../../../../Globals';
-
 import { fetchCustomFunction } from '../customFunctionReducer';
 import {
   updateSchemaInfo,
@@ -23,6 +19,7 @@ import {
   getFunctionBaseRoute,
   getTablePermissionsRoute,
 } from '../../../../Common/utils/routesUtils';
+import { pageTitle, appPrefix } from '../Modify/ModifyCustomFunction';
 
 const prefixUrl = globals.urlPrefix + appPrefix;
 
