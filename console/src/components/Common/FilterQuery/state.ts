@@ -75,39 +75,31 @@ export const useFilterQuery = (
       if (triggerOp !== 'invocation') {
         query = getScheduledEvents(
           'one_off',
-          10,
-          0,
-          // limitValue ?? 10,
-          // offsetValue ?? 0,
+          limitValue ?? 10,
+          offsetValue ?? 0,
           triggerOp
         );
       } else {
         query = getEventInvocations(
           'one_off',
-          10,
-          0
-          // limitValue ?? 10,
-          // offsetValue ?? 0
+          limitValue ?? 10,
+          offsetValue ?? 0
         );
       }
     } else if (triggerType === 'cron') {
       if (triggerOp !== 'invocation') {
         query = getScheduledEvents(
           'cron',
-          10,
-          0,
-          // limitValue ?? 10,
-          // offsetValue ?? 0,
+          limitValue ?? 10,
+          offsetValue ?? 0,
           triggerOp,
           triggerName
         );
       } else {
         query = getEventInvocations(
           'cron',
-          10,
-          0,
-          // limitValue ?? 10,
-          // offsetValue ?? 0,
+          limitValue ?? 10,
+          offsetValue ?? 0,
           triggerName
         );
       }

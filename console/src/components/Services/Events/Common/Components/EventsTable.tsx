@@ -4,6 +4,7 @@ import ReactTable, {
   ComponentPropsGetter0,
 } from 'react-table';
 import 'react-table/react-table.css';
+
 import { FilterTableProps, GridHeadingProps } from './types';
 import { ordinalColSort } from '../../../Data/utils';
 import styles from '../../Events.scss';
@@ -93,7 +94,6 @@ const EventsTable: React.FC<Props> = props => {
       setCurrentPage(page);
       runQuery({
         offset,
-        limit: offset + pgSize,
       });
     }
   };
@@ -104,7 +104,7 @@ const EventsTable: React.FC<Props> = props => {
       setCurrentPage(0);
       runQuery({
         limit: size,
-        offset: 0, // NOTE: maybe removed later
+        offset: 0,
       });
     }
   };
@@ -234,7 +234,7 @@ const EventsTable: React.FC<Props> = props => {
     <ReactTable
       className="-highlight"
       data-test="events-table"
-      data={rowsFormatted.slice(filterState.offset, filterState.limit)}
+      data={rowsFormatted.slice(filterState.offset, filterState.offset + pgSize)}
       columns={gridHeadings}
       resizable
       manual

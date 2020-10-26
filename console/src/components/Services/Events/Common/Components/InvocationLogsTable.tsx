@@ -4,6 +4,7 @@ import ReactTable, {
   ComponentPropsGetter0,
 } from 'react-table';
 import 'react-table/react-table.css';
+
 import { FilterTableProps, GridHeadingProps } from './types';
 import { Dispatch } from '../../../../../types';
 import { makeOrderBy } from '../../../../Common/utils/v1QueryUtils';
@@ -111,7 +112,6 @@ const InvocationLogsTable: React.FC<Props> = props => {
       setCurrentPage(page);
       runQuery({
         offset,
-        limit: offset + pgSize,
       });
     }
   };
@@ -122,7 +122,7 @@ const InvocationLogsTable: React.FC<Props> = props => {
       setCurrentPage(0);
       runQuery({
         limit: size,
-        offset: 0, // NOTE: maybe removed later
+        offset: 0,
       });
     }
   };
@@ -234,7 +234,7 @@ const InvocationLogsTable: React.FC<Props> = props => {
   return (
     <ReactTable
       className="-highlight"
-      data={rowsFormatted.slice(filterState.offset, filterState.limit)}
+      data={rowsFormatted.slice(filterState.offset, filterState.offset + pgSize)}
       columns={gridHeadings}
       minRows={0}
       resizable
