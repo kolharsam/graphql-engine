@@ -234,7 +234,10 @@ const InvocationLogsTable: React.FC<Props> = props => {
   return (
     <ReactTable
       className="-highlight"
-      data={rowsFormatted.slice(filterState.offset, filterState.offset + pgSize)}
+      data={rowsFormatted.slice(
+        filterState.offset,
+        filterState.offset + pgSize
+      )}
       columns={gridHeadings}
       minRows={0}
       resizable

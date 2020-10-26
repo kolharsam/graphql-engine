@@ -234,7 +234,10 @@ const EventsTable: React.FC<Props> = props => {
     <ReactTable
       className="-highlight"
       data-test="events-table"
-      data={rowsFormatted.slice(filterState.offset, filterState.offset + pgSize)}
+      data={rowsFormatted.slice(
+        filterState.offset,
+        filterState.offset + pgSize
+      )}
       columns={gridHeadings}
       resizable
       manual
