@@ -206,6 +206,17 @@ const InvocationLogsTable: React.FC<Props> = props => {
     },
   });
 
+  const getNumOfPages = (
+    currentPageSize: number,
+    currentCount: number | undefined
+  ) => {
+    if (currentCount) {
+      return Math.ceil(currentCount / currentPageSize);
+    }
+
+    return currentPageSize;
+  };
+
   return (
     <ReactTable
       className="-highlight"
@@ -218,22 +229,15 @@ const InvocationLogsTable: React.FC<Props> = props => {
       getTheadThProps={getTheadThProps}
       getResizerProps={getResizerProps}
       onPageChange={changePage}
-      pages={count ? Math.ceil(count / filterState.limit) : 1}
+      page={pg}
+      pages={getNumOfPages(pgSize, count)}
       showPagination={count ? count > 10 : false}
       onPageSizeChange={changePageSize}
       SubComponent={logRow => {
         const finalIndex = logRow.index;
         const finalRow = rows[finalIndex];
-        const currentPayload = JSON.stringify(
-          finalRow?.request ?? {},
-          null,
-          4
-        );
-        const finalResponse = JSON.stringify(
-          finalRow?.response ?? {},
-          null,
-          4
-        );
+        const currentPayload = JSON.stringify(finalRow?.request ?? {}, null, 4);
+        const finalResponse = JSON.stringify(finalRow?.response ?? {}, null, 4);
         return (
           <InvocationLogDetails
             requestPayload={currentPayload}

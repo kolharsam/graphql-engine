@@ -204,6 +204,17 @@ const EventsTable: React.FC<Props> = props => {
     },
   });
 
+  const getNumOfPages = (
+    currentPageSize: number,
+    currentCount: number | undefined
+  ) => {
+    if (currentCount) {
+      return Math.ceil(currentCount / currentPageSize);
+    }
+
+    return currentPageSize;
+  };
+
   return (
     <ReactTable
       className="-highlight"
@@ -213,7 +224,8 @@ const EventsTable: React.FC<Props> = props => {
       resizable
       manual
       onPageChange={changePage}
-      pages={count ? Math.ceil(count / filterState.limit) : 1}
+      page={pg}
+      pages={getNumOfPages(pgSize, count)}
       showPagination={count ? count > 10 : false}
       onPageSizeChange={changePageSize}
       sortable={false}
