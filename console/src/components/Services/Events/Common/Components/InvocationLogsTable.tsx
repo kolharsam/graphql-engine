@@ -215,29 +215,20 @@ const InvocationLogsTable: React.FC<Props> = props => {
   });
 
   const getNumOfPages = (
-    currentLimit: number,
-    currentOffset: number,
     currentPageSize: number,
     currentCount: number | undefined
   ) => {
-    const calcPgSize = currentLimit - currentOffset;
-    let numOfPages = 0;
     if (currentCount) {
-      numOfPages = Math.ceil(currentCount / calcPgSize);
-    } else {
-      return currentPageSize;
+      return Math.ceil(currentCount / currentPageSize);
     }
 
-    return numOfPages;
+    return currentPageSize;
   };
 
   return (
     <ReactTable
       className="-highlight"
-      data={rowsFormatted.slice(
-        filterState.offset,
-        filterState.offset + pgSize
-      )}
+      data={rowsFormatted}
       columns={gridHeadings}
       minRows={0}
       resizable
@@ -247,27 +238,14 @@ const InvocationLogsTable: React.FC<Props> = props => {
       getResizerProps={getResizerProps}
       onPageChange={changePage}
       page={pg}
-      pages={getNumOfPages(
-        filterState.limit,
-        filterState.offset,
-        pgSize,
-        count
-      )}
+      pages={getNumOfPages(pgSize, count)}
       showPagination={count ? count > 10 : false}
       onPageSizeChange={changePageSize}
       SubComponent={logRow => {
         const finalIndex = logRow.index;
         const finalRow = rows[finalIndex];
-        const currentPayload = JSON.stringify(
-          finalRow?.request ?? {},
-          null,
-          4
-        );
-        const finalResponse = JSON.stringify(
-          finalRow?.response ?? {},
-          null,
-          4
-        );
+        const currentPayload = JSON.stringify(finalRow?.request ?? {}, null, 4);
+        const finalResponse = JSON.stringify(finalRow?.response ?? {}, null, 4);
         return (
           <InvocationLogDetails
             requestPayload={currentPayload}

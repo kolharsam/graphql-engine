@@ -214,41 +214,27 @@ const EventsTable: React.FC<Props> = props => {
   });
 
   const getNumOfPages = (
-    currentLimit: number,
-    currentOffset: number,
     currentPageSize: number,
     currentCount: number | undefined
   ) => {
-    const calcPgSize = currentLimit - currentOffset;
-    let numOfPages = 0;
     if (currentCount) {
-      numOfPages = Math.ceil(currentCount / calcPgSize);
-    } else {
-      return currentPageSize;
+      return Math.ceil(currentCount / currentPageSize);
     }
 
-    return numOfPages;
+    return currentPageSize;
   };
 
   return (
     <ReactTable
       className="-highlight"
       data-test="events-table"
-      data={rowsFormatted.slice(
-        filterState.offset,
-        filterState.offset + pgSize
-      )}
+      data={rowsFormatted}
       columns={gridHeadings}
       resizable
       manual
       onPageChange={changePage}
       page={pg}
-      pages={getNumOfPages(
-        filterState.limit,
-        filterState.offset,
-        pgSize,
-        count
-      )}
+      pages={getNumOfPages(pgSize, count)}
       showPagination={count ? count > 10 : false}
       onPageSizeChange={changePageSize}
       sortable={false}
