@@ -42,6 +42,7 @@ const InvocationLogs: React.FC<Props> = props => {
       ]}
       identifier={triggerName}
       dispatch={dispatch}
+      toParseJSON
     />
   );
 
