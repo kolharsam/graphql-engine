@@ -135,9 +135,13 @@ export const useFilterQuery = (
             const dataObj: any = {};
             allKeys.forEach((key: string, idx: number) => {
               if (!dataObj[key]) {
-                // to mitigate the duplicate keys that maybe there
-                // TODO: for pending and processed, use event_id as the ID
-                dataObj[key] = values[idx];
+                // to avoid duplicate keys in the results
+                if (triggerOp !== 'invocation' && key === 'event_id') {
+                  dataObj.invocation_id = dataObj.id;
+                  dataObj.id = values[idx];
+                } else {
+                  dataObj[key] = values[idx];
+                }
               }
             });
             formattedData.push(dataObj);
