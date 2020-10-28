@@ -128,26 +128,28 @@ export const useFilterQuery = (
       (data: any) => {
         if (triggerType === 'data') {
           // formatting of the data
-          const allKeys = data.results[0];
-          const resultsData = data.results.slice(0);
+          const allKeys = data.result[0];
+          const resultsData = data.result.slice(1);
           const formattedData: any = [];
           resultsData.forEach((values: any[]) => {
             const dataObj: any = {};
             allKeys.forEach((key: string, idx: number) => {
-              // FIXME: there may be duplicate keys here
-              dataObj[key] = values[idx];
+              if (!dataObj[key]) {
+                // to mitigate the duplicate keys that maybe there
+                // TODO: for pending and processed, use event_id as the ID
+                dataObj[key] = values[idx];
+              }
             });
             formattedData.push(dataObj);
           });
 
           if (limitValue && offsetValue) {
-            setRows(formattedData.slice(offsetValue, limitValue));
+            setRows(formattedData.slice(offsetValue, offsetValue + limitValue));
           } else {
             setRows(formattedData);
           }
-        }
-
-        if (triggerOp !== 'invocation' && triggerType !== 'data') {
+          setCount(formattedData.length);
+        } else if (triggerOp !== 'invocation') {
           setRows(data?.events ?? []);
         } else {
           setRows(data?.invocations ?? []);
@@ -166,8 +168,9 @@ export const useFilterQuery = (
             sorts: newSorts,
           }));
         }
-        // FIXME: 10 is the default size and hence using it here
-        setCount(data?.count ?? 10);
+        if (triggerType !== 'data') {
+          setCount(data?.count ?? 10);
+        }
       },
       () => {
         setError(true);

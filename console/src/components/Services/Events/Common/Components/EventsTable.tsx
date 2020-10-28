@@ -61,7 +61,10 @@ const EventsTable: React.FC<Props> = props => {
     triggerType,
   } = props;
 
-  if (rows.length === 0) {
+  const [pg, setCurrentPage] = React.useState(0);
+  const [pgSize, setPageSize] = React.useState(filterState.limit ?? 10);
+
+  if (!rows.length) {
     return <div className={styles.add_mar_top}>No data available</div>;
   }
 
