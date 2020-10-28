@@ -617,7 +617,6 @@ export const getEventLogs = (
       request: resultData[3],
       response: resultData[4],
     };
-    // FIXME: I'm not sure if this is the only thing that is required.
     successCallback([formattedData]);
   }, errorCallback);
 };
