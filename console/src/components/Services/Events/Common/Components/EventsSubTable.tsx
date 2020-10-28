@@ -24,6 +24,7 @@ interface Props extends InjectedReduxProps {
   event: Event;
   makeAPICall?: boolean;
   triggerType?: SupportedEvents;
+  toParseJSON?: boolean;
 }
 
 type RenderSubTableProps = Omit<
@@ -38,6 +39,7 @@ const RenderEventSubTable: React.FC<RenderSubTableProps> = ({
   rows,
   rowsFormatted,
   headings,
+  ...props
 }) => (
   <div className={styles.addPadding20Px}>
     {event.webhook_conf && (
@@ -69,16 +71,21 @@ const RenderEventSubTable: React.FC<RenderSubTableProps> = ({
           showPagination={false}
           SubComponent={(logRow: any) => {
             const invocationLog = rows[logRow.index];
-            const currentPayload = JSON.stringify(
-              invocationLog.request,
-              null,
-              4
-            );
-            const finalResponse = JSON.stringify(
-              invocationLog.response,
-              null,
-              4
-            );
+            let currentPayload = JSON.stringify(invocationLog.request, null, 4);
+            let finalResponse = JSON.stringify(invocationLog.response, null, 4);
+            console.log({ j: props.toParseJSON });
+            if (props.toParseJSON) {
+              currentPayload = JSON.stringify(
+                JSON.parse(invocationLog.response),
+                null,
+                4
+              );
+              finalResponse = JSON.stringify(
+                JSON.parse(invocationLog.request),
+                null,
+                4
+              );
+            }
             return (
               <InvocationLogDetails
                 requestPayload={currentPayload}
@@ -134,6 +141,7 @@ const EventsSubTable: React.FC<Props> = ({
         rowsFormatted={props.rowsFormatted}
         headings={props.headings}
         rows={props.rows}
+        toParseJSON={props.toParseJSON}
       />
     );
   }

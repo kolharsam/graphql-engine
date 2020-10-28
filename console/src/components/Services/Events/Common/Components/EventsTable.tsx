@@ -47,6 +47,7 @@ interface Props extends FilterTableProps {
     onSuccess: () => void
   ) => void;
   triggerType?: SupportedEvents;
+  toParseJSON?: boolean; // this is for data triggers
 }
 
 const EventsTable: React.FC<Props> = props => {
@@ -146,16 +147,24 @@ const EventsTable: React.FC<Props> = props => {
     }
   });
 
-  const invocationColumns = ['status', 'id', 'created_at'];
+  const invocationColumns = ['status', 'invoid', 'created_at'];
+  const invocationDataTrigCols = ['status', 'invocation_id', 'created_at'];
 
   const invocationGridHeadings: GridHeadingProps[] = [expanderActions];
-
-  invocationColumns.forEach(column => {
-    invocationGridHeadings.push({
-      Header: column,
-      accessor: column,
+  const addToGridHeadings = (headAccArr: string[]) => {
+    headAccArr.forEach(column => {
+      invocationGridHeadings.push({
+        Header: column,
+        accessor: column,
+      });
     });
-  });
+  };
+
+  if (triggerType) {
+    addToGridHeadings(invocationColumns);
+  } else {
+    addToGridHeadings(invocationDataTrigCols);
+  }
 
   const rowsFormatted = rows.map(row => {
     const formattedRow = Object.keys(row).reduce((fr, col) => {
@@ -250,15 +259,11 @@ const EventsTable: React.FC<Props> = props => {
             />
           );
         }
-        const logs =
-          currentRow.logs ||
-          currentRow.cron_event_logs ||
-          currentRow.scheduled_event_logs ||
-          [];
+        const logs = [currentRow];
         const invocationRows = logs.map((r: any) => {
           const newRow: Record<string, JSX.Element> = {};
           // Insert cells corresponding to all rows
-          invocationColumns.forEach(col => {
+          invocationDataTrigCols.forEach(col => {
             newRow[col] = (
               <div
                 className={styles.tableCellCenterAlignedOverflow}
@@ -276,6 +281,7 @@ const EventsTable: React.FC<Props> = props => {
             rows={logs}
             rowsFormatted={invocationRows}
             headings={invocationGridHeadings}
+            toParseJSON={props.toParseJSON}
           />
         );
       }}
