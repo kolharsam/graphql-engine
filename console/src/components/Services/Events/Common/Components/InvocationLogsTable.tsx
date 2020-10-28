@@ -40,6 +40,7 @@ const RedliverEventButton: React.FC<RedeliverButtonProps> = ({
 
 interface Props extends FilterTableProps {
   dispatch: Dispatch;
+  toParseJSON?: boolean;
 }
 
 const InvocationLogsTable: React.FC<Props> = props => {
@@ -236,8 +237,22 @@ const InvocationLogsTable: React.FC<Props> = props => {
       SubComponent={logRow => {
         const finalIndex = logRow.index;
         const finalRow = rows[finalIndex];
-        const currentPayload = JSON.stringify(finalRow?.request ?? {}, null, 4);
-        const finalResponse = JSON.stringify(finalRow?.response ?? {}, null, 4);
+        // TODO: create a function here
+        let currentPayload = JSON.stringify(finalRow?.request ?? {}, null, 4);
+        let finalResponse = JSON.stringify(finalRow?.response ?? {}, null, 4);
+        if (props.toParseJSON) {
+          // need this for data trigger logs
+          currentPayload = JSON.stringify(
+            JSON.parse(finalRow?.request ?? '{}'),
+            null,
+            4
+          );
+          finalResponse = JSON.stringify(
+            JSON.parse(finalRow?.response ?? '{}'),
+            null,
+            4
+          );
+        }
         return (
           <InvocationLogDetails
             requestPayload={currentPayload}
