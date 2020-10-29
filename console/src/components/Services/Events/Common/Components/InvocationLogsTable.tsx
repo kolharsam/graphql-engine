@@ -20,6 +20,7 @@ import { convertDateTimeToLocale } from '../../../../Common/utils/jsUtils';
 import { Nullable } from '../../../../Common/utils/tsUtils';
 import { getInvocationLogStatus } from './utils';
 import Button from '../../../../Common/Button/Button';
+import { QualifiedTable } from '../../../../../metadata/types';
 
 type RedeliverButtonProps = {
   onClickHandler: (e: React.MouseEvent) => void;
@@ -42,6 +43,8 @@ const RedliverEventButton: React.FC<RedeliverButtonProps> = ({
 interface Props extends FilterTableProps {
   dispatch: Dispatch;
   toParseJSON?: boolean;
+  tableDef?: QualifiedTable;
+  tableSource?: string;
 }
 
 const InvocationLogsTable: React.FC<Props> = props => {
@@ -53,11 +56,20 @@ const InvocationLogsTable: React.FC<Props> = props => {
   const [pg, setCurrentPage] = React.useState(0);
   const [pgSize, setPageSize] = React.useState(filterState.limit);
 
-  const redeliverHandler = (eventId: string) => {
+  const redeliverHandler = (
+    eventId: string,
+    tableDef?: QualifiedTable,
+    tableSource?: string
+  ) => {
+    if (!tableDef || !tableSource) {
+      return;
+    }
     setIsRedelivering(true);
     dispatch(
       redeliverDataEvent(
         eventId,
+        tableDef,
+        tableSource,
         () => {
           setRedeliveredEventId(eventId);
           setIsRedelivering(false);
@@ -142,7 +154,11 @@ const InvocationLogsTable: React.FC<Props> = props => {
                 if (isRedelivering) {
                   return;
                 }
-                redeliverHandler(row.event_id);
+                redeliverHandler(
+                  row.event_id,
+                  props.tableDef,
+                  props.tableSource
+                );
                 e.stopPropagation();
               }}
             />
