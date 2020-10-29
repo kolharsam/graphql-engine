@@ -7,7 +7,7 @@ import Button from '../../../Common/Button/Button';
 import styles from '../../../Common/Common.scss';
 import { ReduxState } from '../../../../types';
 import BreadCrumb from '../../../Common/Layout/BreadCrumb/BreadCrumb';
-import CreateDatabase from './CreateDatabase';
+import AddDataSource from './AddDataSource';
 import { DataSource } from '../../../../metadata/types';
 import { Driver } from '../../../../dataSources';
 import {
@@ -132,7 +132,7 @@ const ManageDatabase: React.FC<ManageDatabaseInjectedProps> = ({
     (dispatch(reloadDataSource({ driver, name })) as any).then(cb); // todo
   };
 
-  const onCreateDataSource = (
+  const onSubmitAddDataSource = (
     data: DataSource,
     successCallback: () => void
   ) => {
@@ -199,7 +199,7 @@ const ManageDatabase: React.FC<ManageDatabaseInjectedProps> = ({
           </div>
           <hr />
         </div>
-        <CreateDatabase onSubmit={onCreateDataSource} />
+        <AddDataSource onSubmit={onSubmitAddDataSource} />
       </div>
     </RightContainer>
   );

@@ -32,10 +32,10 @@ const customSelectBoxStyles = {
   },
 };
 
-type CreateDatabaseProps = {
+type AddDataSourceProps = {
   onSubmit(data: DataSource, successCallback: () => void): void;
 };
-const CreateDatabase = ({ onSubmit }: CreateDatabaseProps) => {
+const AddDataSource = ({ onSubmit }: AddDataSourceProps) => {
   const [databaseName, setDatabaseName] = useState('');
   const [databaseType, setDatabaseType] = useState<Driver | null>(null);
   const [databaseUrl, setDatabaseUrl] = useState('');
@@ -182,4 +182,4 @@ const CreateDatabase = ({ onSubmit }: CreateDatabaseProps) => {
     />
   );
 };
-export default CreateDatabase;
+export default AddDataSource;
