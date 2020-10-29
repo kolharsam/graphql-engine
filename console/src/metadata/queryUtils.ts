@@ -475,9 +475,15 @@ export const getCreateScheduledEventQuery = (
   };
 };
 
-export const getRedeliverDataEventQuery = (eventId: string) => ({
-  type: 'redeliver_event',
+export const getRedeliverDataEventQuery = (
+  eventId: string,
+  tableDef: QualifiedTable,
+  source: string
+) => ({
+  type: 'pg_redeliver_event',
   args: {
+    source,
+    table: tableDef,
     event_id: eventId,
   },
 });

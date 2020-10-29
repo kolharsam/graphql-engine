@@ -541,14 +541,21 @@ export const createScheduledEvent = (
 
 export const redeliverDataEvent = (
   eventId: string,
+  tableDef: QualifiedTable,
+  eventTriggerSource: string,
   successCb?: CallableFunction,
   errorCb?: CallableFunction
 ): Thunk => (dispatch, getState) => {
   const url = Endpoints.metadata;
+  const payload = getRedeliverDataEventQuery(
+    eventId,
+    tableDef,
+    eventTriggerSource
+  );
   const options = {
     method: 'POST',
     headers: dataHeaders(getState),
-    body: JSON.stringify(getRedeliverDataEventQuery(eventId)),
+    body: JSON.stringify(payload),
   };
   return dispatch(
     requestAction(url, options, undefined, undefined, true, true)
