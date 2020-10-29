@@ -51,11 +51,11 @@ const CreateDatabase = ({ onSubmit }: CreateDatabaseProps) => {
     if (databaseType === null) return;
     onSubmit(
       {
-        name: databaseName,
+        name: databaseName.trim(),
         driver: databaseType,
         fromEnv: urlType === 'from-env',
         connection_pool_settings: retryConf,
-        url: databaseUrl,
+        url: databaseUrl.trim(),
       },
       () => {
         setDatabaseUrl('');
