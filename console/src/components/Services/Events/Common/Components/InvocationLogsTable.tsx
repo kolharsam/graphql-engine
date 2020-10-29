@@ -91,7 +91,11 @@ const InvocationLogsTable: React.FC<Props> = props => {
         onCancel={() => setRedeliveredEventId(null)}
         customClass={styles.redeliverModal}
       >
-        <RedeliverEvent eventId={redeliveredEventId} dispatch={dispatch} />
+        <RedeliverEvent
+          eventId={redeliveredEventId}
+          dispatch={dispatch}
+          eventDataSource={props.tableSource ?? 'default'}
+        />
       </Modal>
     );
   };
