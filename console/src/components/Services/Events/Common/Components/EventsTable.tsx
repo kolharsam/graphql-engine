@@ -90,6 +90,7 @@ const EventsTable: React.FC<Props> = props => {
 
   const changePage = (page: number) => {
     if (filterState.offset !== page * filterState.limit) {
+      setCurrentPage(page);
       runQuery({
         offset: page * filterState.limit,
       });
@@ -98,6 +99,7 @@ const EventsTable: React.FC<Props> = props => {
 
   const changePageSize = (size: number) => {
     if (filterState.limit !== size) {
+      setPageSize(size);
       runQuery({
         limit: size,
       });
