@@ -52,6 +52,8 @@ const InvocationLogsTable: React.FC<Props> = props => {
     Nullable<string>
   >(null);
   const [isRedelivering, setIsRedelivering] = React.useState(false);
+  const [pg, setPage] = React.useState(0);
+  const [pgSize, setPageSize] = React.useState(10);
 
   const redeliverHandler = (
     eventId: string,
@@ -122,6 +124,7 @@ const InvocationLogsTable: React.FC<Props> = props => {
 
   const changePage = (page: number) => {
     if (filterState.offset !== page * filterState.limit) {
+      setPage(page);
       runQuery({
         offset: page * filterState.limit,
       });
@@ -130,6 +133,7 @@ const InvocationLogsTable: React.FC<Props> = props => {
 
   const changePageSize = (size: number) => {
     if (filterState.limit !== size) {
+      setPageSize(size);
       runQuery({
         limit: size,
       });
