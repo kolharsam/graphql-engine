@@ -130,15 +130,21 @@ export const useFilterQuery = (
           // formatting of the data
           const allKeys = data.result[0];
           const resultsData = data.result.slice(1);
-          const formattedData: any = [];
-          resultsData.forEach((values: any[]) => {
-            const dataObj: any = {};
+          const formattedData: Record<string, any>[] = [];
+          resultsData.forEach((values: string[]) => {
+            const dataObj: Record<string, any> = {};
             allKeys.forEach((key: string, idx: number) => {
               if (!dataObj[key]) {
                 // to avoid duplicate keys in the results
                 if (triggerOp !== 'invocation' && key === 'event_id') {
                   dataObj.invocation_id = dataObj.id;
                   dataObj.id = values[idx];
+                } else if (key === 'request' || key === 'response') {
+                  try {
+                    dataObj[key] = JSON.parse(values[idx]);
+                  } catch {
+                    dataObj[key] = values[idx];
+                  }
                 } else {
                   dataObj[key] = values[idx];
                 }
