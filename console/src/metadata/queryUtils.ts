@@ -479,14 +479,11 @@ export const getRedeliverDataEventQuery = (
   eventId: string,
   tableDef: QualifiedTable,
   source: string
-) => ({
-  type: 'pg_redeliver_event',
-  args: {
-    source,
+) =>
+  getMetadataQuery('redeliver_event', source, {
     table: tableDef,
     event_id: eventId,
-  },
-});
+  });
 
 export const getSaveRemoteRelQuery = (
   args: RemoteRelationshipPayload,
