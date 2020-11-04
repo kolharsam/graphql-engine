@@ -48,7 +48,6 @@ interface Props extends FilterTableProps {
     onSuccess: () => void
   ) => void;
   triggerType?: SupportedEvents;
-  toParseJSON?: boolean; // this is for data triggers
 }
 
 const EventsTable: React.FC<Props> = props => {
@@ -288,7 +287,6 @@ const EventsTable: React.FC<Props> = props => {
             rows={logs}
             rowsFormatted={invocationRows}
             headings={invocationGridHeadings}
-            toParseJSON={props.toParseJSON}
           />
         );
       }}

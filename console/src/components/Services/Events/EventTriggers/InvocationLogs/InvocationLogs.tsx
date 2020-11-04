@@ -41,7 +41,6 @@ const InvocationLogs: React.FC<Props> = props => {
       columns={['id', 'redeliver', 'status', 'event_id', 'created_at']}
       identifier={triggerName}
       dispatch={dispatch}
-      toParseJSON
       tableDef={{
         name: currentTrigger.table_name,
         schema: currentTrigger.schema_name,
