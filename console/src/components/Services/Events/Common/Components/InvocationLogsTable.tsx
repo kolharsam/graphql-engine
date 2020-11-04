@@ -52,8 +52,8 @@ const InvocationLogsTable: React.FC<Props> = props => {
     Nullable<string>
   >(null);
   const [isRedelivering, setIsRedelivering] = React.useState(false);
-  const [pg, setPage] = React.useState(0);
-  const [pgSize, setPageSize] = React.useState(10);
+  const [currentPage, setPage] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
 
   const redeliverHandler = (
     eventId: string,
@@ -233,13 +233,13 @@ const InvocationLogsTable: React.FC<Props> = props => {
 
   const getNumOfPages = (
     currentPageSize: number,
-    currentCount: number | undefined
+    currentCount: number | undefined,
+    currentRowData: Record<string, any>[]
   ) => {
     if (currentCount) {
       return Math.ceil(currentCount / currentPageSize);
     }
-
-    return currentPageSize;
+    return Math.ceil(currentRowData.length / currentPageSize);
   };
 
   return (
@@ -254,8 +254,8 @@ const InvocationLogsTable: React.FC<Props> = props => {
       getTheadThProps={getTheadThProps}
       getResizerProps={getResizerProps}
       onPageChange={changePage}
-      page={pg}
-      pages={getNumOfPages(pgSize, count)}
+      page={currentPage}
+      pages={getNumOfPages(pageSize, count, rowsFormatted)}
       showPagination={count ? count > 10 : false}
       onPageSizeChange={changePageSize}
       SubComponent={logRow => {

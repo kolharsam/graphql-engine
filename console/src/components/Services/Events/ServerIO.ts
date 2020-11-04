@@ -629,7 +629,7 @@ export const getEventLogs = (
       ];
       const formattedData: InvocationLog[] = dataRows.reduce(
         (acc: InvocationLog[], val: any) => {
-          const newObj: any = {};
+          const newObj: Record<string, any> = {};
           allKeys.forEach((key: string, idx: number) => {
             if (invocationsKeys.includes(key) && !newObj[key]) {
               newObj[key] = val[idx];

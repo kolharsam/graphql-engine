@@ -4,6 +4,7 @@ import ReactTable, {
   ComponentPropsGetter0,
 } from 'react-table';
 import 'react-table/react-table.css';
+
 import { FilterTableProps, GridHeadingProps } from './types';
 import { ordinalColSort } from '../../../Data/utils';
 import styles from '../../Events.scss';
@@ -62,8 +63,8 @@ const EventsTable: React.FC<Props> = props => {
     triggerType,
   } = props;
 
-  const [pg, setCurrentPage] = React.useState(0);
-  const [pgSize, setPageSize] = React.useState(filterState.limit ?? 10);
+  const [currentPage, setCurrentPage] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(filterState.limit ?? 10);
 
   if (!rows.length) {
     return <div className={styles.add_mar_top}>No data available</div>;
@@ -150,7 +151,11 @@ const EventsTable: React.FC<Props> = props => {
   });
 
   const invocationColumns = ['status', 'invoid', 'created_at'];
-  const invocationDataTrigCols = ['status', 'invocation_id', 'created_at'];
+  const invocationDataTriggerColumns = [
+    'status',
+    'invocation_id',
+    'created_at',
+  ];
 
   const invocationGridHeadings: GridHeadingProps[] = [expanderActions];
   const addToGridHeadings = (headAccArr: string[]) => {
@@ -165,7 +170,7 @@ const EventsTable: React.FC<Props> = props => {
   if (triggerType) {
     addToGridHeadings(invocationColumns);
   } else {
-    addToGridHeadings(invocationDataTrigCols);
+    addToGridHeadings(invocationDataTriggerColumns);
   }
 
   const rowsFormatted = rows.map(row => {
@@ -220,13 +225,13 @@ const EventsTable: React.FC<Props> = props => {
 
   const getNumOfPages = (
     currentPageSize: number,
-    currentCount: number | undefined
+    currentCount: number | undefined,
+    currentRowData: Record<string, any>[]
   ) => {
     if (currentCount) {
       return Math.ceil(currentCount / currentPageSize);
     }
-
-    return currentPageSize;
+    return Math.ceil(currentRowData.length / currentPageSize);
   };
 
   return (
@@ -238,8 +243,8 @@ const EventsTable: React.FC<Props> = props => {
       resizable
       manual
       onPageChange={changePage}
-      page={pg}
-      pages={getNumOfPages(pgSize, count)}
+      page={currentPage}
+      pages={getNumOfPages(pageSize, count, rowsFormatted)}
       showPagination={count ? count > 10 : false}
       onPageSizeChange={changePageSize}
       sortable={false}
@@ -265,7 +270,7 @@ const EventsTable: React.FC<Props> = props => {
         const invocationRows = logs.map((r: any) => {
           const newRow: Record<string, JSX.Element> = {};
           // Insert cells corresponding to all rows
-          invocationDataTrigCols.forEach(col => {
+          invocationDataTriggerColumns.forEach(col => {
             newRow[col] = (
               <div
                 className={styles.tableCellCenterAlignedOverflow}
