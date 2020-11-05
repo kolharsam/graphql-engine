@@ -1,11 +1,9 @@
-/* */
 import Endpoints from '../../../../../Endpoints';
 import requestAction from '../../../../../utils/requestAction';
 import dataHeaders from '../../../Data/Common/Headers';
 import defaultState from './State';
-/* */
+import { getEventLogs } from '../../ServerIO';
 
-/* */
 const INVOKING_EVENT_TRIGGER = '@invokeManualTrigger/INVOKING_EVENT_TRIGGER';
 const INVOKE_SUCCESS = '@invokeManualTrigger/INVOKE_SUCCESS';
 const INVOKE_FAIL = '@invokeManualTrigger/INVOKE_FAIL';
@@ -14,30 +12,37 @@ const FETCH_EVENT_STATUS_SUCCESS =
   '@invokeManualTrigger/FETCH_EVENT_STATUS_SUCCESS';
 const FETCH_EVENT_STATUS_FAIL = '@invokeManualTrigger/FETCH_EVENT_STATUS_FAIL';
 const RESET = '@invokeManualTrigger/RESET';
-/* */
 
-/* */
+const invokeManualTrigger = (name, args, source) => (dispatch, getState) => {
+  dispatch({ type: INVOKING_EVENT_TRIGGER });
 
-const invokeManualTrigger = (name, args) => (dispatch, getState) => {
   const url = Endpoints.metadata;
+  // payload strictly needs to be a JSON
+  const payload = JSON.parse(
+    JSON.stringify({
+      new: args,
+      old: null,
+    })
+  );
+  // TODO: to make the metadata query for this
   const manualTriggerObj = {
     type: 'pg_invoke_event_trigger',
     args: {
-      name: name,
-      payload: {
-        new: args,
-        old: null,
-      },
+      source,
+      name,
+      payload,
     },
   };
-  dispatch({ type: INVOKING_EVENT_TRIGGER });
   const options = {
     method: 'POST',
     headers: dataHeaders(getState),
     body: JSON.stringify(manualTriggerObj),
   };
+
   return dispatch(requestAction(url, options))
     .then(data => {
+      alert(data);
+      console.log('HERE', data);
       dispatch({ type: INVOKE_SUCCESS, data: data });
       return Promise.resolve(data);
     })
@@ -47,48 +52,25 @@ const invokeManualTrigger = (name, args) => (dispatch, getState) => {
     });
 };
 
-const loadEventInvocations = eventId => (dispatch, getState) => {
-  const url = Endpoints.getSchema;
-  const options = {
-    method: 'POST',
-    headers: dataHeaders(getState),
-    body: JSON.stringify({
-      type: 'select',
-      args: {
-        table: {
-          name: 'event_invocation_logs',
-          schema: 'hdb_catalog',
-        },
-        columns: [
-          '*',
-          {
-            name: 'event',
-            columns: ['*'],
-          },
-        ],
-        where: {
-          event_id: eventId,
-        },
-        order_by: ['-created_at'],
-      },
-    }),
-  };
+const loadEventInvocations = (eventId, eventDataSource) => dispatch => {
+  const successCallback = data =>
+    dispatch({ type: FETCH_EVENT_STATUS_SUCCESS, data: data });
+  const errorCallback = err =>
+    dispatch({ type: FETCH_EVENT_STATUS_FAIL, data: err });
+
   dispatch({ type: FETCHING_EVENT_STATUS });
-  return dispatch(requestAction(url, options)).then(
-    data => {
-      dispatch({ type: FETCH_EVENT_STATUS_SUCCESS, data: data });
-      return Promise.resolve(data);
-    },
-    err => {
-      dispatch({ type: FETCH_EVENT_STATUS_FAIL, data: err });
-      return Promise.reject(err);
-    }
+
+  return dispatch(
+    getEventLogs(
+      eventId,
+      'data',
+      eventDataSource,
+      successCallback,
+      errorCallback
+    )
   );
 };
 
-/* */
-
-/* */
 const invokeManualTriggerReducer = (state = defaultState, action) => {
   switch (action.type) {
     case INVOKING_EVENT_TRIGGER:
