@@ -443,6 +443,7 @@ const ViewRows = ({
               </Dropdown>
               {triggeredRow === rowIndex && (
                 <InvokeManualTrigger
+                  source={currentSource}
                   args={row}
                   name={`${triggeredFunction}`}
                   onClose={onCloseInvokeTrigger}
