@@ -3,6 +3,7 @@ import requestAction from '../../../../../utils/requestAction';
 import dataHeaders from '../../../Data/Common/Headers';
 import defaultState from './State';
 import { getEventLogs } from '../../ServerIO';
+import { invokeManualTriggerQuery } from '../../../../../metadata/queryUtils';
 
 const INVOKING_EVENT_TRIGGER = '@invokeManualTrigger/INVOKING_EVENT_TRIGGER';
 const INVOKE_SUCCESS = '@invokeManualTrigger/INVOKE_SUCCESS';
@@ -18,31 +19,17 @@ const invokeManualTrigger = (name, args, source) => (dispatch, getState) => {
 
   const url = Endpoints.metadata;
   // payload strictly needs to be a JSON
-  const payload = JSON.parse(
-    JSON.stringify({
-      new: args,
-      old: null,
-    })
-  );
-  // TODO: to make the metadata query for this
-  const manualTriggerObj = {
-    type: 'pg_invoke_event_trigger',
-    args: {
-      source,
-      name,
-      payload,
-    },
-  };
+  const payload = JSON.parse(JSON.stringify({ row: args }));
+  const query = invokeManualTriggerQuery({ name, source, payload }, source);
   const options = {
     method: 'POST',
     headers: dataHeaders(getState),
-    body: JSON.stringify(manualTriggerObj),
+    body: JSON.stringify(query),
   };
 
   return dispatch(requestAction(url, options))
     .then(data => {
       alert(data);
-      console.log('HERE', data);
       dispatch({ type: INVOKE_SUCCESS, data: data });
       return Promise.resolve(data);
     })

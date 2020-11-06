@@ -92,6 +92,12 @@ type MetadataQueryArgs = {
   [key: string]: any;
 };
 
+export type InvokeManualTriggerArgs = {
+  name: string;
+  source: string;
+  payload: JSON;
+};
+
 export const getMetadataQuery = (
   type: MetadataQueryType,
   source: string,
@@ -738,3 +744,8 @@ export const deleteScheduledEvent = (
     event_id,
   },
 });
+
+export const invokeManualTriggerQuery = (
+  args: InvokeManualTriggerArgs,
+  source: string
+) => getMetadataQuery('invoke_event_trigger', source, args);
