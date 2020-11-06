@@ -278,8 +278,8 @@ export const getColumnUpdateMigration = (
       'column',
       tableName,
       currentSchema,
-      colName,
       comment,
+      colName,
       colType
     );
 
@@ -287,8 +287,8 @@ export const getColumnUpdateMigration = (
       'column',
       tableName,
       currentSchema,
-      colName,
       originalColComment,
+      colName,
       colType
     );
 
@@ -338,7 +338,6 @@ export const getDownQueryComments = (
   upqueries: RunSqlType[],
   source: string
 ) => {
-  console.log({ upqueries });
   if (Array.isArray(upqueries) && upqueries.length >= 0) {
     let comment = `-- Could not auto-generate a down migration.
 -- Please write an appropriate down migration for the SQL below:`;
