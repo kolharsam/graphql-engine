@@ -37,6 +37,7 @@ export interface OldColumnType {
   column_default: string | null;
   comment: string | null;
   is_nullable?: string;
+  data_type_name?: string;
 }
 
 // utils
@@ -53,8 +54,9 @@ const parseNewCol = (newColumn: NewColumnType) => ({
   customFieldName: (newColumn.customFieldName || '').trim(),
 });
 
+// FIXME: I could never see the property udt_name, need to check this again
 const parseOldColumns = (oldColumn: OldColumnType) => ({
-  originalColType: oldColumn.udt_name,
+  originalColType: oldColumn.udt_name || oldColumn.data_type_name,
   originalData_type: oldColumn.data_type,
   originalColDefault: oldColumn.column_default || '',
   originalColComment: oldColumn.comment || '',
@@ -114,7 +116,7 @@ export const getColumnUpdateMigration = (
 
   const migration = new Migration();
 
-  if (originalColType !== colType) {
+  if (originalColType !== colType && originalColType?.length !== 0) {
     migration.add(
       getRunSqlQuery(columnChangesUpQuery, source),
       getRunSqlQuery(columnChangesDownQuery, source)
