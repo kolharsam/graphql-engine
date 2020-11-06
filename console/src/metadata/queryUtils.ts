@@ -176,12 +176,7 @@ export const getDropPermissionQuery = (
 export const generateSetCustomTypesQuery = (customTypes: CustomTypes) => {
   return {
     type: 'set_custom_types',
-    args: {
-      ...customTypes,
-      // testing stuff
-      objects: customTypes.objects?.map(o => ({ ...o, source: 'lalalal' })),
-      source: 'test_source',
-    },
+    args: customTypes,
   };
 };
 
