@@ -32,10 +32,10 @@ export interface SchemaType {
 }
 
 export interface OldColumnType {
-  udt_name: string;
   data_type: string;
   column_default: string | null;
   comment: string | null;
+  udt_name?: string;
   is_nullable?: string;
   data_type_name?: string;
 }
