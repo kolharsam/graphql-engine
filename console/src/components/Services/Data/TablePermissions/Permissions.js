@@ -83,6 +83,21 @@ import PermButtonSection from './PermButtonsSection';
 import { rolesSelector } from '../../../../metadata/selector';
 import { RightContainer } from '../../../Common/Layout/RightContainer';
 
+const isPermissionsColumnsSame = (table, checkTable, useDefaultKey = true) => {
+  if (table.length !== checkTable.length) {
+    return false;
+  }
+  let keyProp = 'column_name';
+  // useDefaultKey is meant to be used for the key that will be used
+  // to extract the required names from an list of objects
+  if (!useDefaultKey) {
+    keyProp = 'computed_field_name';
+  }
+  const condensedTab = checkTable.map(t => t[keyProp]);
+
+  return table.every(val => condensedTab.includes(val));
+};
+
 class Permissions extends Component {
   constructor() {
     super();
@@ -349,14 +364,6 @@ class Permissions extends Component {
             dispatch(permCloseEdit());
           };
 
-          // const dispatchDeletePermission = () => {
-          //   const confirmMessage = `This will delete the currently set permissions for role "${role}"`;
-          //   const isOk = getConfirmation(confirmMessage);
-          //   if (isOk) {
-          //     dispatch(permRemoveRole(tableSchema, role));
-          //   }
-          // };
-
           const getEditIcon = () => {
             return (
               <span className={styles.editPermsIcon}>
@@ -364,6 +371,22 @@ class Permissions extends Component {
               </span>
             );
           };
+
+          const isPermissionsSetForColumns = permissions =>
+            !permissions.columns.includes('*') &&
+            isPermissionsColumnsSame(
+              permissions.columns,
+              tableSchema.columns,
+              true
+            );
+
+          const isPermissionsSetForComputedFields = permissions =>
+            !permissions.computed_fields.includes('*') &&
+            isPermissionsColumnsSame(
+              permissions.computed_fields,
+              groupedComputedFields.scalar,
+              false
+            );
 
           const getRoleQueryPermission = queryType => {
             let _permission;
@@ -376,42 +399,56 @@ class Permissions extends Component {
               const permissions = rolePermissions[role][queryType];
 
               if (permissions) {
-                let checkColumns;
-                let checkComputedFields;
-                let filterKey;
+                let checkColumns = true;
+                let checkComputedFields = true;
+                let filterKey = 'filter';
 
-                if (queryType === 'select') {
-                  checkColumns = true;
-                  checkComputedFields = true;
-                  filterKey = 'filter';
-                } else if (queryType === 'update') {
-                  checkColumns = true;
+                if (queryType === 'update') {
                   checkComputedFields = false;
-                  filterKey = 'filter';
                 } else if (queryType === 'insert') {
-                  checkColumns = true;
                   checkComputedFields = false;
                   filterKey = 'check';
                 } else if (queryType === 'delete') {
                   checkColumns = false;
                   checkComputedFields = false;
-                  filterKey = 'filter';
                 }
 
-                if (JSON.stringify(permissions[filterKey]) === '{}') {
-                  if (
-                    (checkColumns &&
-                      (!permissions.columns ||
-                        (!permissions.columns.includes('*') &&
-                          permissions.columns.length !==
-                            tableSchema.columns.length))) ||
-                    (checkComputedFields &&
-                      (!permissions.computed_fields ||
-                        (!permissions.computed_fields.includes('*') &&
-                          permissions.computed_fields.length !==
-                            groupedComputedFields.scalar.length)))
-                  ) {
+                if (
+                  permissions[filterKey] &&
+                  !Object.keys(permissions[filterKey]).length
+                ) {
+                  if (checkColumns && checkComputedFields) {
                     _permission = permissionsSymbols.partialAccess;
+
+                    if (tableSchema.columns && groupedComputedFields.scalar) {
+                      if (
+                        !permissions.columns ||
+                        !permissions.computed_fields
+                      ) {
+                        _permission = permissionsSymbols.partialAccess;
+                      } else if (
+                        isPermissionsSetForColumns(permissions) &&
+                        isPermissionsSetForComputedFields(permissions)
+                      ) {
+                        _permission = permissionsSymbols.fullAccess;
+                      }
+                    } else if (permissions.columns) {
+                      if (isPermissionsSetForColumns(permissions)) {
+                        _permission = permissionsSymbols.fullAccess;
+                      }
+                    } else if (permissions.computed_fields) {
+                      if (isPermissionsSetForComputedFields(permissions)) {
+                        _permission = permissionsSymbols.fullAccess;
+                      }
+                    } else {
+                      _permission = permissionsSymbols.noAccess;
+                    }
+                  } else if (checkColumns) {
+                    if (isPermissionsSetForColumns(permissions)) {
+                      _permission = permissionsSymbols.fullAccess;
+                    } else {
+                      _permission = permissionsSymbols.partialAccess;
+                    }
                   } else {
                     _permission = permissionsSymbols.fullAccess;
                   }
@@ -425,6 +462,7 @@ class Permissions extends Component {
 
             return _permission;
           };
+
           return supportedQueryTypes.map(queryType => {
             const isEditAllowed = role !== 'admin';
             const isCurrEdit =
