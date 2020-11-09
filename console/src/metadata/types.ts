@@ -741,7 +741,7 @@ export interface CustomTypeObjectRelationship {
     [ObjectFieldName: string]: string;
   };
   /** Source name, where remote_table exists */
-  source?: 'default' | string;
+  source?: string;
 }
 
 /**

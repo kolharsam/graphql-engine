@@ -488,7 +488,7 @@ export const removeActionRel = (relName, source, typename, successCb) => (
   const migrationName = `remove_action_relationship_${relName}_from_${typename}`;
   const requestMsg = `Removing relationship ${relName}...`;
   const successMsg = 'Relationship removed successfully';
-  const errorMsg = `Failed to remove the relationship: ${relName}`;
+  const errorMsg = `Failed to remove the relationship: "${relName}"`;
 
   makeMigrationCall(
     dispatch,
@@ -530,7 +530,7 @@ export const saveActionPermission = (successCb, errorCb) => (
   const migrationName = `save_action_permission_${currentAction}_${roleName}`;
   const requestMsg = 'Saving permission...';
   const successMsg = 'Permission saved successfully';
-  const errorMsg = `Failed to save permissions for role ${roleName}`;
+  const errorMsg = `Failed to save permissions for role "${roleName}"`;
 
   const customOnSuccess = () => {
     dispatch(exportMetadata());

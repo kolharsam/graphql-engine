@@ -95,7 +95,7 @@ type MetadataQueryArgs = {
 export type InvokeManualTriggerArgs = {
   name: string;
   source: string;
-  payload: JSON;
+  payload: Record<string, any>;
 };
 
 export const getMetadataQuery = (

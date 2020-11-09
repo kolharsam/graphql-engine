@@ -18,9 +18,7 @@ const invokeManualTrigger = (name, args, source) => (dispatch, getState) => {
   dispatch({ type: INVOKING_EVENT_TRIGGER });
 
   const url = Endpoints.metadata;
-  // payload strictly needs to be a JSON
-  const payload = JSON.parse(JSON.stringify({ row: args }));
-  const query = invokeManualTriggerQuery({ name, source, payload }, source);
+  const query = invokeManualTriggerQuery({ name, source, { row: args }}, source);
   const options = {
     method: 'POST',
     headers: dataHeaders(getState),
@@ -29,7 +27,6 @@ const invokeManualTrigger = (name, args, source) => (dispatch, getState) => {
 
   return dispatch(requestAction(url, options))
     .then(data => {
-      alert(data);
       dispatch({ type: INVOKE_SUCCESS, data: data });
       return Promise.resolve(data);
     })
