@@ -36,7 +36,31 @@ const MODAL_OPEN = 'EditItem/MODAL_OPEN';
 const modalOpen = () => ({ type: MODAL_OPEN });
 const modalClose = () => ({ type: MODAL_CLOSE });
 
-const executeSQLCallback = sql => dispatch => {
+// Executes multiple async functions in series
+const asyncSeries = (taskList, dispatch, callback) => {
+  let tasksCompleted = 0;
+  taskList.reduce((taskCompletedList, currentTask) => {
+    return taskCompletedList.then(() => {
+      return new Promise((resolve, reject) => {
+        return dispatch(currentTask)
+          .then(() => {
+            tasksCompleted++;
+            if (tasksCompleted === taskList.length) {
+              if (callback) {
+                callback();
+              }
+            }
+            resolve();
+          })
+          .catch(err => {
+            reject(err);
+          });
+      });
+    });
+  }, Promise.resolve());
+};
+
+const executeSQLCallback = (sql, callback) => dispatch => {
   const objects = parseCreateSQL(sql);
   const requests = [];
 
@@ -44,13 +68,16 @@ const executeSQLCallback = sql => dispatch => {
     let req = {};
     if (object.type === 'function') {
       req = addExistingFunction(object.name, object.schema, true);
-    } else {
+    } else if (object.type === 'table' || object.type === 'view') {
       req = addExistingTableSql(object.name, object.schema, true);
     }
     requests.push(req);
   });
 
-  requests.forEach(dispatch);
+  // we need async series here because we need to ensure that
+  // whatever is trackable from the SQL statements is correctly
+  // tracked and we don't miss out on any of the statements
+  asyncSeries(requests, dispatch, callback);
 };
 
 const executeSQL = (isMigration, migrationName, statementTimeout) => (
@@ -127,7 +154,7 @@ const executeSQL = (isMigration, migrationName, statementTimeout) => (
     .then(
       data => {
         if (isTableTrackChecked) {
-          dispatch(executeSQLCallback(sql)).then(callback(data));
+          dispatch(executeSQLCallback(sql, () => callback(data)));
           return;
         }
         callback(data);
