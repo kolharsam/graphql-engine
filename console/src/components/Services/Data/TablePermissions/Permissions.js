@@ -419,8 +419,12 @@ class Permissions extends Component {
                 ) {
                   if (checkColumns && checkComputedFields) {
                     _permission = permissionsSymbols.partialAccess;
-
-                    if (tableSchema.columns && groupedComputedFields.scalar) {
+                    if (
+                      tableSchema.columns &&
+                      groupedComputedFields.scalar &&
+                      Object.keys(tableSchema.columns).length &&
+                      Object.keys(groupedComputedFields.scalar).length
+                    ) {
                       if (
                         !permissions.columns ||
                         !permissions.computed_fields
@@ -440,8 +444,6 @@ class Permissions extends Component {
                       if (isPermissionsSetForComputedFields(permissions)) {
                         _permission = permissionsSymbols.fullAccess;
                       }
-                    } else {
-                      _permission = permissionsSymbols.noAccess;
                     }
                   } else if (checkColumns) {
                     if (isPermissionsSetForColumns(permissions)) {
