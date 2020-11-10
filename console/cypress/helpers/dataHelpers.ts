@@ -3,6 +3,9 @@ import { ADMIN_SECRET_HEADER_KEY } from '../../src/constants';
 
 export const baseUrl = Cypress.config('baseUrl');
 
+export const getIndexRoute = (sourceName = 'default', schemaName = 'public') =>
+  `/data/${sourceName}/schema/${schemaName}/`;
+
 export const dataTypes = [
   'serial',
   'bigserial',
@@ -48,7 +51,7 @@ export const tableColumnTypeSelector = (alias: string) => {
     .focus();
 };
 
-export const makeDataAPIUrl = (dataApiUrl: string) => `${dataApiUrl}/v1/query`;
+export const makeDataAPIUrl = (dataApiUrl: string) => `${dataApiUrl}/v2/query`;
 
 interface APIPayload {
   [key: string]: any;
