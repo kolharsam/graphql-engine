@@ -248,10 +248,9 @@ export const dropTableRequest = (reqBody: RequestBody, result: ResultType) => {
 
 export const validateCT = (tableName: string, result: ResultType) => {
   const reqBody = {
-    type: 'select',
+    type: 'run_sql',
     args: {
-      table: tableName,
-      columns: ['*'],
+      sql: `SELECT * FROM public.${tableName};`,
     },
   };
   const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
