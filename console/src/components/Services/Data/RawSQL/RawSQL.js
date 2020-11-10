@@ -66,6 +66,7 @@ const RawSQL = ({
   isTableTrackChecked,
   migrationMode,
   allSchemas,
+  currentSchema,
 }) => {
   const [statementTimeout, setStatementTimeout] = useState(
     Number(getLSItem(LS_KEYS.rawSqlStatementTimeout)) || 10
@@ -170,7 +171,13 @@ const RawSQL = ({
         });
 
         allObjectsTrackable = objects.every(object => {
-          const objectName = [object.schema, object.name].join('.');
+          let objectName;
+          if (object.schema) {
+            // the object's schema was explicitly specified
+            objectName = [object.schema, object.name].join('.');
+          } else {
+            objectName = [currentSchema, object.name].join('.');
+          }
 
           if (trackedObjectNames.includes(objectName)) {
             return false;
