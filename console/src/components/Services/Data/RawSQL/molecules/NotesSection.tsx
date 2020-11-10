@@ -15,6 +15,10 @@ const NotesSection = () => {
         Multiple SQL statements will be run as a transaction. i.e. if any
         statement fails, none of the statements will be applied.
       </li>
+      <li>
+        By default, if no schema is provided against the name of your entities,
+        we will be using the <code>public</code> schema.
+      </li>
     </ul>
   );
 };
