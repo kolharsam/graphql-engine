@@ -250,7 +250,7 @@ export const validateCT = (tableName: string, result: ResultType) => {
   const reqBody = {
     type: 'run_sql',
     args: {
-      sql: `SELECT * FROM public.${tableName};`,
+      sql: `SELECT * FROM "public"."${tableName}";`,
     },
   };
   const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
