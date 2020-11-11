@@ -1,4 +1,4 @@
-import { makeDataAPIOptions, getColName } from '../../helpers/dataHelpers';
+import { makeDataAPIOptions, getColName, QueryEndpoint } from '../../helpers/dataHelpers';
 import { migrateModeUrl } from '../../helpers/common';
 import { toggleOnMigrationMode } from '../data/migration-mode/utils';
 import {
@@ -104,31 +104,23 @@ export const validateCFunc = (
   result: ResultType
 ): void => {
   const reqBody = {
-    type: 'select',
-    args: {
-      table: {
-        name: 'hdb_function',
-        schema: 'hdb_catalog',
-      },
-      columns: ['*'],
-      where: {
-        function_name: functionName,
-        function_schema: functionSchema,
-      },
-    },
+    type: 'export_metadata',
+    args: {}
   };
-  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
+  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody, 'metadata');
   cy.request(requestOptions).then(response => {
+    const defaultSourceData = response.body.sources.find(
+      (source: { name: string; }) => source.name === 'default'
+    );
+    const functionData = defaultSourceData.functions;
+    const foundFunction = functionData.filter((fn: { function: { name: string; schema: string; }; }) => 
+      fn.function.name === functionName && fn.function.schema === functionSchema
+    ).length === 1;
     if (result === ResultType.SUCCESS) {
-      expect(
-        response.body.length > 0 &&
-          response.body[0].function_name === functionName
-      ).to.be.true;
+      expect(functionData.length && foundFunction).to.be.true;
     } else {
-      expect(
-        response.body.length > 0 &&
-          response.body[0].function_name === functionName
-      ).to.be.false;
+      // NOTE: functionData.length may not be true
+      expect(functionData.length && foundFunction).to.be.false;
     }
   });
 };
@@ -145,25 +137,23 @@ export const validateUntrackedFunc = (
   result: ResultType
 ): void => {
   const reqBody = {
-    type: 'select',
-    args: {
-      table: {
-        name: 'hdb_function',
-        schema: 'hdb_catalog',
-      },
-      columns: ['*'],
-      where: {
-        function_name: functionName,
-        function_schema: functionSchema,
-      },
-    },
+    type: 'export_metadata',
+    args: {}
   };
-  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
+  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody, 'metadata');
   cy.request(requestOptions).then(response => {
+    const defaultSourceData = response.body.sources.find(
+      (source: { name: string; }) => source.name === 'default'
+    );
+    const functionData = defaultSourceData?.functions ?? [];
+    const foundFunction = functionData.filter((fn: { function: { name: string; schema: string; }; }) => 
+      fn?.function?.name === functionName && fn?.function?.schema === functionSchema
+    ).length === 1;
     if (result === ResultType.SUCCESS) {
-      expect(response.body.length === 0).to.be.true;
+      expect(!functionData.length || !foundFunction).to.be.true;
     } else {
-      expect(response.body.length === 0).to.be.false;
+      // NOTE: functionData.length may not be true
+      expect(!functionData.length || !foundFunction).to.be.false;
     }
   });
 };
@@ -173,20 +163,18 @@ export const validateUntrackedFunc = (
  * @param reqBody
  * @param result
  */
-export const dataRequest = (reqBody: RequestBody, result: ResultType) => {
-  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
+export const dataRequest = (reqBody: RequestBody, result: ResultType, queryType: QueryEndpoint = 'query') => {
+  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody, queryType);
   cy.request(requestOptions).then(response => {
     if (result === ResultType.SUCCESS) {
       expect(
-        response.body.length > 0 &&
-          response.body[0].result_type === 'CommandOk' &&
-          response.body[1].message === ResultType.SUCCESS
+          (response.body.result_type === 'CommandOk' &&
+          response.body.result === null) || response.body.message === 'success'
       ).to.be.true;
     } else {
       expect(
-        response.body.length > 0 &&
-          response.body[0].result_type === 'CommandOk' &&
-          response.body[1].message === ResultType.SUCCESS
+        (response.body.result_type === 'CommandOk' &&
+        response.body.result === null) || response.body.message === 'success'
       ).to.be.false;
     }
   });
@@ -196,15 +184,15 @@ export const createFunctionRequest = (
   reqBody: RequestBody,
   result: ResultType
 ) => {
-  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
+  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody, 'query');
   cy.request(requestOptions).then(response => {
     if (result === ResultType.SUCCESS) {
       expect(
-        response.body.length > 0 && response.body[0].result_type === 'CommandOk'
+        response.body.result_type === 'CommandOk'
       ).to.be.true;
     } else {
       expect(
-        response.body.length > 0 && response.body[0].result_type === 'CommandOk'
+        response.body.result_type === 'CommandOk'
       ).to.be.false;
     }
   });
@@ -214,12 +202,12 @@ export const trackFunctionRequest = (
   reqBody: RequestBody,
   result: ResultType
 ) => {
-  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
+  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody, 'metadata');
   cy.request(requestOptions).then(response => {
     if (result === ResultType.SUCCESS) {
-      expect(response.body[0].message === ResultType.SUCCESS).to.be.true;
+      expect(response.body.message === ResultType.SUCCESS).to.be.true;
     } else {
-      expect(response.body[0].message === ResultType.SUCCESS).to.be.false;
+      expect(response.body.message === ResultType.SUCCESS).to.be.false;
     }
   });
 };
