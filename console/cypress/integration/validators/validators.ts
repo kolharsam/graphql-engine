@@ -336,31 +336,32 @@ const compareChecks = (
   query: QueryType,
   columns: string[] | null
 ) => {
+  const perm = permObj.permission ?? {};
   if (check === 'none') {
     if (query === 'insert') {
-      expect(Object.keys(permObj.check).length === 0).to.be.true;
-      expect(permObj.set[getColName(0)] === '1').to.be.true;
-      expect(permObj.set[getColName(1)] === 'x-hasura-user-id').to.be.true;
+      expect(Object.keys(perm?.check ?? {}).length === 0).to.be.true;
+      expect(perm?.set?.[getColName(0)] === '1').to.be.true;
+      expect(perm?.set?.[getColName(1)] === 'x-hasura-user-id').to.be.true;
     } else {
-      expect(Object.keys(permObj.filter).length === 0).to.be.true;
+      expect(Object.keys(perm?.filter ?? {}).length === 0).to.be.true;
       if (query === 'select' || query === 'update') {
         [0, 1, 2].forEach(index => {
-          expect(permObj.columns.includes(getColName(index)));
+          expect(perm?.columns.includes(getColName(index)));
         });
         if (query === 'update') {
-          expect(permObj.set[getColName(0)] === '1').to.be.true;
-          expect(permObj.set[getColName(1)] === 'x-hasura-user-id').to.be.true;
+          expect(perm?.set?.[getColName(0)] === '1').to.be.true;
+          expect(perm?.set?.[getColName(1)] === 'x-hasura-user-id').to.be.true;
         }
       }
     }
   } else if (query === 'insert') {
-    expect(permObj.check[getColName(0)]._eq === 1).to.be.true;
+    expect(perm?.check?.[getColName(0)]._eq === 1).to.be.true;
   } else {
-    expect(permObj.filter[getColName(0)]._eq === 1).to.be.true;
+    expect(perm?.filter?.[getColName(0)]._eq === 1).to.be.true;
     if (query === 'select' || query === 'update') {
       if (columns) {
         columns.forEach((col, index) => {
-          expect(permObj.columns.includes(getColName(index)));
+          expect(perm?.columns.includes(getColName(index)));
         });
       }
     }
@@ -375,17 +376,15 @@ const handlePermValidationResponse = (
   result: ResultType,
   columns: string[] | null
 ) => {
-  const rolePerms = tableSchema.permissions.find(
-    (permission: { role_name: string }) => permission.role_name === role
-  );
-  if (rolePerms) {
-    const permObj = rolePerms.permissions[query];
-    if (permObj) {
-      compareChecks(permObj, check, query, columns);
-    } else {
-      // this block can be reached only if the permission doesn't exist (failure case)
-      expect(result === ResultType.FAILURE).to.be.true;
-    }
+  let rolePerms = {};
+  if (tableSchema?.[`${query}_permissions`]){
+    rolePerms = tableSchema[`${query}_permissions`].find(
+      (permission: { role: string }) => permission.role === role
+    );
+  }
+
+  if (Object.keys(rolePerms).length) {
+    compareChecks(rolePerms, check, query, columns);
   } else {
     // this block can be reached only if the permission doesn't exist (failure case)
     expect(result === ResultType.FAILURE).to.be.true;
@@ -410,22 +409,16 @@ export const validatePermission = (
   columns: string[] | null
 ) => {
   const reqBody = {
-    type: 'select',
-    args: {
-      table: {
-        name: 'hdb_table',
-        schema: 'hdb_catalog',
-      },
-      columns: ['*.*'],
-      where: {
-        table_schema: 'public',
-      },
-    },
+    type: 'export_metadata',
+    args: {}
   };
-  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
+  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody, 'metadata');
   cy.request(requestOptions).then(response => {
-    const tableSchema = response.body.find(
-      (table: { table_name: string }) => table.table_name === tableName
+    const sourceInfo = response.body.sources.find((source: { name: string; }) =>
+      source.name === 'default'
+    );
+    const tableSchema = sourceInfo.tables.find((table: { table: { name: string; }; }) =>
+      table.table.name === tableName
     );
     handlePermValidationResponse(
       tableSchema,
