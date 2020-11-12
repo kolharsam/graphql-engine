@@ -66,28 +66,18 @@ export const validateRS = (
   result: ResultType
 ): void => {
   const reqBody = {
-    type: 'select',
-    args: {
-      table: {
-        name: 'remote_schemas',
-        schema: 'hdb_catalog',
-      },
-      columns: ['*'],
-      where: {
-        name: remoteSchemaName,
-      },
-    },
+    type: 'export_metadata',
+    args: {}
   };
-  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
+  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody, 'metadata');
   cy.request(requestOptions).then(response => {
+    const remoteSchemas = response.body?.remote_schemas ?? [];
     if (result === ResultType.SUCCESS) {
       expect(
-        response.body.length > 0 && response.body[0].name === remoteSchemaName
+        remoteSchemas.length > 0 && remoteSchemas[0].name === remoteSchemaName
       ).to.be.true;
     } else {
-      expect(
-        response.body.length > 0 && response.body[0].name === remoteSchemaName
-      ).to.be.false;
+      expect(remoteSchemas.length > 0).to.be.false;
     }
   });
 };
