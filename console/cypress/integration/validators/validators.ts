@@ -451,43 +451,47 @@ export const validateMigrationMode = (mode: boolean) => {
  * @param triggerName
  * @param result
  */
-export const validateCTrigger = (triggerName: string, result: ResultType) => {
+export const validateCTrigger = (triggerName: string, tableName: string, schemaName = 'public', result: ResultType) => {
   const reqBody = {
-    type: 'select',
-    args: {
-      table: { name: 'event_triggers', schema: 'hdb_catalog' },
-      columns: ['*'],
-      where: { name: triggerName },
-    },
+    type: 'export_metadata',
+    args: {},
   };
-  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody);
+  const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody, 'metadata');
   cy.request(requestOptions).then(response => {
-    if (result === ResultType.SUCCESS) {
+    const sourceInfo = response.body.sources.find((source: { name: string; }) =>
+        source.name === 'default'
+    );
+    const tableInfo = sourceInfo?.tables.find((table: { table: { schema: string; name: string; }; }) =>
+      table.table.schema === schemaName && table.table.name === tableName
+    ) ?? {};
+    const trigger = tableInfo?.event_triggers.find(
+      (trig: { name: string; }) => trig.name === triggerName
+    ) ?? {};
+    
+    if (result === ResultType.SUCCESS && Object.keys(tableInfo).length) {
       expect(response.status === 200).to.be.true;
-      expect(response.body.length === 1).to.be.true;
-      const trigger = response.body[0];
-      expect(trigger.configuration.definition.insert.columns === '*').to.be
+      expect(trigger.definition.insert.columns === '*').to.be
         .true;
-      expect(trigger.configuration.definition.delete.columns === '*').to.be
+      expect(trigger.definition.delete.columns === '*').to.be
         .true;
-      expect(trigger.configuration.definition.update.columns.length === 3).to.be
+      expect(trigger.definition.update.columns.length === 3).to.be
         .true;
       expect(
-        trigger.configuration.retry_conf.interval_sec ===
+        trigger.retry_conf.interval_sec ===
           parseInt(getIntervalSeconds(), 10)
       ).to.be.true;
       expect(
-        trigger.configuration.retry_conf.num_retries ===
+        trigger.retry_conf.num_retries ===
           parseInt(getNoOfRetries(), 10)
       ).to.be.true;
       expect(
-        trigger.configuration.retry_conf.timeout_sec ===
+        trigger.retry_conf.timeout_sec ===
           parseInt(getTimeoutSeconds(), 10)
       ).to.be.true;
-      expect(trigger.schema_name === 'public').to.be.true;
-      expect(trigger.table_name === 'Apic_test_table_ctr_0').to.be.true;
+      expect(schemaName === 'public').to.be.true;
+      expect(tableName  === 'Apic_test_table_ctr_0').to.be.true;
     } else {
-      expect(response.body.length === 0).to.be.true;
+      expect(!Object.keys(tableInfo).length || !Object.keys(trigger).length).to.be.true;
     }
   });
 };
