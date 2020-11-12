@@ -24,12 +24,12 @@ import {
   
   export const runActionsTests = () => {
     describe('Actions', () => {
-      it('Create an Mutation Action', createMutationAction);
+      it('Create Mutation Action', createMutationAction);
       it('Verify Mutation Actions on GraphiQL', verifyMutation);
       it('Modify Mutation Action', modifyMutationAction);
       it('Delete Mutation Action', deleteMutationAction);
       it('Route to index', routeToIndex);
-      it('Create an Query Action', createQueryAction);
+      it('Create Query Action', createQueryAction);
       it('Verify Query Actions on GraphiQL', verifyQuery);
       it('Modify Query Action', modifyQueryAction);
       it('Delete Query Action', deleteQueryAction);
