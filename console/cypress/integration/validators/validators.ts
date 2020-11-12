@@ -113,7 +113,7 @@ export const validateCFunc = (
       (source: { name: string; }) => source.name === 'default'
     );
     const functionData = defaultSourceData.functions;
-    const foundFunction = functionData.filter((fn: { function: { name: string; schema: string; }; }) => 
+    const foundFunction = functionData.filter((fn: { function: { name: string; schema: string; }; }) =>
       fn.function.name === functionName && fn.function.schema === functionSchema
     ).length === 1;
     if (result === ResultType.SUCCESS) {
@@ -146,7 +146,7 @@ export const validateUntrackedFunc = (
       (source: { name: string; }) => source.name === 'default'
     );
     const functionData = defaultSourceData?.functions ?? [];
-    const foundFunction = functionData.filter((fn: { function: { name: string; schema: string; }; }) => 
+    const foundFunction = functionData.filter((fn: { function: { name: string; schema: string; }; }) =>
       fn?.function?.name === functionName && fn?.function?.schema === functionSchema
     ).length === 1;
     if (result === ResultType.SUCCESS) {
@@ -168,13 +168,13 @@ export const dataRequest = (reqBody: RequestBody, result: ResultType, queryType:
   cy.request(requestOptions).then(response => {
     if (result === ResultType.SUCCESS) {
       expect(
-          (response.body.result_type === 'CommandOk' &&
+        (response.body.result_type === 'CommandOk' &&
           response.body.result === null) || response.body.message === 'success'
       ).to.be.true;
     } else {
       expect(
         (response.body.result_type === 'CommandOk' &&
-        response.body.result === null) || response.body.message === 'success'
+          response.body.result === null) || response.body.message === 'success'
       ).to.be.false;
     }
   });
@@ -377,7 +377,7 @@ const handlePermValidationResponse = (
   columns: string[] | null
 ) => {
   let rolePerms = {};
-  if (tableSchema?.[`${query}_permissions`]){
+  if (tableSchema?.[`${query}_permissions`]) {
     rolePerms = tableSchema[`${query}_permissions`].find(
       (permission: { role: string }) => permission.role === role
     );
@@ -459,15 +459,15 @@ export const validateCTrigger = (triggerName: string, tableName: string, schemaN
   const requestOptions = makeDataAPIOptions(dataApiUrl, adminSecret, reqBody, 'metadata');
   cy.request(requestOptions).then(response => {
     const sourceInfo = response.body.sources.find((source: { name: string; }) =>
-        source.name === 'default'
+      source.name === 'default'
     );
-    const tableInfo = sourceInfo?.tables.find((table: { table: { schema: string; name: string; }; }) =>
+    const tableInfo = sourceInfo?.tables?.find((table: { table: { schema: string; name: string; }; }) =>
       table.table.schema === schemaName && table.table.name === tableName
     ) ?? {};
-    const trigger = tableInfo?.event_triggers.find(
+    const trigger = tableInfo?.event_triggers?.find(
       (trig: { name: string; }) => trig.name === triggerName
     ) ?? {};
-    
+
     if (result === ResultType.SUCCESS && Object.keys(tableInfo).length) {
       expect(response.status === 200).to.be.true;
       expect(trigger.definition.insert.columns === '*').to.be
@@ -478,18 +478,18 @@ export const validateCTrigger = (triggerName: string, tableName: string, schemaN
         .true;
       expect(
         trigger.retry_conf.interval_sec ===
-          parseInt(getIntervalSeconds(), 10)
+        parseInt(getIntervalSeconds(), 10)
       ).to.be.true;
       expect(
         trigger.retry_conf.num_retries ===
-          parseInt(getNoOfRetries(), 10)
+        parseInt(getNoOfRetries(), 10)
       ).to.be.true;
       expect(
         trigger.retry_conf.timeout_sec ===
-          parseInt(getTimeoutSeconds(), 10)
+        parseInt(getTimeoutSeconds(), 10)
       ).to.be.true;
       expect(schemaName === 'public').to.be.true;
-      expect(tableName  === 'Apic_test_table_ctr_0').to.be.true;
+      expect(tableName === 'Apic_test_table_ctr_0').to.be.true;
     } else {
       expect(!Object.keys(tableInfo).length || !Object.keys(trigger).length).to.be.true;
     }
