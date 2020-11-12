@@ -29,7 +29,7 @@ import { getIndexRoute } from '../../../helpers/dataHelpers';
       it('Create test table', createTableArticle);
       it('Run SQL for custom function', createCustomFunction);
       it('Insert articles into table', insertAuthorsIntoTable);
-      it('Track table & custom function', trackCustomFn);
+      it('Track custom function', trackCustomFn);
       it('Route to GraphiQL page', routeToGraphiql);
       it('Check custom function results on GraphiQL', verifyCustomFnResult);
       it('Route to Raw SQL page', routeToSQLPage);
