@@ -14,12 +14,13 @@ import {
   deleteCTTestTrigger,
   deleteCTTestTable,
 } from './spec';
+import { getIndexRoute } from '../../../helpers/dataHelpers';
 
 const setup = () => {
   describe('Check Data Tab', () => {
     it('Clicking on Data tab opens the correct route', () => {
       // Visit the index route
-      cy.visit('/data/schema/public');
+      cy.visit(getIndexRoute());
       cy.wait(7000);
       // Get and set validation metadata
       setMetaData();

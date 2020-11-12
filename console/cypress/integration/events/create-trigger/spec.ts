@@ -33,7 +33,7 @@ export const passPTCreateTable = () => {
   // Click on create table
   cy.get(getElementFromAlias('data-create-table')).click();
   // Match the URL
-  cy.url().should('eq', `${baseUrl}/data/schema/public/table/add`);
+  cy.url().should('eq', `${baseUrl}/data/default/schema/public/table/add`);
   // Type table name
   cy.get(getElementFromAlias('tableName')).type(getTableName(0, testName));
   // Set first column
@@ -65,7 +65,7 @@ export const passPTCreateTable = () => {
   cy.wait(7000);
   cy.url().should(
     'eq',
-    `${baseUrl}/data/schema/public/tables/${getTableName(0, testName)}/modify`
+    `${baseUrl}/data/default/schema/public/tables/${getTableName(0, testName)}/modify`
   );
 };
 
@@ -158,7 +158,7 @@ export const failCTDuplicateTrigger = () => {
 
 export const insertTableRow = () => {
   // visit insert row page
-  cy.visit(`/data/schema/public/tables/${getTableName(0, testName)}/insert`);
+  cy.visit(`/data/default/schema/public/tables/${getTableName(0, testName)}/insert`);
   // one serial column. so insert a row directly.
   cy.get(getElementFromAlias(`typed-input-${1}`)).type('123');
   cy.get(getElementFromAlias(`typed-input-${2}`)).type('Some text');
@@ -195,7 +195,7 @@ export const deleteCTTestTrigger = () => {
 
 export const deleteCTTestTable = () => {
   //   Go to the modify section of the table
-  cy.visit(`/data/schema/public/tables/${getTableName(0, testName)}/browse`);
+  cy.visit(`/data/default/schema/public/tables/${getTableName(0, testName)}/browse`);
   cy.get(getElementFromAlias('table-modify')).click();
   //   Click on delete
   setPromptValue(getTableName(0, testName));
@@ -204,7 +204,7 @@ export const deleteCTTestTable = () => {
   cy.window().its('prompt').should('be.called');
   cy.wait(7000);
   //   Match the URL
-  cy.url().should('eq', `${baseUrl}/data/schema`);
+  cy.url().should('eq', `${baseUrl}/data/default/schema/public`);
   //   Validate
   validateCT(getTableName(0, testName), ResultType.FAILURE);
 };
