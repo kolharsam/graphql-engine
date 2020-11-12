@@ -1,4 +1,4 @@
-import { baseUrl, getElementFromAlias } from '../../helpers/dataHelpers';
+import { baseUrl, getElementFromAlias, getElementFromClassName } from '../../helpers/dataHelpers';
 import { setPromptValue } from '../../helpers/common';
 
 const statements = {
@@ -113,15 +113,17 @@ export const createMutationAction = () => {
 };
 
 export const verifyMutation = () => {
+  // NOTE/FIXME: This isn't working for some reason :P Need to check.
   routeToGraphiql();
   // Type the query
+  cy.wait(5000);
   cy.get('textarea')
     .first()
     .type(`{enter}{uparrow}${statements.createMutationGQLQuery}`, {
       force: true,
     });
-  cy.wait(2000);
-  cy.get('.execute-button').click();
+  cy.wait(5000);
+  cy.get(getElementFromClassName('execute-button')).click();
   // FIXME: NOT GOOD!
   cy.wait(30000);
   cy.get('.cm-property').contains('login');
@@ -139,7 +141,7 @@ export const modifyMutationAction = () => {
   clearHandler();
   typeIntoHandler(statements.changeHandlerText);
 
-  cy.get(getElementFromAlias('save-modify-action-changes ')).click();
+  cy.get(getElementFromAlias('save-modify-action-changes')).click();
   cy.wait(5000);
 
   // TODO?: Relationships & codegen part?
@@ -162,7 +164,7 @@ export const modifyMutationAction = () => {
 
 const deleteAction = (promptValue: string) => {
   setPromptValue(promptValue);
-  cy.get(getElementFromAlias('delete-modify-action-changes')).click();
+  cy.get(getElementFromAlias('delete-action')).click();
   cy.window().its('prompt').should('be.called');
   cy.wait(7000);
 };
@@ -196,12 +198,13 @@ export const createQueryAction = () => {
 };
 
 export const verifyQuery = () => {
+  // NOTE/FIXME: This isn't working for some reason :P Need to check.
   routeToGraphiql();
   cy.get('textarea')
     .first()
     .type(`{enter}{uparrow}${statements.createQueryGQLQuery}`, { force: true });
-  cy.wait(2000);
-  cy.get('.execute-button').click();
+  cy.wait(5000);
+  cy.get(getElementFromClassName('execute-button')).click();
   cy.wait(30000);
   cy.get('.cm-property').contains('addNumbers');
   cy.get('.cm-property').contains('sum');
@@ -218,7 +221,7 @@ export const modifyQueryAction = () => {
   clearHandler();
   typeIntoHandler(statements.changeHandlerText);
 
-  cy.get(getElementFromAlias('save-modify-action-changes ')).click();
+  cy.get(getElementFromAlias('save-modify-action-changes')).click();
   cy.wait(5000);
 
   // TODO?: Relationships & codegen part?
