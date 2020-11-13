@@ -10,10 +10,11 @@ const statements = {
   }
   `,
   createMutationHandler: 'https://hasura-actions-demo.glitch.me/login',
-  createMutationGQLQuery: `mutation {
-    login (username: "jondoe", password: "mysecretpassword") {
+  createMutationGQLQuery: `mutation getAccessToken ($username: String!, $password: String!) {
+    login (username: $username, password: $password) {
       accessToken
     `,
+  createMutationQueryVars: `{"username": "john", "password": "p"`,
   createQueryActionText: `type Query {
     addNumbers (numbers: [Int]): AddResult
   }`,
@@ -27,6 +28,9 @@ const statements = {
     `,
   changeHandlerText: 'http://host.docker.internal:3000',
 };
+
+// NOTE: This test suite does not include cases for relationships, headers and
+// the codegen part
 
 const clearActionDef = () => {
   cy.get('textarea').first().type('{selectall}', { force: true });
@@ -113,16 +117,26 @@ export const createMutationAction = () => {
 };
 
 export const verifyMutation = () => {
-  // NOTE/FIXME: This isn't working for some reason :P Need to check.
   routeToGraphiql();
   // Type the query
-  cy.wait(5000);
+  cy.on('uncaught:exception', () => {
+    // NOTE: doing this since, there was some exception thrown by the
+    // graphiql editor even though the query was good.
+    // Docs: https://docs.cypress.io/api/events/catalog-of-events.html#To-turn-off-all-uncaught-exception-handling
+    return false;
+  });
   cy.get('textarea')
-    .first()
+    .eq(0)
     .type(`{enter}{uparrow}${statements.createMutationGQLQuery}`, {
       force: true,
     });
-  cy.wait(5000);
+  cy.wait(3000);
+  cy.get('textarea')
+    .eq(1)
+    .type(`{enter}{uparrow}${statements.createMutationQueryVars}`, {
+      force: true,
+    })
+  cy.wait(3000);
   cy.get(getElementFromClassName('execute-button')).click();
   // FIXME: NOT GOOD!
   cy.wait(30000);
@@ -143,8 +157,6 @@ export const modifyMutationAction = () => {
 
   cy.get(getElementFromAlias('save-modify-action-changes')).click();
   cy.wait(5000);
-
-  // TODO?: Relationships & codegen part?
 
   // permissions part
   cy.get(getElementFromAlias('actions-permissions')).click();
@@ -171,13 +183,11 @@ const deleteAction = (promptValue: string) => {
 
 export const deleteMutationAction = () => deleteAction('login');
 
-export const routeToIndex = () => {
+export const createQueryAction = () => {
+  // Routing to the index page
   cy.visit('/actions/manage/actions');
   cy.wait(7000);
   cy.url().should('eq', `${baseUrl}/actions/manage/actions`);
-};
-
-export const createQueryAction = () => {
   // Click on create
   cy.get(getElementFromAlias('data-create-actions')).click();
   cy.wait(7000);
@@ -198,12 +208,17 @@ export const createQueryAction = () => {
 };
 
 export const verifyQuery = () => {
-  // NOTE/FIXME: This isn't working for some reason :P Need to check.
+  cy.on('uncaught:exception', () => {
+    // NOTE: doing this since, there was some exception thrown by the
+    // graphiql editor even though the query was good.
+    // Docs: https://docs.cypress.io/api/events/catalog-of-events.html#To-turn-off-all-uncaught-exception-handling
+    return false;
+  });
   routeToGraphiql();
   cy.get('textarea')
-    .first()
-    .type(`{enter}{uparrow}${statements.createQueryGQLQuery}`, { force: true });
-  cy.wait(5000);
+    .eq(0)
+    .type(`{enter}{uparrow}${statements.createQueryGQLQuery}`, { force: true })
+    .wait(4000);
   cy.get(getElementFromClassName('execute-button')).click();
   cy.wait(30000);
   cy.get('.cm-property').contains('addNumbers');
@@ -223,8 +238,6 @@ export const modifyQueryAction = () => {
 
   cy.get(getElementFromAlias('save-modify-action-changes')).click();
   cy.wait(5000);
-
-  // TODO?: Relationships & codegen part?
 
   // permissions part
   cy.get(getElementFromAlias('actions-permissions')).click();
