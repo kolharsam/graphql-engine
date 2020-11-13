@@ -1,7 +1,6 @@
 import {
     createMutationAction,
     modifyMutationAction,
-    routeToIndex,
     createQueryAction,
     modifyQueryAction,
     verifyMutation,
@@ -28,7 +27,6 @@ import {
       it('Verify Mutation Actions on GraphiQL', verifyMutation);
       it('Modify Mutation Action', modifyMutationAction);
       it('Delete Mutation Action', deleteMutationAction);
-      it('Route to index', routeToIndex);
       it('Create Query Action', createQueryAction);
       it('Verify Query Actions on GraphiQL', verifyQuery);
       it('Modify Query Action', modifyQueryAction);
