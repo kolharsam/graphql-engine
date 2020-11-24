@@ -14,6 +14,7 @@ import {
   setHeaders as dispatchNewHeaders,
   toggleForwardClientHeaders as toggleFCH,
   resetDerivedActionParentOperation,
+  setActionTimeout,
 } from './reducer';
 import { createAction } from '../ServerIO';
 import { getActionDefinitionFromSdl } from '../../../../shared/utils/sdlUtils';
@@ -59,6 +60,7 @@ const AddAction = ({
 
   const handlerOnChange = e => dispatch(setActionHandler(e.target.value));
   const kindOnChange = k => dispatch(setActionKind(k));
+  const timeoutOnChange = t => dispatch(setActionTimeout(t));
 
   const {
     sdl: typesDefinitionSdl,
@@ -164,6 +166,7 @@ const AddAction = ({
         disabled={readOnlyMode}
       />
       <hr />
+      <input type="number" onChange={(e) => timeoutOnChange(e.target.value)} />
       <Button
         color="yellow"
         size="sm"

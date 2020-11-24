@@ -150,6 +150,7 @@ export const createAction = () => (dispatch, getState) => {
     headers: rawState.headers,
     forwardClientHeaders: rawState.forwardClientHeaders,
     comment: actionDescription,
+    timeout: parseInt(rawState.timeout, 10),
   };
 
   const validationError = getStateValidationError(state, existingTypesList);
