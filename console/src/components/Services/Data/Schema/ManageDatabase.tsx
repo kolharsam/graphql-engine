@@ -6,13 +6,13 @@ import Button from '../../../Common/Button/Button';
 import styles from '../../../Common/Common.scss';
 import { FixMe, ReduxState } from '../../../../types';
 import BreadCrumb from '../../../Common/Layout/BreadCrumb/BreadCrumb';
-import AddDataSource from './AddDataSource';
+// import AddDataSource from './AddDataSource';
 import { DataSource } from '../../../../metadata/types';
 import { Driver } from '../../../../dataSources';
 import {
   removeDataSource,
   reloadDataSource,
-  addDataSource,
+  // addDataSource,
 } from '../../../../metadata/actions';
 import { RightContainer } from '../../../Common/Layout/RightContainer';
 import { getDataSources } from '../../../../metadata/selector';
@@ -51,7 +51,7 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
         </Button>
         {dataSource.name !== 'default' && (
           <Button
-            className={styles.db_list_content}
+            className={`${styles.db_list_content} ${styles.text_red}`}
             size="xs"
             color="white"
             onClick={() => {
@@ -66,11 +66,14 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
         )}
       </div>
       <div className={styles.db_list_content}>
-        <b>
-          {dataSource.name} ({dataSource.driver})
-        </b>{' '}
-        -
-        <span style={{ paddingLeft: 5 }}>
+        <div className={styles.db_display_data}>
+          <div className={styles.displayFlexContainer}>
+            <b>{dataSource.name}</b>&nbsp;<p>({dataSource.driver})</p>
+          </div>
+          {/* TODO: Once host related info is added, it can added here */}
+          <p style={{ marginTop: -5 }}>host</p>
+        </div>
+        <span style={{ paddingLeft: 125 }}>
           {showUrl ? (
             typeof dataSource.url === 'string' ? (
               dataSource.url
@@ -83,11 +86,13 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
               placement="right"
               message="Show connection string"
             >
-              <i
-                className={`${styles.showAdminSecret} fa fa-eye`}
-                aria-hidden="true"
-                onClick={() => setShowUrl(true)}
-              />
+              <div className={styles.show_connection_string} onClick={() => setShowUrl(true)}>
+                <i
+                  className={`${styles.showAdminSecret} fa fa-eye`}
+                  aria-hidden="true"
+                />
+                <p style={{ marginLeft: 6 }}>Show Connection String</p>
+              </div>
             </ToolTip>
           )}
           {showUrl && dataSource.name !== 'default' && (
@@ -143,34 +148,34 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
     (dispatch(reloadDataSource({ driver, name })) as FixMe).then(cb);
   };
 
-  const onSubmitAddDataSource = (
-    data: DataSource,
-    successCallback: () => void
-  ) => {
-    dispatch(
-      addDataSource(
-        {
-          driver: data.driver,
-          payload: {
-            name: data.name.trim(),
-            connection_pool_settings: {
-              ...(data.connection_pool_settings?.idle_timeout && {
-                idle_timeout: data.connection_pool_settings.idle_timeout,
-              }),
-              ...(data.connection_pool_settings?.max_connections && {
-                max_connections: data.connection_pool_settings.max_connections,
-              }),
-              ...(data.connection_pool_settings?.retries && {
-                retries: data.connection_pool_settings.retries,
-              }),
-            },
-            dbUrl: typeof data.url === 'string' ? data.url : data.url.from_env,
-          },
-        },
-        successCallback
-      )
-    );
-  };
+  // const onSubmitAddDataSource = (
+  //   data: DataSource,
+  //   successCallback: () => void
+  // ) => {
+  //   dispatch(
+  //     addDataSource(
+  //       {
+  //         driver: data.driver,
+  //         payload: {
+  //           name: data.name.trim(),
+  //           connection_pool_settings: {
+  //             ...(data.connection_pool_settings?.idle_timeout && {
+  //               idle_timeout: data.connection_pool_settings.idle_timeout,
+  //             }),
+  //             ...(data.connection_pool_settings?.max_connections && {
+  //               max_connections: data.connection_pool_settings.max_connections,
+  //             }),
+  //             ...(data.connection_pool_settings?.retries && {
+  //               retries: data.connection_pool_settings.retries,
+  //             }),
+  //           },
+  //           dbUrl: typeof data.url === 'string' ? data.url : data.url.from_env,
+  //         },
+  //       },
+  //       successCallback
+  //     )
+  //   );
+  // };
 
   const onClickConnectDB = () => {
     // TODO: push to new route
@@ -216,7 +221,7 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
           </div>
           <hr />
         </div>
-        <AddDataSource onSubmit={onSubmitAddDataSource} />
+        {/* <AddDataSource onSubmit={onSubmitAddDataSource} /> */}
       </div>
     </RightContainer>
   );
