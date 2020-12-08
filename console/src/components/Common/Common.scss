@@ -1421,12 +1421,38 @@ code {
 }
 
 .db_list_item {
-  display: flex;
+  display: inline-flex;
   margin-top: 20px;
+  border-bottom: 1px solid rgb(187, 187, 187);
+  padding-bottom: 12px;
+}
+
+.db_list_item:last-of-type {
+  border-bottom: none;
+}
+
+.show_connection_string {
+  display: -webkit-inline-box;
+  &:hover{
+    cursor: pointer;
+  }
+  color: #337ab7;
+}
+
+.showAdminSecret {
+  font-size: 16px;
+}
+
+.db_display_data {
+  display: flex;
+  align-items: flex-start;
+  padding-left: 95px;
+  flex-direction: column;
 }
 
 .db_list_content {
   margin-left: 10px;
+  display: inline-flex;
 }
 
 .data_list_container {
@@ -1440,6 +1466,11 @@ code {
   max-width: 120px;
   justify-content: space-between;
   margin-right: 10px;
+  align-items: center;
+}
+
+.text_red {
+  color: rgb(192, 32, 32);
 }
 
 /* container height subtracting top header and bottom scroll bar */
