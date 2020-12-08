@@ -172,20 +172,26 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
     );
   };
 
+  const onClickConnectDB = () => {
+    // TODO: push to new route
+  };
+
   return (
     <RightContainer>
       <Helmet title="Manage - Data | Hasura" />
       <div className={`container-fluid ${styles.manage_dbs_page}`}>
         <BreadCrumb breadCrumbs={crumbs} />
-        <div className={styles.display_flex}>
-          <h2
-            className={`${styles.headerText} ${styles.display_inline} ${styles.padd_top}`}
-          >
-            Manage Databases
-          </h2>
-          {/* <Button color="yellow" size="md" className={styles.add_mar_left}>
-            Add Database
-          </Button> */}
+        <div className={styles.padd_top}>
+          <div className={`${styles.display_flex} manage-db-header`}>
+            <h2
+              className={`${styles.headerText} ${styles.display_inline}`}
+            >
+              Manage Databases
+            </h2>
+            <Button color="yellow" size="md" className={styles.add_mar_left} onClick={onClickConnectDB}>
+              Connect Database
+            </Button>
+          </div>
         </div>
         <div className={styles.manage_db_content}>
           <hr />
