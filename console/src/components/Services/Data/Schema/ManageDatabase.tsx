@@ -19,6 +19,7 @@ import { getDataSources } from '../../../../metadata/selector';
 import ToolTip from '../../../Common/Tooltip/Tooltip';
 import { getConfirmation } from '../../../Common/utils/jsUtils';
 import { mapDispatchToPropsEmpty } from '../../../Common/utils/reactUtils';
+import _push from '../push';
 
 type DatabaseListItemProps = {
   dataSource: DataSource;
@@ -178,7 +179,7 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
   // };
 
   const onClickConnectDB = () => {
-    // TODO: push to new route
+    dispatch(_push('/data/manage/connect'));
   };
 
   return (
