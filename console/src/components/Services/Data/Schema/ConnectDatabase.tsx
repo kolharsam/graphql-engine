@@ -1,18 +1,43 @@
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import Helmet from 'react-helmet';
 
 import { ReduxState } from '../../../../types';
-import { getDataSources } from '../../../../metadata/selector';
 import { mapDispatchToPropsEmpty } from '../../../Common/utils/reactUtils';
 import { RightContainer } from '../../../Common/Layout/RightContainer';
+import BreadCrumb from '../../../Common/Layout/BreadCrumb/BreadCrumb';
 
 import styles from '../../../Common/Common.scss';
-import BreadCrumb from '../../../Common/Layout/BreadCrumb/BreadCrumb';
 
 interface ConnectDatabaseProps extends InjectedProps {}
 
+const connectionRadioName = 'connection-type';
+
+const connectionTypes = {
+  DATABASE_URL: 'DATABASE_URL',
+  CONNECTION_PARAMS: 'CONNECTION_PARAMETERS',
+  ENV_VAR: 'ENVIRONMENT_VARIABLES',
+};
+
+const connectionRadios = [
+  {
+    value: connectionTypes.CONNECTION_PARAMS,
+    title: 'Connection Parameters',
+  },
+  {
+    value: connectionTypes.DATABASE_URL,
+    title: 'Database URL',
+  },
+  {
+    value: connectionTypes.ENV_VAR,
+    title: 'Environment Variable',
+  },
+];
+
 const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
+  const [connectionType, changeConnectionType] = React.useState(
+    connectionTypes.DATABASE_URL
+  );
   const crumbs = [
     {
       title: 'Data',
@@ -28,6 +53,10 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
     },
   ];
 
+  const onChangeConnectionType = (e: ChangeEvent<HTMLInputElement>) => {
+    changeConnectionType(e.target.value);
+  };
+
   return (
     <RightContainer>
       <Helmet title="Connect DB - Hasura" />
@@ -42,10 +71,31 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
         </div>
         <hr />
         <div className={styles.connect_db_content}>
-          <h4 className={`${styles.remove_pad_bottom} ${styles.connect_db_header}`}>
+          <h4
+            className={`${styles.remove_pad_bottom} ${styles.connect_db_header}`}
+          >
             Connect Database Via
           </h4>
-          {/* TODO: add form here */}
+          <div
+            className={styles.connect_db_radios}
+            onChange={onChangeConnectionType}
+          >
+            {connectionRadios.map(
+              (radioBtn: { value: string; title: string }) => (
+                <label className={styles.connect_db_radio_label}>
+                  <input
+                    type="radio"
+                    value={radioBtn.value}
+                    name={connectionRadioName}
+                    checked={connectionType === radioBtn.value}
+                  />
+                  {radioBtn.title}
+                </label>
+              )
+            )}
+          </div>
+          {/* TODO: add form(s) here */}
+          <div className={styles.connect_form_layout}>{connectionType}</div>
         </div>
       </div>
     </RightContainer>
@@ -54,8 +104,6 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
 
 const mapStateToProps = (state: ReduxState) => {
   return {
-    schemaList: state.tables.schemaList,
-    dataSources: getDataSources(state),
     currentDataSource: state.tables.currentDataSource,
     currentSchema: state.tables.currentSchema,
   };
