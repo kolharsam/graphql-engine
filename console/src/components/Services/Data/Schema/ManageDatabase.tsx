@@ -82,22 +82,16 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
               dataSource.url.from_env
             )
           ) : (
-            <ToolTip
-              id="connection-string-show"
-              placement="right"
-              message="Show connection string"
+            <span
+              className={styles.show_connection_string}
+              onClick={() => setShowUrl(true)}
             >
-              <div
-                className={styles.show_connection_string}
-                onClick={() => setShowUrl(true)}
-              >
-                <i
-                  className={`${styles.showAdminSecret} fa fa-eye`}
-                  aria-hidden="true"
-                />
-                <p style={{ marginLeft: 6 }}>Show Connection String</p>
-              </div>
-            </ToolTip>
+              <i
+                className={`${styles.showAdminSecret} fa fa-eye`}
+                aria-hidden="true"
+              />
+              <p style={{ marginLeft: 6 }}>Show Connection String</p>
+            </span>
           )}
           {showUrl && dataSource.name !== 'default' && (
             <ToolTip
