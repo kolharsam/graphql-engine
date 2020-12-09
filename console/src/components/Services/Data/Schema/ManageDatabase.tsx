@@ -20,6 +20,7 @@ import ToolTip from '../../../Common/Tooltip/Tooltip';
 import { getConfirmation } from '../../../Common/utils/jsUtils';
 import { mapDispatchToPropsEmpty } from '../../../Common/utils/reactUtils';
 import _push from '../push';
+import { getHostFromConnectionString } from './ManageDBUtils';
 
 type DatabaseListItemProps = {
   dataSource: DataSource;
@@ -71,8 +72,7 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
           <div className={styles.displayFlexContainer}>
             <b>{dataSource.name}</b>&nbsp;<p>({dataSource.driver})</p>
           </div>
-          {/* TODO: Once host related info is added, it can added here */}
-          <p style={{ marginTop: -5 }}>host</p>
+          <p style={{ marginTop: -5 }}>{getHostFromConnectionString(dataSource)}</p>
         </div>
         <span style={{ paddingLeft: 125 }}>
           {showUrl ? (
@@ -210,7 +210,7 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
         <div className={styles.manage_db_content}>
           <hr />
           <h3 className={`${styles.heading_text} ${styles.remove_pad_bottom}`}>
-            Databases
+            Connected Databases
           </h3>
           <div className={styles.data_list_container}>
             {dataSources.length ? (
