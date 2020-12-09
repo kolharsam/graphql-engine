@@ -15,7 +15,7 @@ import ToolTip from '../../../Common/Tooltip/Tooltip';
 interface ConnectDatabaseProps extends InjectedProps {}
 
 const connectionRadioName = 'connection-type';
-const defaultPGURL = "postgres://username:password@hostname:5432/database";
+const defaultPGURL = 'postgres://username:password@hostname:5432/database';
 const connectionTypes = {
   DATABASE_URL: 'DATABASE_URL',
   CONNECTION_PARAMS: 'CONNECTION_PARAMETERS',
@@ -277,7 +277,10 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
               <>
                 <label className={styles.connect_db_input_label}>
                   Environment Variable
-                  <ToolTip message="Should be a valid database connection string" placement="right" />
+                  <ToolTip
+                    message="Should be a valid database connection string"
+                    placement="right"
+                  />
                 </label>
                 <input
                   key="connect-db-env-url"
@@ -296,9 +299,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
             ) : null}
             {connectionType === connectionTypes.CONNECTION_PARAMS ? (
               <>
-                <label className={styles.connect_db_input_label}>
-                  Host
-                </label>
+                <label className={styles.connect_db_input_label}>Host</label>
                 <input
                   key="connect-db-host-name"
                   type="text"
@@ -312,9 +313,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   value={connectDBInputState.connectionParamState.host}
                   className={`form-control ${styles.connect_db_input_pad}`}
                 />
-                <label className={styles.connect_db_input_label}>
-                  Port
-                </label>
+                <label className={styles.connect_db_input_label}>Port</label>
                 <input
                   key="connect-db-port"
                   type="text"

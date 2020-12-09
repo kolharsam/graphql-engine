@@ -72,7 +72,9 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
           <div className={styles.displayFlexContainer}>
             <b>{dataSource.name}</b>&nbsp;<p>({dataSource.driver})</p>
           </div>
-          <p style={{ marginTop: -5 }}>{getHostFromConnectionString(dataSource)}</p>
+          <p style={{ marginTop: -5 }}>
+            {getHostFromConnectionString(dataSource)}
+          </p>
         </div>
         <span style={{ paddingLeft: 125 }}>
           {showUrl ? (
