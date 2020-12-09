@@ -1473,6 +1473,16 @@ code {
   color: rgb(192, 32, 32);
 }
 
+.connect_db_content {
+  display: flex;
+  flex-direction: column;
+}
+
+.connect_db_header {
+  font-weight: bold;
+  font-size: medium;
+}
+
 /* container height subtracting top header and bottom scroll bar */
 $mainContainerHeight: calc(100vh - 50px - 20px);
 
