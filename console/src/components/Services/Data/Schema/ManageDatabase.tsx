@@ -138,8 +138,16 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
       name
     );
     if (confirmation) {
-      dispatch(removeDataSource({ driver, name })).then(cb);
+      dispatch(removeDataSource({ driver, name }))
+        .then(cb)
+        .catch(err => {
+          console.error(err);
+          cb();
+        });
+      return;
     }
+    // in case there was no confirmation
+    cb();
   };
 
   const onReload = (name: string, driver: Driver, cb: () => void) => {
