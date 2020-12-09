@@ -4,7 +4,7 @@ import { connect, ConnectedProps } from 'react-redux';
 
 import Button from '../../../Common/Button/Button';
 import styles from '../../../Common/Common.scss';
-import { FixMe, ReduxState } from '../../../../types';
+import { ReduxState } from '../../../../types';
 import BreadCrumb from '../../../Common/Layout/BreadCrumb/BreadCrumb';
 // import AddDataSource from './AddDataSource';
 import { DataSource } from '../../../../metadata/types';
@@ -87,7 +87,10 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
               placement="right"
               message="Show connection string"
             >
-              <div className={styles.show_connection_string} onClick={() => setShowUrl(true)}>
+              <div
+                className={styles.show_connection_string}
+                onClick={() => setShowUrl(true)}
+              >
                 <i
                   className={`${styles.showAdminSecret} fa fa-eye`}
                   aria-hidden="true"
@@ -141,12 +144,12 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
       name
     );
     if (confirmation) {
-      (dispatch(removeDataSource({ driver, name })) as FixMe).then(cb);
+      dispatch(removeDataSource({ driver, name })).then(cb);
     }
   };
 
   const onReload = (name: string, driver: Driver, cb: () => void) => {
-    (dispatch(reloadDataSource({ driver, name })) as FixMe).then(cb);
+    dispatch(reloadDataSource({ driver, name })).then(cb);
   };
 
   // const onSubmitAddDataSource = (
@@ -189,12 +192,15 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
         <BreadCrumb breadCrumbs={crumbs} />
         <div className={styles.padd_top}>
           <div className={`${styles.display_flex} manage-db-header`}>
-            <h2
-              className={`${styles.headerText} ${styles.display_inline}`}
-            >
+            <h2 className={`${styles.headerText} ${styles.display_inline}`}>
               Manage Databases
             </h2>
-            <Button color="yellow" size="md" className={styles.add_mar_left} onClick={onClickConnectDB}>
+            <Button
+              color="yellow"
+              size="md"
+              className={styles.add_mar_left}
+              onClick={onClickConnectDB}
+            >
               Connect Database
             </Button>
           </div>
