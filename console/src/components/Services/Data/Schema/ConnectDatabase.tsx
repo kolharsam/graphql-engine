@@ -184,7 +184,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
 
   return (
     <RightContainer>
-      <Helmet title="Connect DB - Hasura" />
+      <Helmet title="Connect Database - Hasura" />
       <div className={`container-fluid ${styles.manage_dbs_page}`}>
         <BreadCrumb breadCrumbs={crumbs} />
         <div className={styles.padd_top}>
