@@ -1483,6 +1483,33 @@ code {
   font-size: medium;
 }
 
+.connect_db_radios {
+  display: flex;
+  width: 70%;
+  align-items: center;
+  height: auto;
+  justify-content: flex-start;
+  padding-top: 10px;
+  font-size: 14px;
+  input[type="radio"] {
+    margin-right: 4px;
+  }
+}
+
+.connect_db_radio_label {
+  margin-left: 4px;
+  margin-right: 24px;
+}
+
+.connect_form_layout {
+  width: 50%;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 24px;
+  border: 1px solid black;
+}
+
 /* container height subtracting top header and bottom scroll bar */
 $mainContainerHeight: calc(100vh - 50px - 20px);
 
