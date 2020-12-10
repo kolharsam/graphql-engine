@@ -93,6 +93,31 @@ const UPDATE_DB_PASSWORD = 'update_db_password';
 const UDPATE_DB_DATABASE_NAME = 'update_db_database_name';
 const RESET_INPUT_STATE = 'reset_input_state';
 
+const getErrorMessageFromMissingFields = (
+  host: string,
+  port: string,
+  username: string,
+  database: string
+) => {
+  const missingFields = [];
+  if (!host) {
+    missingFields.push('host');
+  }
+  if (!port) {
+    missingFields.push('port');
+  }
+  if (!username) {
+    missingFields.push('username');
+  }
+  if (!database) {
+    missingFields.push('database');
+  }
+
+  return `The following fields are required: ${missingFields
+    .slice(0, missingFields.length - 1)
+    .join(', ')} and ${missingFields[missingFields.length - 1]}.`;
+};
+
 const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
   const connectDBReducer = (
     state: ConnectDBState,
@@ -178,6 +203,9 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
   );
   const [connectionType, changeConnectionType] = React.useState(
     connectionTypes.DATABASE_URL
+  );
+  const [openConnectionSettings, changeConnectionsParamState] = React.useState(
+    false
   );
   const crumbs = [
     {
@@ -283,6 +311,20 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
       password,
       database,
     } = connectDBInputState.connectionParamState;
+
+    if (!host || !port || !username || !database) {
+      const errorMessage = getErrorMessageFromMissingFields(
+        host,
+        port,
+        username,
+        database
+      );
+      dispatch(
+        showErrorNotification('Some required fields are missing', errorMessage)
+      );
+      return;
+    }
+
     const connectionURL = makeConnectionStringFromConnectionParams(
       connectDBInputState.dbType,
       host,
@@ -503,13 +545,41 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                 />
               </>
             ) : null}
+            <div className={styles.connection_settings_layout}>
+              <div className={styles.connection_settings_header}>
+                <a
+                  href="#"
+                  style={{ textDecoration: 'none' }}
+                  onClick={() =>
+                    changeConnectionsParamState(!openConnectionSettings)
+                  }
+                >
+                  {openConnectionSettings ? (
+                    <i className="fa fa-caret-down" />
+                  ) : (
+                    <i className="fa fa-caret-right" />
+                  )}
+                  {'  '}
+                  Connection Settings
+                </a>
+              </div>
+              {openConnectionSettings ? (
+                <div className={styles.connection_settings_form}>
+                  <label>Max Connections</label>
+                  <input type="text" className="form-control" />
+                  <label>Idle Timeout</label>
+                  <input type="text" className="form-control" />
+                  <label>Retries</label>
+                  <input type="text" className="form-control" />
+                </div>) : null}
+            </div>
             <div className={styles.add_button_layout}>
               <Button
                 onClick={onClickConnectDatabase}
                 size="large"
                 color="yellow"
                 style={{
-                  width: '28%',
+                  width: '70%',
                 }}
               >
                 Connect Database
