@@ -6,13 +6,11 @@ import Button from '../../../Common/Button/Button';
 import styles from '../../../Common/Common.scss';
 import { ReduxState } from '../../../../types';
 import BreadCrumb from '../../../Common/Layout/BreadCrumb/BreadCrumb';
-// import AddDataSource from './AddDataSource';
 import { DataSource } from '../../../../metadata/types';
 import { Driver } from '../../../../dataSources';
 import {
   removeDataSource,
   reloadDataSource,
-  // addDataSource,
 } from '../../../../metadata/actions';
 import { RightContainer } from '../../../Common/Layout/RightContainer';
 import { getDataSources } from '../../../../metadata/selector';
@@ -156,35 +154,6 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
     dispatch(reloadDataSource({ driver, name })).then(cb);
   };
 
-  // const onSubmitAddDataSource = (
-  //   data: DataSource,
-  //   successCallback: () => void
-  // ) => {
-  //   dispatch(
-  //     addDataSource(
-  //       {
-  //         driver: data.driver,
-  //         payload: {
-  //           name: data.name.trim(),
-  //           connection_pool_settings: {
-  //             ...(data.connection_pool_settings?.idle_timeout && {
-  //               idle_timeout: data.connection_pool_settings.idle_timeout,
-  //             }),
-  //             ...(data.connection_pool_settings?.max_connections && {
-  //               max_connections: data.connection_pool_settings.max_connections,
-  //             }),
-  //             ...(data.connection_pool_settings?.retries && {
-  //               retries: data.connection_pool_settings.retries,
-  //             }),
-  //           },
-  //           dbUrl: typeof data.url === 'string' ? data.url : data.url.from_env,
-  //         },
-  //       },
-  //       successCallback
-  //     )
-  //   );
-  // };
-
   const onClickConnectDB = () => {
     dispatch(_push('/data/manage/connect'));
   };
@@ -232,7 +201,6 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
           </div>
           <hr />
         </div>
-        {/* <AddDataSource onSubmit={onSubmitAddDataSource} /> */}
       </div>
     </RightContainer>
   );
