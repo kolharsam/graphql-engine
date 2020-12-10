@@ -8,14 +8,15 @@ import { RightContainer } from '../../../Common/Layout/RightContainer';
 import BreadCrumb from '../../../Common/Layout/BreadCrumb/BreadCrumb';
 import { Driver } from '../../../../dataSources';
 import Button from '../../../Common/Button';
-
-import styles from '../../../Common/Common.scss';
 import ToolTip from '../../../Common/Tooltip/Tooltip';
+import styles from '../../../Common/Common.scss';
+import { showErrorNotification } from '../../Common/Notification';
+import { makeConnectionStringFromConnectionParams } from './ManageDBUtils';
 
 interface ConnectDatabaseProps extends InjectedProps {}
 
 const connectionRadioName = 'connection-type';
-const defaultPGURL = 'postgres://username:password@hostname:5432/database';
+const defaultPGURL = 'postgresql://username:password@hostname:5432/database';
 const connectionTypes = {
   DATABASE_URL: 'DATABASE_URL',
   CONNECTION_PARAMS: 'CONNECTION_PARAMETERS',
@@ -51,6 +52,7 @@ type ConnectDBState = {
     port: string;
     username: string;
     password: string;
+    database: string;
   };
   databaseURLState: {
     dbURL: string;
@@ -69,6 +71,7 @@ const defaultState: ConnectDBState = {
     port: '',
     username: '',
     password: '',
+    database: '',
   },
   databaseURLState: {
     dbURL: '',
@@ -86,8 +89,8 @@ const UPDATE_DB_HOST = 'update_db_host';
 const UPDATE_DB_PORT = 'update_db_port';
 const UPDATE_DB_USERNAME = 'update_db_username';
 const UPDATE_DB_PASSWORD = 'update_db_password';
-// TODO: add actions for the connection settings as well
-// const UPDATE_
+const UDPATE_DB_DATABASE_NAME = 'update_db_database_name';
+const RESET_INPUT_STATE = 'reset_input_state';
 
 const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
   const connectDBReducer = (
@@ -151,6 +154,18 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
             password: action.data,
           },
         };
+      case UDPATE_DB_DATABASE_NAME:
+        return {
+          ...state,
+          connectionParamState: {
+            ...state.connectionParamState,
+            database: action.data,
+          },
+        };
+      case RESET_INPUT_STATE:
+        return {
+          ...defaultState
+        };
       default:
         return state;
     }
@@ -180,6 +195,75 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
 
   const onChangeConnectionType = (e: ChangeEvent<HTMLInputElement>) => {
     changeConnectionType(e.target.value);
+  };
+
+  const { dispatch } = props;
+
+  const resetState = () => {
+    connectDBDispatch({
+      type: RESET_INPUT_STATE,
+      data: null,
+    });
+  };
+
+  const onClickConnectDatabase = () => {
+    if (!connectDBInputState.displayName.trim()) {
+      dispatch(
+        showErrorNotification(
+          'Display Name is a mandatory field',
+          'Please enter a valid display name.'
+        )
+      );
+      return;
+    }
+
+    if (connectionType === connectionTypes.DATABASE_URL) {
+      if (!connectDBInputState.databaseURLState.dbURL.trim()) {
+        dispatch(
+          showErrorNotification(
+            'Database URL is a mandatory field',
+            'Please enter a valid database URL'
+          )
+        );
+        return;
+      }
+      // TODO: make the call to add data source here
+      return;
+    }
+
+    if (connectionType === connectionTypes.ENV_VAR) {
+      if (!connectDBInputState.databaseURLState.dbURL.trim()) {
+        dispatch(
+          showErrorNotification(
+            'Environment Variable is a mandatory field',
+            'Please enter the name of a valid environment variable'
+          )
+        );
+        return;
+      }
+      // TODO: make the call to add data source here
+      return;
+    }
+
+    // construct the connection string from connection params and
+    // make the same call as done for connection of type DATABASE_URL
+    const {
+      host,
+      port,
+      username,
+      password,
+      database,
+    } = connectDBInputState.connectionParamState;
+    const connectionURL = makeConnectionStringFromConnectionParams(
+      connectDBInputState.dbType,
+      host,
+      port,
+      username,
+      database,
+      password
+    );
+    console.log(connectionURL);
+    resetState();
   };
 
   return (
@@ -333,7 +417,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                 <input
                   key="connect-db-username"
                   type="text"
-                  placeholder="postgres"
+                  placeholder="postgres_user"
                   onChange={e =>
                     connectDBDispatch({
                       type: UPDATE_DB_USERNAME,
@@ -349,7 +433,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                 <input
                   key="connect-db-password"
                   type="password"
-                  placeholder="postgres"
+                  placeholder="postgrespassword"
                   onChange={e =>
                     connectDBDispatch({
                       type: UPDATE_DB_PASSWORD,
@@ -359,14 +443,27 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   value={connectDBInputState.connectionParamState.password}
                   className={`form-control ${styles.connect_db_input_pad}`}
                 />
+                <label className={styles.connect_db_input_label}>
+                  Database
+                </label>
+                <input
+                  key="connect-db-password"
+                  type="text"
+                  placeholder="postgres"
+                  onChange={e =>
+                    connectDBDispatch({
+                      type: UDPATE_DB_DATABASE_NAME,
+                      data: e.target.value,
+                    })
+                  }
+                  value={connectDBInputState.connectionParamState.database}
+                  className={`form-control ${styles.connect_db_input_pad}`}
+                />
               </>
             ) : null}
             <div className={styles.add_button_layout}>
               <Button
-                onClick={() => {
-                  // TODO: add the functionality here
-                  console.log({ connectDBInputState });
-                }}
+                onClick={onClickConnectDatabase}
                 size="large"
                 color="yellow"
                 style={{
