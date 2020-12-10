@@ -12,6 +12,7 @@ import ToolTip from '../../../Common/Tooltip/Tooltip';
 import styles from '../../../Common/Common.scss';
 import { showErrorNotification } from '../../Common/Notification';
 import { makeConnectionStringFromConnectionParams } from './ManageDBUtils';
+import { addDataSource } from '../../../../metadata/actions';
 
 interface ConnectDatabaseProps extends InjectedProps {}
 
@@ -164,7 +165,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
         };
       case RESET_INPUT_STATE:
         return {
-          ...defaultState
+          ...defaultState,
         };
       default:
         return state;
@@ -227,7 +228,21 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
         );
         return;
       }
-      // TODO: make the call to add data source here
+
+      dispatch(
+        addDataSource(
+          {
+            driver: connectDBInputState.dbType,
+            payload: {
+              name: connectDBInputState.displayName.trim(),
+              dbUrl: connectDBInputState.databaseURLState.dbURL,
+              // TODO: add the connection settings here
+              connection_pool_settings: {},
+            },
+          },
+          () => resetState()
+        )
+      );
       return;
     }
 
@@ -241,7 +256,21 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
         );
         return;
       }
-      // TODO: make the call to add data source here
+
+      dispatch(
+        addDataSource(
+          {
+            driver: connectDBInputState.dbType,
+            payload: {
+              name: connectDBInputState.displayName.trim(),
+              dbUrl: connectDBInputState.envVarURLState.envVarURL,
+              // TODO: add the connection settings here
+              connection_pool_settings: {},
+            },
+          },
+          () => resetState()
+        )
+      );
       return;
     }
 
@@ -262,8 +291,21 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
       database,
       password
     );
-    console.log(connectionURL);
-    resetState();
+
+    dispatch(
+      addDataSource(
+        {
+          driver: connectDBInputState.dbType,
+          payload: {
+            name: connectDBInputState.displayName.trim(),
+            dbUrl: connectionURL,
+            // TODO: add the connection settings here
+            connection_pool_settings: {},
+          },
+        },
+        () => resetState()
+      )
+    );
   };
 
   return (
