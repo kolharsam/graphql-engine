@@ -1521,10 +1521,29 @@ code {
 }
 
 .add_button_layout {
-  width: 100%;
+  width: 40%;
   display: flex;
   justify-content: flex-end;
   margin-top: 10px;
+  align-self: flex-end;
+}
+
+.connection_settings_layout {
+  width: 50%;
+  margin: 10px 0px;
+}
+
+.connection_settings_header {
+  font-weight: bold;
+  border: none;
+  outline: none;
+}
+
+.connection_settings_form {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
 }
 
 /* container height subtracting top header and bottom scroll bar */
