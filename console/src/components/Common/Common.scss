@@ -1529,7 +1529,7 @@ code {
 }
 
 .connection_settings_layout {
-  width: 50%;
+  width: 100%;
   margin: 10px 0px;
 }
 
@@ -1540,10 +1540,21 @@ code {
 }
 
 .connection_settings_form {
-  width: 50%;
+  display: flex;
+  flex-direction: row;
+  margin-top: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.connnection_settings_form_input_layout {
   display: flex;
   flex-direction: column;
-  margin-top: 12px;
+  align-items: center;
+}
+
+.connnection_settings_form_input {
+  width: 65%;
 }
 
 /* container height subtracting top header and bottom scroll bar */
