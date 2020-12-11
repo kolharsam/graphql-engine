@@ -173,7 +173,7 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
   };
 
   const onEdit = (dbName: string) => {
-    dispatch(_push(`/data/manage/edit?db=${dbName}`));
+    dispatch(_push(`/data/manage/edit/${dbName}`));
   };
 
   return (
