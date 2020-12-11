@@ -28,14 +28,17 @@ const connectionRadios = [
   {
     value: connectionTypes.CONNECTION_PARAMS,
     title: 'Connection Parameters',
+    disableOnEdit: true,
   },
   {
     value: connectionTypes.DATABASE_URL,
     title: 'Database URL',
+    disableOnEdit: false,
   },
   {
     value: connectionTypes.ENV_VAR,
     title: 'Environment Variable',
+    disableOnEdit: true,
   },
 ];
 
@@ -96,6 +99,7 @@ const RESET_INPUT_STATE = 'reset_input_state';
 const UPDATE_MAX_CONNECTIONS = 'update_max_connections';
 const UDPATE_IDLE_TIMEOUT = 'update_idle_timeout';
 const UPDATE_RETRIES = 'update_retries';
+const UPDATE_CONNECTION_SETTINGS = 'update_connection_settings';
 
 const getErrorMessageFromMissingFields = (
   host: string,
@@ -220,6 +224,11 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
             idle_timeout: parseInt(action.data.trim(), 10),
           },
         };
+      case UPDATE_CONNECTION_SETTINGS:
+        return {
+          ...state,
+          connectionSettings: action.data,
+        };
       default:
         return state;
     }
@@ -235,6 +244,35 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
   const [openConnectionSettings, changeConnectionsParamState] = React.useState(
     false
   );
+  const isEditState =
+    window.location.pathname.includes('edit') ||
+    window.location.pathname.indexOf('edit') !== -1;
+  const paths = window.location.pathname.split('/');
+  const editSourceName = paths[paths.length - 1];
+  const currentSourceInfo = props.sources.find(
+    source => source.name === editSourceName
+  );
+
+  React.useEffect(() => {
+    if (isEditState && currentSourceInfo) {
+      connectDBDispatch({
+        type: UPDATE_DISPLAY_NAME,
+        data: currentSourceInfo.name,
+      });
+      connectDBDispatch({
+        type: UPDATE_DB_DRIVER,
+        data: currentSourceInfo.kind ?? 'postgres',
+      });
+      connectDBDispatch({
+        type: UPDATE_DB_URL,
+        data: currentSourceInfo?.configuration?.database_url,
+      });
+      connectDBDispatch({
+        type: UPDATE_CONNECTION_SETTINGS,
+        data: currentSourceInfo.configuration?.connection_pool_settings ?? {},
+      });
+    }
+  }, [isEditState, currentSourceInfo]);
 
   const crumbs = [
     {
@@ -378,7 +416,11 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
 
   return (
     <RightContainer>
-      <Helmet title="Connect Database - Hasura" />
+      <Helmet
+        title={
+          isEditState ? 'Edit Database - Hasura' : 'Connect Database - Hasura'
+        }
+      />
       <div className={`container-fluid ${styles.manage_dbs_page}`}>
         <BreadCrumb breadCrumbs={crumbs} />
         <div className={styles.padd_top}>
@@ -400,13 +442,18 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
             onChange={onChangeConnectionType}
           >
             {connectionRadios.map(
-              (radioBtn: { value: string; title: string }) => (
+              (radioBtn: {
+                value: string;
+                title: string;
+                disableOnEdit: boolean;
+              }) => (
                 <label className={styles.connect_db_radio_label}>
                   <input
                     type="radio"
                     value={radioBtn.value}
                     name={connectionRadioName}
                     checked={connectionType === radioBtn.value}
+                    disabled={isEditState === radioBtn.disableOnEdit}
                   />
                   {radioBtn.title}
                 </label>
@@ -464,6 +511,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   value={connectDBInputState.databaseURLState.dbURL}
                   className={`form-control ${styles.connect_db_input_pad}`}
                   placeholder={defaultPGURL}
+                  disabled={isEditState}
                 />
               </>
             ) : null}
@@ -672,7 +720,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   width: '70%',
                 }}
               >
-                Connect Database
+                {!isEditState ? 'Connect Database' : 'Edit Connection'}
               </Button>
             </div>
           </div>
@@ -686,6 +734,7 @@ const mapStateToProps = (state: ReduxState) => {
   return {
     currentDataSource: state.tables.currentDataSource,
     currentSchema: state.tables.currentSchema,
+    sources: state.metadata.metadataObject?.sources ?? [],
   };
 };
 
