@@ -22,10 +22,13 @@ import { getHostFromConnectionString } from './ManageDBUtils';
 
 type DatabaseListItemProps = {
   dataSource: DataSource;
+  onEdit: (dbName: string) => void;
   onReload: (name: string, driver: Driver, cb: () => void) => void;
   onRemove: (name: string, driver: Driver, cb: () => void) => void;
 };
+
 const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
+  onEdit,
   onReload,
   onRemove,
   dataSource,
@@ -37,6 +40,17 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
   return (
     <div className={styles.db_list_item}>
       <div className={styles.db_item_actions}>
+        {dataSource.name !== 'default' && (
+          <Button
+            className={styles.db_list_content}
+            size="xs"
+            color="white"
+            style={{ marginRight: '10px', marginLeft: '0px' }}
+            onClick={() => onEdit(dataSource.name)}
+          >
+            Edit
+          </Button>
+        )}
         <Button
           size="xs"
           color="white"
@@ -158,6 +172,10 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
     dispatch(_push('/data/manage/connect'));
   };
 
+  const onEdit = (dbName: string) => {
+    dispatch(_push(`/data/manage/edit?db=${dbName}`));
+  };
+
   return (
     <RightContainer>
       <Helmet title="Manage - Data | Hasura" />
@@ -189,6 +207,7 @@ const ManageDatabase: React.FC<ManageDatabaseProps> = ({
                 <DatabaseListItem
                   key={data.name}
                   dataSource={data}
+                  onEdit={onEdit}
                   onReload={onReload}
                   onRemove={onRemove}
                 />
