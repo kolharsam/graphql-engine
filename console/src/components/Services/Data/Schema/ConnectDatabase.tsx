@@ -12,7 +12,8 @@ import ToolTip from '../../../Common/Tooltip/Tooltip';
 import styles from '../../../Common/Common.scss';
 import { showErrorNotification } from '../../Common/Notification';
 import { makeConnectionStringFromConnectionParams } from './ManageDBUtils';
-import { addDataSource } from '../../../../metadata/actions';
+import { addDataSource, editDataSource } from '../../../../metadata/actions';
+import _push from '../push';
 
 interface ConnectDatabaseProps extends InjectedProps {}
 
@@ -252,6 +253,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
   const currentSourceInfo = props.sources.find(
     source => source.name === editSourceName
   );
+  const oldName = currentSourceInfo?.name;
 
   React.useEffect(() => {
     if (isEditState && currentSourceInfo) {
@@ -308,6 +310,27 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
         showErrorNotification(
           'Display Name is a mandatory field',
           'Please enter a valid display name.'
+        )
+      );
+      return;
+    }
+
+    if (isEditState) {
+      dispatch(
+        editDataSource(
+          oldName,
+          {
+            driver: connectDBInputState.dbType,
+            payload: {
+              name: connectDBInputState.displayName.trim(),
+              dbUrl: connectDBInputState.databaseURLState.dbURL,
+              connection_pool_settings: connectDBInputState.connectionSettings,
+            },
+          },
+          () => {
+            resetState();
+            dispatch(_push('/data/manage'));
+          }
         )
       );
       return;
@@ -453,7 +476,9 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                     value={radioBtn.value}
                     name={connectionRadioName}
                     checked={connectionType === radioBtn.value}
-                    disabled={isEditState === radioBtn.disableOnEdit}
+                    disabled={
+                      isEditState === radioBtn.disableOnEdit && isEditState
+                    }
                   />
                   {radioBtn.title}
                 </label>
