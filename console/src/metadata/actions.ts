@@ -191,7 +191,8 @@ export const exportMetadata = (
 
 export const addDataSource = (
   data: AddDataSourceRequest['data'],
-  successCb: () => void
+  successCb: () => void,
+  skipNotification = false
 ): Thunk<Promise<void | ReduxState>, MetadataActions> => (
   dispatch,
   getState
@@ -209,7 +210,9 @@ export const addDataSource = (
   return dispatch(requestAction(Endpoints.metadata, options))
     .then(() => {
       successCb();
-      dispatch(showSuccessNotification('Data source added successfully!'));
+      if (!skipNotification) {
+        dispatch(showSuccessNotification('Data source added successfully!'));
+      }
       dispatch(exportMetadata());
       dispatch({
         type: UPDATE_CURRENT_DATA_SOURCE,
@@ -219,12 +222,16 @@ export const addDataSource = (
     })
     .catch(err => {
       console.error(err);
-      dispatch(showErrorNotification('Add data source failed', null, err));
+      if (!skipNotification) {
+        dispatch(showErrorNotification('Add data source failed', null, err));
+      }
+      return err;
     });
 };
 
 export const removeDataSource = (
-  data: RemoveDataSourceRequest['data']
+  data: RemoveDataSourceRequest['data'],
+  skipNotification = false
 ): Thunk<Promise<void | ReduxState>, MetadataActions> => (
   dispatch,
   getState
@@ -248,13 +255,66 @@ export const removeDataSource = (
           source: sources.length ? sources[0].name : '',
         });
       }
-      dispatch(showSuccessNotification('Data source removed successfully!'));
+      if (!skipNotification) {
+        dispatch(showSuccessNotification('Data source removed successfully!'));
+      }
       dispatch(exportMetadata());
       return getState();
     })
     .catch(err => {
       console.error(err);
-      dispatch(showErrorNotification('Remove data source failed', null, err));
+      if (!skipNotification) {
+        dispatch(showErrorNotification('Remove data source failed', null, err));
+      }
+      return err;
+    });
+};
+
+export const editDataSource = (
+  oldName: string | undefined,
+  data: AddDataSourceRequest['data'],
+  onSuccessCb: () => void
+): Thunk<Promise<void | ReduxState>, MetadataActions> => dispatch => {
+  return dispatch(
+    removeDataSource(
+      { driver: data.driver, name: oldName ?? data.payload.name },
+      true
+    )
+  )
+    .then(() => {
+      // FIXME?: There might be a problem when or if the metadata is inconsistent,
+      // we should be providing a better error message for the same
+      dispatch(
+        addDataSource(
+          data,
+          () => {
+            dispatch(
+              showSuccessNotification(
+                'Successfully updated datasource details.'
+              )
+            );
+            onSuccessCb();
+          },
+          true
+        )
+      ).catch(err => {
+        console.error(err);
+        dispatch(
+          showErrorNotification(
+            'Failed to edit data source',
+            'There was a problem in editing the details of the datasource'
+          )
+        );
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      dispatch(
+        showErrorNotification(
+          'Failed to edit data source',
+          'There was a problem in editing the details of the datasource'
+        )
+      );
     });
 };
 
