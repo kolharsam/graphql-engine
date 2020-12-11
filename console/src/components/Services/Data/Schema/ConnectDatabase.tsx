@@ -40,8 +40,8 @@ const connectionRadios = [
 ];
 
 type ConnectionSettings = {
-  maxConnections?: number;
-  idleTimeout?: number;
+  max_connections?: number;
+  idle_timeout?: number;
   retries?: number;
 };
 
@@ -61,7 +61,7 @@ type ConnectDBState = {
   envVarURLState: {
     envVarURL: string;
   };
-  connectionSettings?: ConnectionSettings;
+  connectionSettings: ConnectionSettings;
 };
 
 const defaultState: ConnectDBState = {
@@ -80,6 +80,7 @@ const defaultState: ConnectDBState = {
   envVarURLState: {
     envVarURL: '',
   },
+  connectionSettings: {},
 };
 
 const UPDATE_DISPLAY_NAME = 'update_display_name';
@@ -92,6 +93,9 @@ const UPDATE_DB_USERNAME = 'update_db_username';
 const UPDATE_DB_PASSWORD = 'update_db_password';
 const UDPATE_DB_DATABASE_NAME = 'update_db_database_name';
 const RESET_INPUT_STATE = 'reset_input_state';
+const UPDATE_MAX_CONNECTIONS = 'update_max_connections';
+const UDPATE_IDLE_TIMEOUT = 'update_idle_timeout';
+const UPDATE_RETRIES = 'update_retries';
 
 const getErrorMessageFromMissingFields = (
   host: string,
@@ -192,6 +196,30 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
         return {
           ...defaultState,
         };
+      case UPDATE_MAX_CONNECTIONS:
+        return {
+          ...state,
+          connectionSettings: {
+            ...state.connectionSettings,
+            max_connections: parseInt(action.data.trim(), 10),
+          },
+        };
+      case UPDATE_RETRIES:
+        return {
+          ...state,
+          connectionSettings: {
+            ...state.connectionSettings,
+            retries: parseInt(action.data.trim(), 10),
+          },
+        };
+      case UDPATE_IDLE_TIMEOUT:
+        return {
+          ...state,
+          connectionSettings: {
+            ...state.connectionSettings,
+            idle_timeout: parseInt(action.data.trim(), 10),
+          },
+        };
       default:
         return state;
     }
@@ -207,6 +235,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
   const [openConnectionSettings, changeConnectionsParamState] = React.useState(
     false
   );
+
   const crumbs = [
     {
       title: 'Data',
@@ -264,8 +293,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
             payload: {
               name: connectDBInputState.displayName.trim(),
               dbUrl: connectDBInputState.databaseURLState.dbURL,
-              // TODO: add the connection settings here
-              connection_pool_settings: {},
+              connection_pool_settings: connectDBInputState.connectionSettings,
             },
           },
           () => resetState()
@@ -292,8 +320,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
             payload: {
               name: connectDBInputState.displayName.trim(),
               dbUrl: connectDBInputState.envVarURLState.envVarURL,
-              // TODO: add the connection settings here
-              connection_pool_settings: {},
+              connection_pool_settings: connectDBInputState.connectionSettings,
             },
           },
           () => resetState()
@@ -341,8 +368,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
           payload: {
             name: connectDBInputState.displayName.trim(),
             dbUrl: connectionURL,
-            // TODO: add the connection settings here
-            connection_pool_settings: {},
+            connection_pool_settings: connectDBInputState.connectionSettings,
           },
         },
         () => resetState()
@@ -565,13 +591,77 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
               </div>
               {openConnectionSettings ? (
                 <div className={styles.connection_settings_form}>
-                  <label>Max Connections</label>
-                  <input type="text" className="form-control" />
-                  <label>Idle Timeout</label>
-                  <input type="text" className="form-control" />
-                  <label>Retries</label>
-                  <input type="text" className="form-control" />
-                </div>) : null}
+                  <div
+                    className={styles.connnection_settings_form_input_layout}
+                  >
+                    <label>
+                      <b>Max Connections</b>
+                    </label>
+                    <input
+                      type="number"
+                      className={`form-control ${styles.connnection_settings_form_input}`}
+                      placeholder="50"
+                      value={
+                        connectDBInputState.connectionSettings
+                          ?.max_connections ?? undefined
+                      }
+                      onChange={e =>
+                        connectDBDispatch({
+                          type: UPDATE_MAX_CONNECTIONS,
+                          data: e.target.value,
+                        })
+                      }
+                      min="0"
+                    />
+                  </div>
+                  <div
+                    className={styles.connnection_settings_form_input_layout}
+                  >
+                    <label>
+                      <b>Idle Timeout</b>
+                    </label>
+                    <input
+                      type="number"
+                      className={`form-control ${styles.connnection_settings_form_input}`}
+                      placeholder="180"
+                      value={
+                        connectDBInputState.connectionSettings?.idle_timeout ??
+                        undefined
+                      }
+                      onChange={e =>
+                        connectDBDispatch({
+                          type: UDPATE_IDLE_TIMEOUT,
+                          data: e.target.value,
+                        })
+                      }
+                      min="0"
+                    />
+                  </div>
+                  <div
+                    className={styles.connnection_settings_form_input_layout}
+                  >
+                    <label>
+                      <b>Retries</b>
+                    </label>
+                    <input
+                      type="number"
+                      className={`form-control ${styles.connnection_settings_form_input}`}
+                      placeholder="1"
+                      value={
+                        connectDBInputState.connectionSettings?.retries ??
+                        undefined
+                      }
+                      onChange={e =>
+                        connectDBDispatch({
+                          type: UPDATE_RETRIES,
+                          data: e.target.value,
+                        })
+                      }
+                      min="0"
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
             <div className={styles.add_button_layout}>
               <Button
