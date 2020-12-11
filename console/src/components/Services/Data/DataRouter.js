@@ -54,6 +54,14 @@ const makeDataRouter = (
         path="schema/manage/connect"
         component={ConnectedDatabaseConnectPage}
       />
+      <Route
+        path="manage/edit/:databaseName"
+        component={ConnectedDatabaseConnectPage}
+      />
+      <Route
+        path="schema/manage/edit/:databaseName"
+        component={ConnectedDatabaseConnectPage}
+      />
       <Route path=":source" component={ConnectedDataSourceContainer}>
         <Route path="sql" component={rawSQLConnector(connect)} />
         <Route path="schema">
