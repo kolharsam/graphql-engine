@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, InputHTMLAttributes } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import Helmet from 'react-helmet';
 
@@ -8,12 +8,12 @@ import { RightContainer } from '../../../Common/Layout/RightContainer';
 import BreadCrumb from '../../../Common/Layout/BreadCrumb/BreadCrumb';
 import { Driver } from '../../../../dataSources';
 import Button from '../../../Common/Button';
-import ToolTip from '../../../Common/Tooltip/Tooltip';
-import styles from '../../../Common/Common.scss';
 import { showErrorNotification } from '../../Common/Notification';
 import { makeConnectionStringFromConnectionParams } from './ManageDBUtils';
 import { addDataSource, editDataSource } from '../../../../metadata/actions';
 import _push from '../push';
+
+import styles from '../../../Common/Common.scss';
 
 interface ConnectDatabaseProps extends InjectedProps {}
 
@@ -172,6 +172,24 @@ const connectDataSource = (
     )
   );
 };
+
+interface CommonInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  labelInBold?: boolean;
+}
+
+const CommonInput: React.FC<CommonInputProps> = props => (
+  <>
+    <label className={props.labelInBold ? '' : styles.connect_db_input_label}>
+      {props?.labelInBold ? <b>{props.label}</b> : props.label}
+    </label>
+    <input
+      type="text"
+      className={`form-control ${styles.connect_db_input_pad}`}
+      {...props}
+    />
+  </>
+);
 
 const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
   const connectDBReducer = (
@@ -335,7 +353,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
       url: '/data/manage',
     },
     {
-      title: 'Connect Database',
+      title: `${isEditState ? 'Edit Connection' : 'Connect DataSource'}`,
       url: '#',
     },
   ];
@@ -514,16 +532,12 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
             )}
           </div>
           <div className={styles.connect_form_layout}>
-            <label className={styles.connect_db_input_label}>
-              Database Name
-            </label>
-            <input
+            <CommonInput
               key="connect-display-name"
-              type="text"
               name={UPDATE_DISPLAY_NAME}
               onChange={onChangeConnectionInput}
               value={connectDBInputState.displayName}
-              className={`form-control ${styles.connect_db_input_pad}`}
+              label="Database Name"
               placeholder="Database Name"
             />
             <label className={styles.connect_db_input_label}>
@@ -540,99 +554,68 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
               <option value="mysql">MySQL</option>
             </select>
             {connectionType === connectionTypes.DATABASE_URL ? (
-              <>
-                <label className={styles.connect_db_input_label}>
-                  Database URL
-                </label>
-                <input
-                  key="connect-db-url"
-                  type="text"
-                  name={UPDATE_DB_URL}
-                  onChange={onChangeConnectionInput}
-                  value={connectDBInputState.databaseURLState.dbURL}
-                  className={`form-control ${styles.connect_db_input_pad}`}
-                  placeholder={defaultPGURL}
-                  disabled={isEditState}
-                />
-              </>
+              <CommonInput
+                key="connect-db-url"
+                label="Database URL"
+                name={UPDATE_DB_URL}
+                onChange={onChangeConnectionInput}
+                value={connectDBInputState.databaseURLState.dbURL}
+                placeholder={defaultPGURL}
+                disabled={isEditState}
+              />
             ) : null}
             {connectionType === connectionTypes.ENV_VAR ? (
-              <>
-                <label className={styles.connect_db_input_label}>
-                  Environment Variable
-                  <ToolTip
-                    message="Should be a valid database connection string"
-                    placement="right"
-                  />
-                </label>
-                <input
-                  key="connect-db-env-url"
-                  type="text"
-                  placeholder={defaultPGURL}
-                  name={UPDATE_DB_URL_ENV_VAR}
-                  onChange={onChangeConnectionInput}
-                  value={connectDBInputState.envVarURLState.envVarURL}
-                  className={`form-control ${styles.connect_db_input_pad}`}
-                />
-              </>
+              <CommonInput
+                key="connect-db-env-url"
+                label="Environment Variable"
+                placeholder={defaultPGURL}
+                name={UPDATE_DB_URL_ENV_VAR}
+                onChange={onChangeConnectionInput}
+                value={connectDBInputState.envVarURLState.envVarURL}
+              />
             ) : null}
             {connectionType === connectionTypes.CONNECTION_PARAMS ? (
               <>
-                <label className={styles.connect_db_input_label}>Host</label>
-                <input
+                <CommonInput
+                  label="Host"
                   key="connect-db-host-name"
-                  type="text"
                   placeholder="localhost"
                   name={UPDATE_DB_HOST}
                   onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.host}
-                  className={`form-control ${styles.connect_db_input_pad}`}
                 />
-                <label className={styles.connect_db_input_label}>Port</label>
-                <input
+                <CommonInput
+                  label="Port"
                   key="connect-db-port"
-                  type="text"
                   placeholder="5432"
                   name={UPDATE_DB_PORT}
                   onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.port}
-                  className={`form-control ${styles.connect_db_input_pad}`}
                 />
-                <label className={styles.connect_db_input_label}>
-                  Username
-                </label>
-                <input
+                <CommonInput
                   key="connect-db-username"
-                  type="text"
+                  label="Username"
                   placeholder="postgres_user"
                   name={UPDATE_DB_USERNAME}
                   onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.username}
-                  className={`form-control ${styles.connect_db_input_pad}`}
                 />
-                <label className={styles.connect_db_input_label}>
-                  Password
-                </label>
-                <input
+                <CommonInput
+                  label="Password"
                   key="connect-db-password"
                   type="password"
                   placeholder="postgrespassword"
                   name={UPDATE_DB_PASSWORD}
                   onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.password}
-                  className={`form-control ${styles.connect_db_input_pad}`}
                 />
-                <label className={styles.connect_db_input_label}>
-                  Database
-                </label>
-                <input
+                <CommonInput
                   key="connect-db-database-name"
-                  type="text"
+                  label="Database Name"
                   placeholder="postgres"
                   name={UDPATE_DB_DATABASE_NAME}
                   onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.database}
-                  className={`form-control ${styles.connect_db_input_pad}`}
                 />
               </>
             ) : null}
@@ -659,10 +642,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   <div
                     className={styles.connnection_settings_form_input_layout}
                   >
-                    <label>
-                      <b>Max Connections</b>
-                    </label>
-                    <input
+                    <CommonInput
+                      label="Max Connections"
                       type="number"
                       className={`form-control ${styles.connnection_settings_form_input}`}
                       placeholder="50"
@@ -673,15 +654,14 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                       name={UPDATE_MAX_CONNECTIONS}
                       onChange={onChangeConnectionInput}
                       min="0"
+                      labelInBold
                     />
                   </div>
                   <div
                     className={styles.connnection_settings_form_input_layout}
                   >
-                    <label>
-                      <b>Idle Timeout</b>
-                    </label>
-                    <input
+                    <CommonInput
+                      label="Idle Timeout"
                       type="number"
                       className={`form-control ${styles.connnection_settings_form_input}`}
                       placeholder="180"
@@ -692,15 +672,14 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                       name={UDPATE_IDLE_TIMEOUT}
                       onChange={onChangeConnectionInput}
                       min="0"
+                      labelInBold
                     />
                   </div>
                   <div
                     className={styles.connnection_settings_form_input_layout}
                   >
-                    <label>
-                      <b>Retries</b>
-                    </label>
-                    <input
+                    <CommonInput
+                      label="Retries"
                       type="number"
                       className={`form-control ${styles.connnection_settings_form_input}`}
                       placeholder="1"
@@ -711,6 +690,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                       name={UPDATE_RETRIES}
                       onChange={onChangeConnectionInput}
                       min="0"
+                      labelInBold
                     />
                   </div>
                 </div>
