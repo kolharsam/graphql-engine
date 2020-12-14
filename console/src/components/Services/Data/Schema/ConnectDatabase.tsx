@@ -454,6 +454,17 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
     );
   };
 
+  const onChangeConnectionInput = (
+    e:
+      | React.ChangeEvent<HTMLInputElement>
+      | React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    connectDBDispatch({
+      type: e.target.name,
+      data: e.target.value,
+    });
+  };
+
   return (
     <RightContainer>
       <Helmet
@@ -509,12 +520,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
             <input
               key="connect-display-name"
               type="text"
-              onChange={e =>
-                connectDBDispatch({
-                  type: UPDATE_DISPLAY_NAME,
-                  data: e.target.value,
-                })
-              }
+              name={UPDATE_DISPLAY_NAME}
+              onChange={onChangeConnectionInput}
               value={connectDBInputState.displayName}
               className={`form-control ${styles.connect_db_input_pad}`}
               placeholder="Database Name"
@@ -525,12 +532,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
             <select
               key="connect-db-type"
               value={connectDBInputState.dbType}
-              onChange={e => {
-                connectDBDispatch({
-                  type: UPDATE_DB_DRIVER,
-                  data: e.target.value,
-                });
-              }}
+              name={UPDATE_DB_DRIVER}
+              onChange={onChangeConnectionInput}
               className={`form-control ${styles.connect_db_input_pad}`}
             >
               <option value="postgres">Postgres</option>
@@ -544,12 +547,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                 <input
                   key="connect-db-url"
                   type="text"
-                  onChange={e =>
-                    connectDBDispatch({
-                      type: UPDATE_DB_URL,
-                      data: e.target.value,
-                    })
-                  }
+                  name={UPDATE_DB_URL}
+                  onChange={onChangeConnectionInput}
                   value={connectDBInputState.databaseURLState.dbURL}
                   className={`form-control ${styles.connect_db_input_pad}`}
                   placeholder={defaultPGURL}
@@ -570,12 +569,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   key="connect-db-env-url"
                   type="text"
                   placeholder={defaultPGURL}
-                  onChange={e =>
-                    connectDBDispatch({
-                      type: UPDATE_DB_URL_ENV_VAR,
-                      data: e.target.value,
-                    })
-                  }
+                  name={UPDATE_DB_URL_ENV_VAR}
+                  onChange={onChangeConnectionInput}
                   value={connectDBInputState.envVarURLState.envVarURL}
                   className={`form-control ${styles.connect_db_input_pad}`}
                 />
@@ -588,12 +583,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   key="connect-db-host-name"
                   type="text"
                   placeholder="localhost"
-                  onChange={e =>
-                    connectDBDispatch({
-                      type: UPDATE_DB_HOST,
-                      data: e.target.value,
-                    })
-                  }
+                  name={UPDATE_DB_HOST}
+                  onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.host}
                   className={`form-control ${styles.connect_db_input_pad}`}
                 />
@@ -602,12 +593,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   key="connect-db-port"
                   type="text"
                   placeholder="5432"
-                  onChange={e =>
-                    connectDBDispatch({
-                      type: UPDATE_DB_PORT,
-                      data: e.target.value,
-                    })
-                  }
+                  name={UPDATE_DB_PORT}
+                  onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.port}
                   className={`form-control ${styles.connect_db_input_pad}`}
                 />
@@ -618,12 +605,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   key="connect-db-username"
                   type="text"
                   placeholder="postgres_user"
-                  onChange={e =>
-                    connectDBDispatch({
-                      type: UPDATE_DB_USERNAME,
-                      data: e.target.value,
-                    })
-                  }
+                  name={UPDATE_DB_USERNAME}
+                  onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.username}
                   className={`form-control ${styles.connect_db_input_pad}`}
                 />
@@ -634,12 +617,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   key="connect-db-password"
                   type="password"
                   placeholder="postgrespassword"
-                  onChange={e =>
-                    connectDBDispatch({
-                      type: UPDATE_DB_PASSWORD,
-                      data: e.target.value,
-                    })
-                  }
+                  name={UPDATE_DB_PASSWORD}
+                  onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.password}
                   className={`form-control ${styles.connect_db_input_pad}`}
                 />
@@ -647,15 +626,11 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                   Database
                 </label>
                 <input
-                  key="connect-db-password"
+                  key="connect-db-database-name"
                   type="text"
                   placeholder="postgres"
-                  onChange={e =>
-                    connectDBDispatch({
-                      type: UDPATE_DB_DATABASE_NAME,
-                      data: e.target.value,
-                    })
-                  }
+                  name={UDPATE_DB_DATABASE_NAME}
+                  onChange={onChangeConnectionInput}
                   value={connectDBInputState.connectionParamState.database}
                   className={`form-control ${styles.connect_db_input_pad}`}
                 />
@@ -695,12 +670,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                         connectDBInputState.connectionSettings
                           ?.max_connections ?? undefined
                       }
-                      onChange={e =>
-                        connectDBDispatch({
-                          type: UPDATE_MAX_CONNECTIONS,
-                          data: e.target.value,
-                        })
-                      }
+                      name={UPDATE_MAX_CONNECTIONS}
+                      onChange={onChangeConnectionInput}
                       min="0"
                     />
                   </div>
@@ -718,12 +689,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                         connectDBInputState.connectionSettings?.idle_timeout ??
                         undefined
                       }
-                      onChange={e =>
-                        connectDBDispatch({
-                          type: UDPATE_IDLE_TIMEOUT,
-                          data: e.target.value,
-                        })
-                      }
+                      name={UDPATE_IDLE_TIMEOUT}
+                      onChange={onChangeConnectionInput}
                       min="0"
                     />
                   </div>
@@ -741,12 +708,8 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
                         connectDBInputState.connectionSettings?.retries ??
                         undefined
                       }
-                      onChange={e =>
-                        connectDBDispatch({
-                          type: UPDATE_RETRIES,
-                          data: e.target.value,
-                        })
-                      }
+                      name={UPDATE_RETRIES}
+                      onChange={onChangeConnectionInput}
                       min="0"
                     />
                   </div>
