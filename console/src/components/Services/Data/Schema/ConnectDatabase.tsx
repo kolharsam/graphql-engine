@@ -2,7 +2,7 @@ import React, { ChangeEvent } from 'react';
 import { connect, ConnectedProps } from 'react-redux';
 import Helmet from 'react-helmet';
 
-import { ReduxState } from '../../../../types';
+import { ReduxState, Dispatch } from '../../../../types';
 import { mapDispatchToPropsEmpty } from '../../../Common/utils/reactUtils';
 import { RightContainer } from '../../../Common/Layout/RightContainer';
 import BreadCrumb from '../../../Common/Layout/BreadCrumb/BreadCrumb';
@@ -127,6 +127,52 @@ const getErrorMessageFromMissingFields = (
     .join(', ')} and ${missingFields[missingFields.length - 1]}.`;
 };
 
+const setNumberFromString = (str: string) => {
+  return parseInt(str.trim(), 10);
+};
+
+const connectDataSource = (
+  dispatch: Dispatch,
+  typeConnection: string,
+  currentState: ConnectDBState,
+  cb: () => void
+) => {
+  let databaseURL = currentState.databaseURLState.dbURL.trim();
+  if (typeConnection === connectionTypes.ENV_VAR) {
+    databaseURL = currentState.envVarURLState.envVarURL.trim();
+  } else if (typeConnection === connectionTypes.CONNECTION_PARAMS) {
+    const {
+      host,
+      port,
+      username,
+      database,
+      password,
+    } = currentState.connectionParamState;
+    databaseURL = makeConnectionStringFromConnectionParams(
+      currentState.dbType,
+      host,
+      port,
+      username,
+      database,
+      password
+    );
+  }
+
+  dispatch(
+    addDataSource(
+      {
+        driver: currentState.dbType,
+        payload: {
+          name: currentState.displayName.trim(),
+          dbUrl: databaseURL,
+          connection_pool_settings: currentState.connectionSettings,
+        },
+      },
+      cb
+    )
+  );
+};
+
 const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
   const connectDBReducer = (
     state: ConnectDBState,
@@ -206,7 +252,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
           ...state,
           connectionSettings: {
             ...state.connectionSettings,
-            max_connections: parseInt(action.data.trim(), 10),
+            max_connections: setNumberFromString(action.data),
           },
         };
       case UPDATE_RETRIES:
@@ -214,7 +260,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
           ...state,
           connectionSettings: {
             ...state.connectionSettings,
-            retries: parseInt(action.data.trim(), 10),
+            retries: setNumberFromString(action.data),
           },
         };
       case UDPATE_IDLE_TIMEOUT:
@@ -222,7 +268,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
           ...state,
           connectionSettings: {
             ...state.connectionSettings,
-            idle_timeout: parseInt(action.data.trim(), 10),
+            idle_timeout: setNumberFromString(action.data),
           },
         };
       case UPDATE_CONNECTION_SETTINGS:
@@ -255,6 +301,9 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
   );
   const oldName = currentSourceInfo?.name;
 
+  // If we're in the editing state, then we need to
+  // make sure that the already known values are in
+  // place for the editing state
   React.useEffect(() => {
     if (isEditState && currentSourceInfo) {
       connectDBDispatch({
@@ -347,18 +396,11 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
         return;
       }
 
-      dispatch(
-        addDataSource(
-          {
-            driver: connectDBInputState.dbType,
-            payload: {
-              name: connectDBInputState.displayName.trim(),
-              dbUrl: connectDBInputState.databaseURLState.dbURL,
-              connection_pool_settings: connectDBInputState.connectionSettings,
-            },
-          },
-          () => resetState()
-        )
+      connectDataSource(
+        dispatch,
+        connectionType,
+        connectDBInputState,
+        resetState
       );
       return;
     }
@@ -374,18 +416,11 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
         return;
       }
 
-      dispatch(
-        addDataSource(
-          {
-            driver: connectDBInputState.dbType,
-            payload: {
-              name: connectDBInputState.displayName.trim(),
-              dbUrl: connectDBInputState.envVarURLState.envVarURL,
-              connection_pool_settings: connectDBInputState.connectionSettings,
-            },
-          },
-          () => resetState()
-        )
+      connectDataSource(
+        dispatch,
+        connectionType,
+        connectDBInputState,
+        resetState
       );
       return;
     }
@@ -396,7 +431,6 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
       host,
       port,
       username,
-      password,
       database,
     } = connectDBInputState.connectionParamState;
 
@@ -412,28 +446,11 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
       );
       return;
     }
-
-    const connectionURL = makeConnectionStringFromConnectionParams(
-      connectDBInputState.dbType,
-      host,
-      port,
-      username,
-      database,
-      password
-    );
-
-    dispatch(
-      addDataSource(
-        {
-          driver: connectDBInputState.dbType,
-          payload: {
-            name: connectDBInputState.displayName.trim(),
-            dbUrl: connectionURL,
-            connection_pool_settings: connectDBInputState.connectionSettings,
-          },
-        },
-        () => resetState()
-      )
+    connectDataSource(
+      dispatch,
+      connectionType,
+      connectDBInputState,
+      resetState
     );
   };
 
@@ -449,7 +466,7 @@ const ConnectDatabase: React.FC<ConnectDatabaseProps> = props => {
         <div className={styles.padd_top}>
           <div className={`${styles.display_flex} manage-db-header`}>
             <h2 className={`${styles.headerText} ${styles.display_inline}`}>
-              Connect Database
+              {isEditState ? 'Edit Connection' : 'Connect Database'}
             </h2>
           </div>
         </div>
