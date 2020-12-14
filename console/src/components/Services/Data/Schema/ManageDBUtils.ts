@@ -25,11 +25,20 @@ export const makeConnectionStringFromConnectionParams = (
   database: string,
   password?: string
 ) => {
+  // trim inputs
+  const tHost = host.trim();
+  const tPort = port.trim();
+  const tUserName = username.trim();
+  const tDatabase = database.trim();
+  let tPassword = '';
+  if (password) {
+    tPassword = password.trim();
+  }
   if (dbType === 'postgres') {
     if (!password) {
-      return `postgresql://${username}@${host}:${port}/${database}`;
+      return `postgresql://${tUserName}@${tHost}:${tPort}/${tDatabase}`;
     }
-    return `postgresql://${username}:${password}@${host}:${port}/${database}`;
+    return `postgresql://${tUserName}:${tPassword}@${tHost}:${tPort}/${tDatabase}`;
   }
 
   // TODO: update this function to work for the other database drivers
