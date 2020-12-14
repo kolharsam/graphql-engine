@@ -1451,8 +1451,8 @@ code {
 }
 
 .db_list_content {
-  margin-left: 10px;
   display: inline-flex;
+  width: 30%;
 }
 
 .data_list_container {
@@ -1461,10 +1461,8 @@ code {
 }
 
 .db_item_actions {
-  width: 110px;
+  width: 14%;
   display: flex;
-  max-width: 120px;
-  justify-content: space-between;
   margin-right: 10px;
   align-items: center;
 }

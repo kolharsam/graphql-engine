@@ -42,10 +42,9 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
       <div className={styles.db_item_actions}>
         {dataSource.name !== 'default' && (
           <Button
-            className={styles.db_list_content}
             size="xs"
             color="white"
-            style={{ marginRight: '10px', marginLeft: '0px' }}
+            style={{ marginRight: '10px' }}
             onClick={() => onEdit(dataSource.name)}
           >
             Edit
@@ -65,7 +64,7 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
         </Button>
         {dataSource.name !== 'default' && (
           <Button
-            className={`${styles.db_list_content} ${styles.text_red}`}
+            className={`${styles.text_red}`}
             size="xs"
             color="white"
             onClick={() => {
@@ -74,6 +73,7 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
                 setRemoving(false)
               );
             }}
+            style={{ marginLeft: '10px' }}
           >
             {removing ? 'Removing...' : 'Remove'}
           </Button>
@@ -88,41 +88,41 @@ const DatabaseListItem: React.FC<DatabaseListItemProps> = ({
             {getHostFromConnectionString(dataSource)}
           </p>
         </div>
-        <span style={{ paddingLeft: 125 }}>
-          {showUrl ? (
-            typeof dataSource.url === 'string' ? (
-              dataSource.url
-            ) : (
-              dataSource.url.from_env
-            )
-          ) : (
-            <span
-              className={styles.show_connection_string}
-              onClick={() => setShowUrl(true)}
-            >
-              <i
-                className={`${styles.showAdminSecret} fa fa-eye`}
-                aria-hidden="true"
-              />
-              <p style={{ marginLeft: 6 }}>Show Connection String</p>
-            </span>
-          )}
-          {showUrl && dataSource.name !== 'default' && (
-            <ToolTip
-              id="connection-string-hide"
-              placement="right"
-              message="Hide connection string"
-            >
-              <i
-                className={`${styles.closeHeader} fa fa-times`}
-                aria-hidden="true"
-                onClick={() => setShowUrl(false)}
-                style={{ paddingLeft: 10 }}
-              />
-            </ToolTip>
-          )}
-        </span>
       </div>
+      <span style={{ paddingLeft: 125 }}>
+        {showUrl ? (
+          typeof dataSource.url === 'string' ? (
+            dataSource.url
+          ) : (
+            dataSource.url.from_env
+          )
+        ) : (
+          <span
+            className={styles.show_connection_string}
+            onClick={() => setShowUrl(true)}
+          >
+            <i
+              className={`${styles.showAdminSecret} fa fa-eye`}
+              aria-hidden="true"
+            />
+            <p style={{ marginLeft: 6 }}>Show Connection String</p>
+          </span>
+        )}
+        {showUrl && dataSource.name !== 'default' && (
+          <ToolTip
+            id="connection-string-hide"
+            placement="right"
+            message="Hide connection string"
+          >
+            <i
+              className={`${styles.closeHeader} fa fa-times`}
+              aria-hidden="true"
+              onClick={() => setShowUrl(false)}
+              style={{ paddingLeft: 10 }}
+            />
+          </ToolTip>
+        )}
+      </span>
     </div>
   );
 };
