@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax */
 import { createSelector } from 'reselect';
 import { FixMe, ReduxState } from '../types';
 import { TableEntry, DataSource } from './types';
@@ -25,9 +26,6 @@ export const getInitDataSource = (
   state: ReduxState
 ): { source: string; driver: Driver } => {
   const dataSources = state.metadata.metadataObject?.sources || [];
-  // .filter(
-  //   source => source.name !== 'default'
-  // );
   if (dataSources.length) {
     return {
       source: dataSources[0].name,
@@ -43,6 +41,10 @@ const getCurrentSchema = (state: ReduxState) => {
 
 const getCurrentTable = (state: ReduxState) => {
   return state.tables.currentTable;
+};
+
+export const getCurrentSource = (state: ReduxState) => {
+  return state.tables.currentDataSource;
 };
 
 const getInconsistentObjects = (state: ReduxState) => {
@@ -224,31 +226,36 @@ export const getRemoteSchemaSelector = createSelector(
   }
 );
 
-export const getEventTriggers = createSelector(
-  getDataSourceMetadata,
-  source => {
-    if (!source) return [];
-
-    return source.tables.reduce((acc, t) => {
-      const triggers: EventTrigger[] =
-        t.event_triggers?.map(trigger => ({
-          table_name: t.table.name,
-          schema_name: t.table.schema,
-          source: source.name,
-          name: trigger.name,
-          comment: '',
-          configuration: {
-            definition: trigger.definition as FixMe,
-            headers: trigger.headers || [],
-            retry_conf: trigger.retry_conf,
-            webhook: trigger.webhook || '',
-            webhook_from_env: trigger.webhook_from_env,
-          },
-        })) || [];
-      return [...triggers, ...acc];
-    }, [] as EventTrigger[]);
+export const getEventTriggers = createSelector(getMetadata, metadata => {
+  let triggersMap: EventTrigger[] = [];
+  if (!metadata) {
+    return triggersMap;
   }
-);
+
+  metadata.sources.forEach(source => {
+    triggersMap = triggersMap.concat(
+      source.tables.reduce((acc, t) => {
+        const triggers: EventTrigger[] =
+          t.event_triggers?.map(trigger => ({
+            table_name: t.table.name,
+            schema_name: t.table.schema,
+            source: source.name,
+            name: trigger.name,
+            comment: '',
+            configuration: {
+              definition: trigger.definition as FixMe,
+              headers: trigger.headers || [],
+              retry_conf: trigger.retry_conf,
+              webhook: trigger.webhook || '',
+              webhook_from_env: trigger.webhook_from_env,
+            },
+          })) || [];
+        return [...triggers, ...acc];
+      }, [] as EventTrigger[])
+    );
+  });
+  return triggersMap;
+});
 
 export const getManualEventsTriggers = createSelector(
   getEventTriggers,
@@ -302,7 +309,10 @@ export const getCronTriggers = createSelector(getMetadata, metadata => {
       name: cron.name,
       payload: cron.payload,
       retry_conf: {
-        ...cron.retry_conf,
+        num_retries: cron.retry_conf?.num_retries,
+        retry_interval_seconds: cron.retry_conf?.retry_interval_seconds,
+        timeout_seconds: cron.retry_conf?.timeout_seconds,
+        tolerance_seconds: cron.retry_conf?.tolerance_seconds,
       },
       header_conf: cron.headers,
       webhook_conf: cron.webhook,
@@ -322,10 +332,12 @@ export const getDataSources = createSelector(getMetadata, metadata => {
   metadata?.sources.forEach(source => {
     sources.push({
       name: source.name,
-      url: source.configuration?.database_url || 'HASURA_GRAPHQL_DATABASE_URL',
-      fromEnv: false, // todo
-      connection_pool_settings: source.configuration
-        ?.connection_pool_settings || {
+      url:
+        source.configuration?.connection_info.database_url ||
+        'HASURA_GRAPHQL_DATABASE_URL',
+      fromEnv: false,
+      connection_pool_settings: source.configuration?.connection_info
+        ?.pool_settings || {
         retries: 1,
         idle_timeout: 180,
         max_connections: 50,
@@ -334,7 +346,6 @@ export const getDataSources = createSelector(getMetadata, metadata => {
     });
   });
   return sources;
-  // .filter(source => source.name !== 'default');
 });
 
 export const getTablesBySource = createSelector(getMetadata, metadata => {
